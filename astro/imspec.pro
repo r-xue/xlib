@@ -1,4 +1,5 @@
-PRO IMSPEC,im,hd,ra,dec,velo,spec,psize=psize,ave=ave
+PRO IMSPEC,im,hd,ra,dec,velo,spec,psize=psize,ave=ave,$
+  silent=silent
 ;+
 ; NAME:
 ;   IMSPEC
@@ -33,7 +34,7 @@ velo=s.v
 
 if n_elements(psize) eq 0 then psize=sqrt(s.bmaj*s.bmin)*2./3.
 if psize eq 0.0 then psize=1.0
-print,"psize:",psize
+if not keyword_set(silent) then print,"psize:",psize
 
 if not keyword_set(ave) then begin 
   

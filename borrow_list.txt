@@ -1,6 +1,6 @@
 Here is a list of IDL libraries I borrow:
 
-  IDL Astronomy Libarary:   http://idlastro.gsfc.nasa.gov  <web>
+  IDL Astronomy Libarary:   http://idlastro.gsfc.nasa.gov/ftp/astron.dir.tar.gz  <web>
   Markwardt IDL Programs:   http://cow.physics.wisc.edu/~craigm/idl <web>
   idl-low-sky:              https://github.com/low-sky/idl-low-sky  <github>
   cprops:                   https://github.com/low-sky/cprops  <github>
@@ -16,3 +16,5 @@ Here is a list of IDL libraries I borrow:
   AITLIB:                   http://astro.uni-tuebingen.de/software/idl/aitlib <web>
   IDLdep:                   https://github.com/ChrisBeaumont/IDLdep <github>
   beaumont-idl-library      https://github.com/ChrisBeaumont/beaumont-idl-library <github>
+  SDSSIDL                   http://sdssidl.googlecode.com/svn/trunk <svn>
+  buieidl                   http://www.boulder.swri.edu/~buie/idl/
