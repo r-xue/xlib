@@ -67,10 +67,10 @@ g=-1.0
 bmaj1=((2*(g*b^2-a*c*g))/(b^2-a*c)/(((a-c)^2+4*b^2)^0.5-a-c))^0.5
 bmin1=((2*(g*b^2-a*c*g))/(b^2-a*c)/(-((a-c)^2+4*b^2)^0.5-a-c))^0.5
 
-
 if a lt c then bpa1=0.5*atan(2*b/(a-c))
 if a gt c then bpa1=0.5*(!dpi+atan(2*b/(a-c)))
-if a eq c then bpa1=0.0 
+if a eq c and b gt 0 then bpa1=3./4.*!dpi
+if a eq c and b le 0 then bpa1=1./4.*!dpi
 
 if bpa1 lt 0.0 then bpa1=bpa1+!dpi
 bpa1=bpa1*180./!dpi
@@ -79,11 +79,11 @@ bpa1=bpa1*180./!dpi
 END
 
 
-PRO TEST_ELLDEPROJ
+PRO TEST_DEPROJ_BEAM
 
 bmaj=100.
 bmin=100.*cos(80./180.*!dpi)
-ELLDEPROJ,bmaj,bmin,45.,45.,0.0,bmaj1,bmin1,bpa1
+DEPROJ_BEAM,bmaj,bmin,135.00001,45.0,0.0,bmaj1,bmin1,bpa1
 
 print,bmaj1,bmin1,bpa1
 

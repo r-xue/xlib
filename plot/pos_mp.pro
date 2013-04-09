@@ -36,11 +36,14 @@ sx=omargin[0]
 sy=1.-omargin[1]
 poset=[sx+dx*px+margin[0], sy-dy*(py+1)+margin[1]  , sx+dx*(px+1)-margin[0]  , sy-dy*py-margin[1] ] 
 
-if px eq 0 then px=1          ; left edge
-if px eq nxy[0]-1 then px=2   ; right edge
-if py eq 0 then py=1          ; top edge
-if py eq nxy[1]-1 then py=2   ; bottom edge
+xb=0
+yb=0
 
-return,{position:poset,xb:px,yb:py}
+if px eq 0 then xb=1          ; left edge
+if px eq nxy[0]-1 then xb=2   ; right edge
+if py eq 0 then yb=1          ; top edge
+if py eq nxy[1]-1 then yb=2   ; bottom edge
+
+return,{position:poset,xb:xb,yb:yb,px:px,py:py}
 
 END
