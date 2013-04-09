@@ -17,4 +17,3 @@ Here is a list of IDL libraries I borrow:
   IDLdep:                   https://github.com/ChrisBeaumont/IDLdep <github>
   beaumont-idl-library      https://github.com/ChrisBeaumont/beaumont-idl-library <github>
   SDSSIDL                   http://sdssidl.googlecode.com/svn/trunk <svn>
-  buieidl                   http://www.boulder.swri.edu/~buie/idl/
