@@ -28,7 +28,7 @@ ADXY,in_hd,ra,dec,x_pos,y_pos
 print, 'Deprojecting using INC of '+strtrim(incl,2)+' and PA of '+strtrim(posang,2)
 print, 'Center position in pixels: ',x_pos,y_pos
 
-out=GAL_FLAT(in,posang,incl,[x_pos,y_pos],INTERP=1)
+out=GAL_FLAT_NAN(in,posang,incl,[x_pos,y_pos],INTERP=1)
 out_hd=in_hd
 
 rd_hd, out_hd, s = h, c = c, /full
@@ -36,9 +36,6 @@ oldbmaj=h.bmaj  ; in arcsec
 oldbmin=h.bmin  ; in arcsec
 oldbpa=h.bpa   ; in degree (astro convention)
 
-print,'-->'
-print,oldbmaj,oldbmin,oldbpa
-print,'-->'
 
 if oldbmaj*oldbmin ne 0.0 then begin
   deproj_beam,oldbmaj,oldbmin,oldbpa,posang,incl,bmaj,bmin,bpa
@@ -55,7 +52,6 @@ endif
 if STRPOS(STRUPCASE(sxpar(out_hd, 'BUNIT')), 'BEAM') eq -1  then out=out*cos(incl/180.*!dpi)
 
 
-out[where(out eq 0.0,/null)]=!VALUES.F_NAN
 SXADDPAR, out_hd, 'DATAMAX', max(out,/nan)
 SXADDPAR, out_hd, 'DATAMIN', min(out,/nan)
 
