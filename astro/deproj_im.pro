@@ -25,8 +25,8 @@ ra = SXPAR(in_hd, 'CRVAL1')
 dec = SXPAR(in_hd, 'CRVAL2')
 ADXY,in_hd,ra,dec,x_pos,y_pos
 
-print, 'Deprojecting using INC of '+strtrim(incl,2)+' and PA of '+strtrim(posang,2)
-print, 'Center position in pixels: ',x_pos,y_pos
+message,/info, 'Deprojecting using INC of '+strtrim(incl,2)+' and PA of '+strtrim(posang,2)
+message,/info, 'Center position in pixels: '+strjoin([x_pos,y_pos],' ')
 
 out=GAL_FLAT_NAN(in,posang,incl,[x_pos,y_pos],INTERP=1)
 out_hd=in_hd
@@ -44,8 +44,8 @@ if oldbmaj*oldbmin ne 0.0 then begin
   SXADDPAR, out_hd, 'BPA',  bpa
   SXDELPAR, out_hd, 'BMMAX'
   SXDELPAR, out_hd, 'BMMIN'
-  print, "original      beam: "+string(oldbmaj)+','+string(oldbmin)+',   ('+string(oldbpa)+')'
-  print, "deprojected   beam: "+string(bmaj)+','+string(bmin)+',   ('+string(bpa)+')'
+  message,/info, "original      beam: "+string(oldbmaj)+','+string(oldbmin)+',   ('+string(oldbpa)+')'
+  message,/info, "deprojected   beam: "+string(bmaj)+','+string(bmin)+',   ('+string(bpa)+')'
   
 endif
 
