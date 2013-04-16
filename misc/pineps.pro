@@ -1,4 +1,4 @@
-PRO PINEPS, pdfname, epslist
+PRO PINEPS, pdfname, epslist, clean=clean
 ;+
 ; NAME:
 ;   PINEPS
@@ -12,7 +12,7 @@ PRO PINEPS, pdfname, epslist
 ;
 ; HISTORY:
 ;
-;   20110217  RX  initial version
+;   20110217  RX  introduced
 ;-
 
 fulllist=epslist+'.eps'
@@ -23,5 +23,7 @@ cmd=cmd+' -dNOPAUSE -dBATCH -q -dEPSCrop -c "<</Orientation 0>> setpagedevice " 
 cmd=cmd+psfiles
 spawn,cmd
 
+cmd="rm -rf "+psfiles
+if keyword_set(clean) then spawn,cmd
 
 END
