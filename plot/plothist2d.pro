@@ -88,9 +88,12 @@ for i=0,dim[0]-1 do begin
   endfor
 endfor
 
+
 if keyword_set(pl_cont) then begin
-if n_elements(c_color) eq 0 then c_color='green'
-contour,hist,xx,yy,/overplot,c_colors=cgcolor(c_color),clip=clip,noclip=0
+  if n_elements(c_color) eq 0 then c_color='green'
+  levs=min(hist)+(findgen(5)+1.)*(max(hist)-min(hist))/6.
+  contour,hist,xx,yy,/overplot,c_colors=cgcolor(c_color),$
+    clip=clip,noclip=0,levels=levs
 endif
 
 if n_elements(percent) ne 0 then begin
@@ -105,6 +108,8 @@ if n_elements(percent) ne 0 then begin
   contour,histlin,xx,yy,/overplot,c_colors=cgcolor(p_color),$
     levels=levs,clip=clip,noclip=0
 endif
+
+
 
 END
 
