@@ -20,3 +20,18 @@ if not keyword_set(silent) then begin
 endif
 
 END
+
+
+PRO TEST_ST_STRUCT_BUILD
+
+  ST_STRUCT_BUILD, sting, header
+  
+  ind  = (where(sting.(where(header eq 'Galaxy')) eq 'NGC4254'))[0]
+  help,ind
+  x=(sting.(where(header eq 'Galaxy')))[ind]
+  y=float(sting.(where(header eq 'RA2000 (deg)'))[ind])
+  print, x
+  help,x
+  help,y
+  
+END

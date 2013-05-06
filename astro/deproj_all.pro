@@ -35,7 +35,7 @@ PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   * extracting a dataset for plotting Katrina's figures:
 ;     deproj_all,fwhm=0.0,/kpc, select=[1,3,4],sz_temp=179,/unmsk 
 ;   * extracting a dataset for plotting a sample figure
-;     deproj_all,fwhm=0.0,/kpc, select=[2],sz_temp=650,/unmsk, ref='CGP'
+;     deproj_all,fwhm=0.0,/kpc, select=indgen(10),sz_temp=750,/unmsk, ref='CGP'
 ;
 ;   * extracting a highest-resolution dataset for i8-co-uv correlations:
 ;     deproj_all,/uv_res,select=[0,1,2,3,4,5,8,9,10,11]
@@ -62,7 +62,9 @@ PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;                 add GALEX data and IRAC4 processing
 ;   20130423  RX  add GALEX-wt images
 ;                 GALEX image units: CPS per pixel
-;   20140503  RX  rename it to deproj_all.pro and make it a general-purpose procedure 
+;   20140503  RX  rename it to deproj_all.pro and make it a general-purpose procedure
+;                 fix an issue when processing image in extensions
+;                 fix an issue when processing data from Herschel/PACS 
 ;-
 
 ;+
@@ -133,10 +135,17 @@ for ind=0,n_elements(s.(0))-1 do begin
     refhd = MK_HD([ra,dec],[sz_temp,sz_temp],1)
            
     foreach type,subtypes do begin
+      
       imgfl =type.path+type.prefix+galno+type.posfix+'.fits'
+
       if file_test(imgfl) then begin
         print,'process->'+imgfl
-        mom0 = READFITS(imgfl,mom0_hd,/silent)
+        mom0 = READFITS(imgfl,mom0_hd)
+        if n_elements(mom0) eq 1 then mom0 = READFITS(imgfl,mom0_hd,ext=1)
+        if (size(mom0))[0] gt 2 then begin
+          mom0=mom0[*,*,0]
+          SXADDPAR,mom0_hd,'NAXIS3',1
+        endif
         mkfl = type.path+type.prefix+galno+type.mask+'.fits'
         if file_test(mkfl) eq 1 and not keyword_set(unmsk) then begin
            mk = READFITS(mkfl,mk_hd,/silent)
