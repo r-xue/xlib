@@ -3,8 +3,13 @@ PRO PLOTHIST1D,x,xbin,$
   det=det,$
   xlog=xlog,$
   clip=clip,$
-  rot=rot
-  
+  rot=rot,$
+  nhist=nhist,$
+  _extra=_extra
+
+if not keyword_set(xmin) then xmin=min(x,/nan)
+if not keyword_set(xmax) then xmax=min(x,/nan)
+
 if keyword_set(xlog) then begin
   tag=where(x eq x and x gt 0,/null)
   hist_x=alog10(x[tag])
@@ -31,6 +36,8 @@ if n_elements(det) ne 0 then begin
     hist_err=binomial_err(hist_det,hist,cf_level=0.99)
     hist=hist_det/(hist>1.0)
 endif
+print,min(hist),max(hist)
+if keyword_set(nhist) then hist=float(hist)/max(hist) 
 
 dim=size(hist,/d)
 xc=hist_xmin+(indgen(dim[0]+1))*xbin
@@ -64,10 +71,15 @@ if keyword_set(rot) then begin
   ye=xe
   xe=tmp
 endif
-polyfill,xc,yc,color=cgcolor('black'),orien=-45,/line_fill,noclip=0
-oplot,xc,yc,color=cgcolor('black'),linestyle=0
+
+
+; default extra: color=cgcolor('black'),orien=-45,/line_fill
+polyfill,xc,yc,noclip=0,_extra=_extra
+oplot,xc,yc,linestyle=0,_extra=_extra
+if keyword_set(det) then begin
 oploterror,xp,yp,xe[*,0],ye[*,0],/lobar,psym=3,/nohat
 oploterror,xp,yp,xe[*,1],ye[*,1],/hibar,psym=3,/nohat
+endif
 
 END
 

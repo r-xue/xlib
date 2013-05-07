@@ -35,7 +35,7 @@ PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   * extracting a dataset for plotting Katrina's figures:
 ;     deproj_all,fwhm=0.0,/kpc, select=[1,3,4],sz_temp=179,/unmsk 
 ;   * extracting a dataset for plotting a sample figure
-;     deproj_all,fwhm=0.0,/kpc, select=indgen(10),sz_temp=750,/unmsk, ref='CGP'
+;     deproj_all,fwhm=0.0,/kpc, select=indgen(13),sz_temp=750,/unmsk, ref='CGP'
 ;
 ;   * extracting a highest-resolution dataset for i8-co-uv correlations:
 ;     deproj_all,/uv_res,select=[0,1,2,3,4,5,8,9,10,11]
