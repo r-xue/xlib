@@ -1,7 +1,8 @@
 PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
     hi_res=hi_res,uv_res=uv_res,$
     select=select,ref=ref,$
-    unmsk=unmsk, sz_temp=sz_temp,wtsm=wtsm
+    unmsk=unmsk, sz_temp=sz_temp,wtsm=wtsm,$
+    gselect=gselect
 ;+
 ; NAME:
 ;   deproj_all
@@ -36,6 +37,8 @@ PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;     deproj_all,fwhm=0.0,/kpc, select=[1,3,4],sz_temp=179,/unmsk 
 ;   * extracting a dataset for plotting a sample figure
 ;     deproj_all,fwhm=0.0,/kpc, select=indgen(13),sz_temp=750,/unmsk, ref='CGP'
+;     M51 dataset
+;     deproj_all,fwhm=15.0, select=indgen(19),sz_temp=750,/unmsk, ref='CGP',gselect=6
 ;
 ;   * extracting a highest-resolution dataset for i8-co-uv correlations:
 ;     deproj_all,/uv_res,select=[0,1,2,3,4,5,8,9,10,11]
@@ -80,6 +83,8 @@ if n_elements(sz_temp) eq 0 then sz_temp=1024
 
 ; READ THE PARAMETERS FILE
 gal_struct_build,ref,s,h
+if n_elements(gselect) eq 0 then gselect=indgen(n_elements(s.(0)))
+
 
 ; LOAD PATH/FILENAME INFO
 
@@ -87,7 +92,8 @@ if n_elements(select) eq 0 then select=indgen(n_elements(types))
 types=deproj_fileinfo(ref)
 subtypes=types[select]
 
-for ind=0,n_elements(s.(0))-1 do begin
+
+foreach ind,gselect do begin
   
     gal=s.(where(h eq 'Galaxy'))[ind]
     galno  = strmid(gal, 3, 4)
@@ -137,7 +143,7 @@ for ind=0,n_elements(s.(0))-1 do begin
     foreach type,subtypes do begin
       
       imgfl =type.path+type.prefix+galno+type.posfix+'.fits'
-
+      print,imgfl
       if file_test(imgfl) then begin
         print,'process->'+imgfl
         mom0 = READFITS(imgfl,mom0_hd)
@@ -152,6 +158,8 @@ for ind=0,n_elements(s.(0))-1 do begin
            mom0[where(mk ne 0,/null)]=!VALUES.F_NAN
         endif
         errm=0
+        
+        
         if STRPOS(type.posfix, '.emom0') ne -1 then errm=1
         if STRPOS(type.posfix, '.4e') ne -1 then errm=1
         if STRPOS(type.posfix, '.1e') ne -1 then errm=1
@@ -185,6 +193,6 @@ for ind=0,n_elements(s.(0))-1 do begin
       endif
     endforeach
 
-endfor
+endforeach
 
 END

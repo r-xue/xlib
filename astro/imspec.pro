@@ -62,7 +62,7 @@ endif else begin
 endelse
 
 jypb2k=1.0
-if STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'BEAM') ne -1 then jypb2k=s.jypb2k
+if STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'JY/B') ne -1 then jypb2k=s.jypb2k
 spec=spec*jypb2k
 
 END

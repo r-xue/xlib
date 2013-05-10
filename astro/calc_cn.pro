@@ -36,9 +36,12 @@ FUNCTION CALC_CN, INT, LINE, HD=HD, $
 jypb2k=1.0
 if  n_elements(hd) ne 0 then begin
   rd_hd, hd, s = s, c = c, /full
-  if STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'BEAM') ne -1 then jypb2k=s.jypb2k
+  if STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'JY/B') ne -1 then jypb2k=s.jypb2k
 endif
 den=int*jypb2k
+
+; IF not in KM/S then it should be in m/s....
+if STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'KM/S') eq -1 then den=den/1000.0
 
 ; KEVIN->CM^-2
 if STRUPCASE(LINE) eq 'CO1-0' then begin
