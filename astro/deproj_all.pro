@@ -1,5 +1,5 @@
 PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
-    hi_res=hi_res,uv_res=uv_res,$
+    hi_res=hi_res,uv_res=uv_res,pacs3_res=pacs3_res,$
     select=select,ref=ref,$
     unmsk=unmsk, sz_temp=sz_temp,wtsm=wtsm,$
     gselect=gselect
@@ -39,6 +39,7 @@ PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;     deproj_all,fwhm=0.0,/kpc, select=indgen(13),sz_temp=750,/unmsk, ref='CGP'
 ;     M51 dataset
 ;     deproj_all,fwhm=15.0, select=indgen(19),sz_temp=750,/unmsk, ref='CGP',gselect=6
+;     deproj_all,/pacs3_res,select=[0,1,2,3,7,9],sz_temp=750,ref='CGP',gselect=0
 ;
 ;   * extracting a highest-resolution dataset for i8-co-uv correlations:
 ;     deproj_all,/uv_res,select=[0,1,2,3,4,5,8,9,10,11]
@@ -131,6 +132,15 @@ foreach ind,gselect do begin
       fwhm=test_bmin>test_bmaj+0.2
       kpc=0
       print, "-->  choosing UV deprojected resolution: "+string(fwhm)
+    endif
+    
+    if keyword_set(pacs3_res) then begin
+      fwhm=0
+      m=where(types.tag eq 'pacs160')
+      DEPROJ_BEAM, types[m].psf, types[m].psf, 0.0, gpa, ginc, test_bmaj,test_bmin,test_bpa
+      fwhm=test_bmin>test_bmaj+0.2
+      kpc=0
+      print, "-->  choosing PACS169 deprojected resolution: "+string(fwhm)
     endif
     
     if keyword_set(kpc) then res_as = fwhm*1000./as2pc else res_as = fwhm

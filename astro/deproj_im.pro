@@ -14,6 +14,9 @@ PRO DEPROJ_IM, in, in_hd, out, out_hd, incl, posang
 ;   INCL         inclination of projected disk in degrees
 ;   POSANG       position angle of projected disk, N->E
 ;
+; NOTE:
+;   the script will use the values of 'CRVAL*' for the deprojection center.
+;
 ; HISTORY:
 ;
 ;   20120310  TW  intorduced
