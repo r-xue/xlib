@@ -40,8 +40,10 @@ if  n_elements(hd) ne 0 then begin
 endif
 den=int*jypb2k
 
-; IF not in KM/S then it should be in m/s....
-if STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'KM/S') eq -1 then den=den/1000.0
+; IF not in KM/S but in m/s then convert the value into km/s
+if  STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'KM/S') eq -1 and $
+    STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'M/S') ne -1 $
+    then den=den/1000.0
 
 ; KEVIN->CM^-2
 if STRUPCASE(LINE) eq 'CO1-0' then begin
@@ -51,6 +53,10 @@ if STRUPCASE(LINE) eq 'CO1-0' then begin
 endif
 if STRUPCASE(LINE) eq 'HI' then begin
   kkm2den=1.823e18
+  fac=1.0
+endif
+if STRUPCASE(LINE) eq 'JYPB2K' then begin
+  kkm2den=1.0
   fac=1.0
 endif
 den=den*kkm2den

@@ -1,4 +1,4 @@
-FUNCTION DEPROJ_FILEINFO, proj
+FUNCTION GAL_DEPROJ_FILEINFO, proj
 
 ; A WRAP SCRIPT FOR DIFFERENT FILEINFO OF VARIOUS PROJECTS
 
@@ -9,7 +9,7 @@ endif
 
 ; FOR STING
 if proj eq 'SGP' then begin
-  fileinfo=st_struct_fileinfo()
+  fileinfo=st_fileinfo()
 endif
 
 return,fileinfo

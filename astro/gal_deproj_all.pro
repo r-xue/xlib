@@ -1,11 +1,11 @@
-PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
+PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
     hi_res=hi_res,uv_res=uv_res,pacs3_res=pacs3_res,$
     select=select,ref=ref,$
-    unmsk=unmsk, sz_temp=sz_temp,wtsm=wtsm,$
+    unmsk=unmsk, sz_temp=sz_temp,wtsm=wtsm,relax=relax,$
     gselect=gselect
 ;+
 ; NAME:
-;   deproj_all
+;   gal_deproj_all
 ;
 ; PURPOSE:
 ;   * smooth multi-band images to desired deprojected physical/spatial resolutions
@@ -22,7 +22,8 @@ PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;              (see the structure info in st_struct_fileinfo.pro)
 ;   /hi_res    fwhm will be choosen automatically according to native resolutions of HI data
 ;   /wtsm      derive the intneisity-weighted intensity at lower resolutions
-;   /ref       use the reference galaxy table (M51 etc..)
+;   ref        use the reference galaxy table: 'CGP' or 'SGP'
+;   relax      the relaxing parameter for choosing common resolution (in arcsec)
 ;   
 ; OUTPUTS:
 ;   note:      only galaxies with file names like "*smo*.fits" were processed succesfully for 
@@ -30,29 +31,35 @@ PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;
 ; EXAMPLES:
 ;   * extracting a dataset with 1kpc resolution
-;     deproj_all,fwhm=1.0,/kpc 
-;   * extracting a dataset with a round deprojected HI beam
-;     deproj_all,/hi_res, select=[2,3,4,5]
+;     gal_deproj_all,fwhm=1.0,/kpc 
+;   * extracting a dataset with a round deprojected HI beam from the STING sample
+;     gal_deproj_all,/hi_res, select=[0,1,4,5,6,7,8,9],ref='SGP',gselect=[0,1,2,3,4,5,6,9,11,12,14,15,16,17,18,19,20,21,22]
+;     For some galaxy, the beam size of 1.5GHz continuum is larger than the beam size from the spectral cube.
+;     We need to set a larger relax parameter:
+;     gal_deproj_all,/hi_res, select=[4,5,6,7,8,9],ref='SGP',gselect=7,relax=2.5
+;     gal_deproj_all,/hi_res, select=[4,5,6,7,8,9],ref='SGP',gselect=8,relax=1.5
+;     gal_deproj_all,/hi_res, select=[4,5,6,7,8,9],ref='SGP',gselect=10,relax=1.5
+;     gal_deproj_all,/hi_res, select=[4,5,6,7,8,9],ref='SGP',gselect=13,relax=0.5
 ;   * extracting a dataset for plotting Katrina's figures:
-;     deproj_all,fwhm=0.0,/kpc, select=[1,3,4],sz_temp=179,/unmsk 
+;     gal_deproj_all,fwhm=0.0,/kpc, select=[1,3,4],sz_temp=179,/unmsk 
 ;   * extracting a dataset for plotting a sample figure
-;     deproj_all,fwhm=0.0,/kpc, select=indgen(13),sz_temp=750,/unmsk, ref='CGP'
+;     gal_deproj_all,fwhm=0.0,/kpc, select=indgen(13),sz_temp=750,/unmsk, ref='CGP'
 ;     M51 dataset
-;     deproj_all,fwhm=15.0, select=indgen(19),sz_temp=750,/unmsk, ref='CGP',gselect=6
-;     deproj_all,/pacs3_res,select=[0,1,2,3,7,9],sz_temp=750,ref='CGP',gselect=0
+;     gal_deproj_all,fwhm=15.0, select=indgen(19),sz_temp=750,/unmsk, ref='CGP',gselect=6
+;     gal_deproj_all,/pacs3_res,select=[0,1,2,3,7,9],sz_temp=750,ref='CGP',gselect=0
 ;
 ;   * extracting a highest-resolution dataset for i8-co-uv correlations:
-;     deproj_all,/uv_res,select=[0,1,2,3,4,5,8,9,10,11]
-;     deproj_all,/uv_res,/ref,select=[0,1,2,3,8,9,10,11]
+;     gal_deproj_all,/uv_res,select=[0,1,2,3,4,5,8,9,10,11]
+;     gal_deproj_all,/uv_res,/ref,select=[0,1,2,3,8,9,10,11]
 ;   * extracting a highest-resolution dataset for i8-gas-uv correlations:
-;     deproj_all,/hi_res,select=[0,1,2,3,4,5,6,7,8,9,10,11]
+;     gal_deproj_all,/hi_res,select=[0,1,2,3,4,5,6,7,8,9,10,11]
 ;
 ;   * extract a 1kpc resolution dataset for comparing the area-/mass-weighted surface
 ;     density
-;     deproj_all,fwhm=1.0,/kpc, select=[2,4], /wtsm
+;     gal_deproj_all,fwhm=1.0,/kpc, select=[2,4], /wtsm
 ;   * extract a 1kpc resolution dataset for comparing the area-/mass-weighted surface
 ;     density. Hoowever, we add 1.5sigma emission at non-detection region for testing
-;     deproj_all,fwhm=1.0,/kpc, select=[2,3,4,5,10,11,12,13,14,15,16,17], /wtsm
+;     gal_deproj_all,fwhm=1.0,/kpc, select=[2,3,4,5,10,11,12,13,14,15,16,17], /wtsm
 ;
 ; HISTORY:
 ;
@@ -62,11 +69,11 @@ PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   20130310  TW  do a loop over available images
 ;   20130410  RX  fix an issue related to images using "Jy/beam" as units
 ;                 use st_struct_build.pro to load galaxy parameters
-;   20130412  RX  rename it to st_deproj_all.pro, clean the code
+;   20130412  RX  rename it to st_gal_deproj_all.pro, clean the code
 ;                 add GALEX data and IRAC4 processing
 ;   20130423  RX  add GALEX-wt images
 ;                 GALEX image units: CPS per pixel
-;   20140503  RX  rename it to deproj_all.pro and make it a general-purpose procedure
+;   20140503  RX  rename it to gal_deproj_all.pro and make it a general-purpose procedure
 ;                 fix an issue when processing image in extensions
 ;                 fix an issue when processing data from Herschel/PACS 
 ;-
@@ -81,6 +88,7 @@ PRO DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 !except=1
 if n_elements(fwhm) eq 0 then fwhm=0
 if n_elements(sz_temp) eq 0 then sz_temp=1024
+if n_elements(relax) eq 0 then relax=0.2
 
 ; READ THE PARAMETERS FILE
 gal_struct_build,ref,s,h
@@ -90,7 +98,7 @@ if n_elements(gselect) eq 0 then gselect=indgen(n_elements(s.(0)))
 ; LOAD PATH/FILENAME INFO
 
 if n_elements(select) eq 0 then select=indgen(n_elements(types))
-types=deproj_fileinfo(ref)
+types=gal_deproj_fileinfo(ref)
 subtypes=types[select]
 
 
@@ -120,16 +128,17 @@ foreach ind,gselect do begin
         imgfl = READFITS(imgfl,imgfl_hd,/silent)
         rd_hd, imgfl_hd, s = shi, c = chi, /full
         DEPROJ_BEAM, shi.bmaj, shi.bmin, shi.bpa, gpa, ginc, test_bmaj,test_bmin,test_bpa
-        fwhm=test_bmin>test_bmaj+0.2
+        fwhm=test_bmin>test_bmaj+relax
         kpc=0
         print, "-->  choosing HI deprojected resolution: "+string(fwhm)
       endif
     endif
+    
     if keyword_set(uv_res) then begin
       fwhm=0
       m=where(types.tag eq 'nuv')
       DEPROJ_BEAM, types[m].psf, types[m].psf, 0.0, gpa, ginc, test_bmaj,test_bmin,test_bpa
-      fwhm=test_bmin>test_bmaj+0.2
+      fwhm=test_bmin>test_bmaj+relax
       kpc=0
       print, "-->  choosing UV deprojected resolution: "+string(fwhm)
     endif
@@ -138,7 +147,7 @@ foreach ind,gselect do begin
       fwhm=0
       m=where(types.tag eq 'pacs160')
       DEPROJ_BEAM, types[m].psf, types[m].psf, 0.0, gpa, ginc, test_bmaj,test_bmin,test_bpa
-      fwhm=test_bmin>test_bmaj+0.2
+      fwhm=test_bmin>test_bmaj+relax
       kpc=0
       print, "-->  choosing PACS169 deprojected resolution: "+string(fwhm)
     endif
@@ -173,6 +182,7 @@ foreach ind,gselect do begin
         if STRPOS(type.posfix, '.emom0') ne -1 then errm=1
         if STRPOS(type.posfix, '.4e') ne -1 then errm=1
         if STRPOS(type.posfix, '.1e') ne -1 then errm=1
+        if STRPOS(type.posfix, '.sen') ne -1 then errm=1
         REGRID3D, mom0,mom0_hd,mom0rg,mom0rg_hd,refhd
         
 

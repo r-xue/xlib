@@ -1,5 +1,5 @@
-PRO GAL_STRUCT_MS,ref,box=box,$
-  ores=ores,mres=mres,out=out
+PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
+  ores=ores,mres=mres,out=out,MSPPC2=MSPPC2, HELIUM=HELIUM
 
 ;+
 ; NAME:
@@ -19,13 +19,14 @@ PRO GAL_STRUCT_MS,ref,box=box,$
 ;   GALEX images in CPS per pixel, CPS->Jy conversion could be found at
 ;   http://galex.stsci.edu/GR6/?page=faq
 ;   The original pixel is 1.5" size.
-; GAL_STRUCT_MS,'CGP',box=1024
+; GAL_DEPROJ_MS,'SGP',box=1024,reftype=6,out='st_ms',/MSPPC2
 ;-
 
 if n_elements(box) eq 0 then box=1024
 if n_elements(ores) eq 0 then ores='*'
 if n_elements(mres) eq 0 then mres='*'
 if n_elements(out) eq 0 then out='all_ms'
+if n_elements(reftype) eq 0 then reftype=0
 ; SETUP
 fitsloc='./'
 ;fn='*_smo*_dp.fits'
@@ -58,6 +59,8 @@ ms = { $
   nh1:!values.d_nan,$           ; nh1 measurement
   nh1wt:!values.d_nan,$
   nh1e:!values.d_nan,$
+  cont:!values.d_nan,$
+  conte:!values.d_nan,$
   nh1hsen:!values.d_nan,$
   nh1hsenwt:!values.d_nan,$
   nh1hsene:!values.d_nan,$
@@ -88,7 +91,7 @@ ms = { $
   zm_local:!values.d_nan,$      ;<--- not implemented, for ZM value of each point
   nh2_predict:!values.d_nan $   ;<--- not implemented, for predicted nh2 values
   }
-types=deproj_fileinfo(ref)
+types=gal_deproj_fileinfo(ref)
 
 
 for ind=0,n_elements(s.(0))-1 do begin
@@ -115,8 +118,8 @@ for ind=0,n_elements(s.(0))-1 do begin
   d25=s.(where(h eq 'D_25 (")'))[ind]
   
   ; HEX SAMPLING
-  temp=fitsloc+'n'+galno+'co.sgm.mom0_smo'+ores+'_dp.fits'
-  if keyword_set(ref) then temp=fitsloc+'n'+galno+'.phot_bgsub.4_smo'+ores+'_dp.fits'
+  temp=fitsloc+'n'+galno+types[reftype].posfix+'_smo'+ores+'_dp.fits'
+
   if file_test(temp) eq 0 then continue
   nh2=readfits(temp,nh2hd,/silent)
   sz=size(nh2,/d)
@@ -160,18 +163,20 @@ for ind=0,n_elements(s.(0))-1 do begin
       if file_test(fnamemsk) then fname=fnamemsk
       im=readfits(fname,hd,/silent)
       print,fname
-      if type.tag eq 'hi' then gal_ms.nh1=(calc_cn(im,'hi',hd=hd))[pxout,pyout]
-      if type.tag eq 'hie' then gal_ms.nh1e=(calc_cn(im,'hi',hd=hd))[pxout,pyout]
-      if type.tag eq 'hi_lsen' then gal_ms.nh1lsen=(calc_cn(im,'hi',hd=hd))[pxout,pyout]
-      if type.tag eq 'hie_lsen' then gal_ms.nh1lsene=(calc_cn(im,'hi',hd=hd))[pxout,pyout]
-      if type.tag eq 'hi_hsen' then gal_ms.nh1hsen=(calc_cn(im,'hi',hd=hd))[pxout,pyout]
-      if type.tag eq 'hie_hsen' then gal_ms.nh1hsene=(calc_cn(im,'hi',hd=hd))[pxout,pyout]
-      if type.tag eq 'co' then gal_ms.nh2=(calc_cn(im,'co1-0',hd=hd,xco=xco))[pxout,pyout]
-      if type.tag eq 'coe' then gal_ms.nh2e=(calc_cn(im,'co1-0',hd=hd,xco=xco))[pxout,pyout]
-      if type.tag eq 'co_lsen' then gal_ms.nh2lsen=(calc_cn(im,'co1-0',hd=hd,xco=xco))[pxout,pyout]
-      if type.tag eq 'coe_lsen' then gal_ms.nh2lsene=(calc_cn(im,'co1-0',hd=hd,xco=xco))[pxout,pyout]
-      if type.tag eq 'co_hsen' then gal_ms.nh2hsen=(calc_cn(im,'co1-0',hd=hd,xco=xco))[pxout,pyout]
-      if type.tag eq 'coe_hsen' then gal_ms.nh2hsene=(calc_cn(im,'co1-0',hd=hd,xco=xco))[pxout,pyout]
+      if type.tag eq 'hi' then gal_ms.nh1=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'hie' then gal_ms.nh1e=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'cont' then gal_ms.cont=(calc_cn(im,'jypb2k',hd=hd))[pxout,pyout]
+      if type.tag eq 'conte' then gal_ms.conte=(calc_cn(im,'jypb2k',hd=hd))[pxout,pyout] 
+      if type.tag eq 'hi_lsen' then gal_ms.nh1lsen=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'hie_lsen' then gal_ms.nh1lsene=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'hi_hsen' then gal_ms.nh1hsen=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'hie_hsen' then gal_ms.nh1hsene=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'co' then gal_ms.nh2=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'coe' then gal_ms.nh2e=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'co_lsen' then gal_ms.nh2lsen=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'coe_lsen' then gal_ms.nh2lsene=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'co_hsen' then gal_ms.nh2hsen=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'coe_hsen' then gal_ms.nh2hsene=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'irac1' then gal_ms.irac1=im[pxout,pyout]
       if type.tag eq 'irac1e' then gal_ms.irac1e=im[pxout,pyout]
       if type.tag eq 'irac4' then gal_ms.irac4=im[pxout,pyout]
@@ -180,8 +185,8 @@ for ind=0,n_elements(s.(0))-1 do begin
       if type.tag eq 'nuv-wt' then gal_ms.nuvwt=im[pxout,pyout]*ncps2mjypsr
       if type.tag eq 'fuv' then gal_ms.fuv=im[pxout,pyout]*fcps2mjypsr
       if type.tag eq 'fuv-wt' then gal_ms.fuvwt=im[pxout,pyout]*fcps2mjypsr
-
       print,"sample_points:", n_elements(pxout)
+      print,type.tag,max(gal_ms.cont,/nan),max(im[pxout,pyout],/nan)
     endif
   endforeach
   
@@ -189,12 +194,12 @@ for ind=0,n_elements(s.(0))-1 do begin
     fname=fitsloc+'n'+galno+type.posfix+'_iwt_smo'+ores+'_dp.fits'
     if file_test(fname) then begin
       im=readfits(fname,hd,/silent)
-      if type.tag eq 'hi' then gal_ms.nh1wt=(calc_cn(im,'hi',hd=hd))[pxout,pyout]
-      if type.tag eq 'co' then gal_ms.nh2wt=(calc_cn(im,'co1-0',hd=hd,xco=xco))[pxout,pyout]
-      if type.tag eq 'hi_lsen' then gal_ms.nh1lsenwt=(calc_cn(im,'hi',hd=hd))[pxout,pyout]
-      if type.tag eq 'co_lsen' then gal_ms.nh2lsenwt=(calc_cn(im,'co1-0',hd=hd,xco=xco))[pxout,pyout]
-      if type.tag eq 'hi_hsen' then gal_ms.nh1hsenwt=(calc_cn(im,'hi',hd=hd))[pxout,pyout]
-      if type.tag eq 'co_hsen' then gal_ms.nh2hsenwt=(calc_cn(im,'co1-0',hd=hd,xco=xco))[pxout,pyout]
+      if type.tag eq 'hi' then gal_ms.nh1wt=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'co' then gal_ms.nh2wt=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'hi_lsen' then gal_ms.nh1lsenwt=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'co_lsen' then gal_ms.nh2lsenwt=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'hi_hsen' then gal_ms.nh1hsenwt=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'co_hsen' then gal_ms.nh2hsenwt=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       print,"sample_points:", n_elements(pxout)
     endif
   endforeach
