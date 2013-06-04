@@ -21,7 +21,7 @@ PRO XPACK,indir,outfile,$
 ;   <outfile>.tar.gz
 ;
 ; HISTORY:
-;   20120740  RX  initial version
+;   20120740  RX  introduced
 ;
 ; DEPENDENCE:
 ;   IDLdep
