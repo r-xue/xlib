@@ -10,7 +10,7 @@ FUNCTION CALC_CN, INT, LINE, HD=HD, $
 ;
 ; INPUTS:
 ;   INT         data (either 2d or 1D vector)
-;   LINE        specify the observed line: e.g. CO1-0, HI21cm
+;   LINE        specify the observed line: e.g. CO1-0, HI21cm, CO2-1
 ;   [HD]        header for deriving jypb2k etc.. 
 ;               assuming INT in K km^-s if HD not presented 
 ;   [XCO]       change the default XCO factor: 2.0x10^20 cm^-2
@@ -51,6 +51,12 @@ if STRUPCASE(LINE) eq 'CO1-0' then begin
   kkm2den=xco
   fac=2.0
 endif
+if STRUPCASE(LINE) eq 'CO2-1' then begin
+  if n_elements(xco) eq 0 then xco=2.0e20/0.8
+  kkm2den=xco
+  fac=2.0
+endif
+
 if STRUPCASE(LINE) eq 'HI' then begin
   kkm2den=1.823e18
   fac=1.0
