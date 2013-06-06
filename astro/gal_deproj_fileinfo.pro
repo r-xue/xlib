@@ -12,6 +12,10 @@ if proj eq 'SGP' then begin
   fileinfo=st_fileinfo()
 endif
 
+if proj eq 'TGP' then begin
+  fileinfo=things_fileinfo()
+endif
+
 return,fileinfo
 
 END

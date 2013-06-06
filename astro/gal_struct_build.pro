@@ -14,8 +14,8 @@ s=READ_CSV(csvfile,header=h)
 
 if not keyword_set(silent) then begin
   print,'header--->'
-  for i=0,n_elements(header)-1 do begin
-  print,"<"+header[i]+">",size(s[0].(i),/tn),format='(a-50,a-50)'
+  for i=0,n_elements(h)-1 do begin
+  print,"<"+h[i]+">",size(s[0].(i),/tn),format='(a-50,a-50)'
   endfor
 endif
 

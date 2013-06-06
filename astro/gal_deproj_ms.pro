@@ -20,6 +20,7 @@ PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
 ;   http://galex.stsci.edu/GR6/?page=faq
 ;   The original pixel is 1.5" size.
 ; GAL_DEPROJ_MS,'SGP',box=1024,reftype=6,out='st_ms',/MSPPC2
+; GAL_DEPROJ_MS,'TGP',box=1024,reftype=17,out='thing_ms',/MSPPC2
 ;-
 
 if n_elements(box) eq 0 then box=1024
@@ -46,6 +47,7 @@ all_ms=[]
 ; note: each sampling point is a structure like below
 ms = { $
   galno:"", $
+  inc:!values.d_nan,$
   nh2:!values.d_nan,$           ; nh2 measurement
   nh2wt:!values.d_nan,$         ; mass-weighted
   nh2e:!values.d_nan,$
@@ -88,6 +90,7 @@ ms = { $
   zm_de:!values.d_nan,$         ; zm error bar (lower)
   zm_ue:!values.d_nan,$         ; zm error bar (upper)
   oh:!values.d_nan,$            ; log(o/h)+12
+  ohlocal:!values.d_nan,$         ; log(o/h)+12 (local: considering the gradient)
   zm_local:!values.d_nan,$      ;<--- not implemented, for ZM value of each point
   nh2_predict:!values.d_nan $   ;<--- not implemented, for predicted nh2 values
   }
@@ -97,8 +100,10 @@ types=gal_deproj_fileinfo(ref)
 for ind=0,n_elements(s.(0))-1 do begin
   
   gal=s.(where(h eq 'Galaxy'))[ind]
-  galno  = strmid(gal, 3, 4)
-  if ref eq 'CGP' then galno  = strmid(gal, 4, 4)
+  ;galno  = strmid(gal, 3, 4)
+  ;if ref eq 'CGP' then galno  = strmid(gal, 4, 4)
+  ;if ref eq 'TGP' then 
+  galno = gal
   print, replicate('-',40)
   print, 'Working on galaxy number ',galno,' index',ind
   print, replicate('-',40)
@@ -110,15 +115,30 @@ for ind=0,n_elements(s.(0))-1 do begin
   oh=[s.(where(h eq 'Log(O/H)+12'))[ind],$
     s.(where(h eq 'Log(O/H)+12'))[ind]-s.(where(h eq 'Log(O/H)+12 Error'))[ind],$
     s.(where(h eq 'Log(O/H)+12'))[ind]+s.(where(h eq 'Log(O/H)+12 Error'))[ind]]
+;  oh=[s.(where(h eq 'Log(O/H)+12 KK04'))[ind],$
+;    s.(where(h eq 'Log(O/H)+12 KK04'))[ind]-s.(where(h eq 'Log(O/H)+12 Error'))[ind],$
+;    s.(where(h eq 'Log(O/H)+12 KK04'))[ind]+s.(where(h eq 'Log(O/H)+12 Error'))[ind]]
+  ohref=s.(where(h eq 'Ref(Z)'))[ind]
   zm=oh2z(oh[0])
   zm_de=oh2z(oh[1])
   zm_ue=oh2z(oh[2])
+  ohc=(s.(where(h eq 'Log(O/H)+12C KK04'))[ind]+s.(where(h eq 'Log(O/H)+12C PT05'))[ind])/2.0
+  ohg=(s.(where(h eq 'Log(O/H)+12G KK04'))[ind]+s.(where(h eq 'Log(O/H)+12G PT05'))[ind])/2.0
+  
+;  ohc=(s.(where(h eq 'Log(O/H)+12C KK04'))[ind]+s.(where(h eq 'Log(O/H)+12C KK04'))[ind])/2.0
+;  ohg=(s.(where(h eq 'Log(O/H)+12G KK04'))[ind]+s.(where(h eq 'Log(O/H)+12G KK04'))[ind])/2.0
+;  
+;  if ohref eq 'M2010' then begin
+;  ohc=oh_conv(ohc,'kk04-d02')
+;  oh=oh_conv(oh,'kk04-d02')
+;  endif
+  
   endif
   
   d25=s.(where(h eq 'D_25 (")'))[ind]
   
   ; HEX SAMPLING
-  temp=fitsloc+'n'+galno+types[reftype].posfix+'_smo'+ores+'_dp.fits'
+  temp=fitsloc+galno+types[reftype].posfix+'_smo'+ores+'_dp.fits'
 
   if file_test(temp) eq 0 then continue
   nh2=readfits(temp,nh2hd,/silent)
@@ -149,16 +169,22 @@ for ind=0,n_elements(s.(0))-1 do begin
   gal_ms.zm_ue=zm_ue
   gal_ms.zm_de=zm_de
   gal_ms.oh=oh[0]
+  gal_ms.ohlocal=ohc+ohg/(d25/2.0)*sqrt(xout^2.0+yout^2.0)
+  ohlocaltag=where(gal_ms.ohlocal eq 0.0)
+  if ohlocaltag[0] ne -1 then gal_ms[ohlocaltag].ohlocal=gal_ms[ohlocaltag].oh
   endif
   
   gal_ms.galno=galno
   
   gal_ms.as2pc=as2pc
   gal_ms.res=sxpar(nh2hd,'BMAJ')*3600.*as2pc
+  gal_ms.d25=d25
+  gal_ms.inc=inc
   
   foreach type, types do begin
-    fname=fitsloc+'n'+galno+type.posfix+'_smo'+ores+'_dp.fits'
-    fnamemsk=fitsloc+'n'+galno+type.posfix+'_mskd_smo'+ores+'_dp.fits'
+    fname=fitsloc+galno+type.posfix+'_smo'+ores+'_dp.fits'
+    fnamemsk=fitsloc+galno+type.posfix+'_mskd_smo'+ores+'_dp.fits'
+
     if file_test(fname) or file_test(fnamemsk) then begin
       if file_test(fnamemsk) then fname=fnamemsk
       im=readfits(fname,hd,/silent)
@@ -173,6 +199,8 @@ for ind=0,n_elements(s.(0))-1 do begin
       if type.tag eq 'hie_hsen' then gal_ms.nh1hsene=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'co' then gal_ms.nh2=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'coe' then gal_ms.nh2e=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'co21' then gal_ms.nh2=(calc_cn(im,'co2-1',hd=hd,xco=xco/0.8,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'co21e' then gal_ms.nh2e=(calc_cn(im,'co2-1',hd=hd,xco=xco/0.8,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'co_lsen' then gal_ms.nh2lsen=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'coe_lsen' then gal_ms.nh2lsene=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'co_hsen' then gal_ms.nh2hsen=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
@@ -186,12 +214,12 @@ for ind=0,n_elements(s.(0))-1 do begin
       if type.tag eq 'fuv' then gal_ms.fuv=im[pxout,pyout]*fcps2mjypsr
       if type.tag eq 'fuv-wt' then gal_ms.fuvwt=im[pxout,pyout]*fcps2mjypsr
       print,"sample_points:", n_elements(pxout)
-      print,type.tag,max(gal_ms.cont,/nan),max(im[pxout,pyout],/nan)
+      ;print,type.tag,max(gal_ms.cont,/nan),max(im[pxout,pyout],/nan)
     endif
   endforeach
   
   foreach type, types do begin
-    fname=fitsloc+'n'+galno+type.posfix+'_iwt_smo'+ores+'_dp.fits'
+    fname=fitsloc+galno+type.posfix+'_iwt_smo'+ores+'_dp.fits'
     if file_test(fname) then begin
       im=readfits(fname,hd,/silent)
       if type.tag eq 'hi' then gal_ms.nh1wt=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
@@ -205,7 +233,7 @@ for ind=0,n_elements(s.(0))-1 do begin
   endforeach
   
   foreach type, ['xisrf'] do begin
-    fname=fitsloc+'n'+galno+'*'+type+'_smo'+mres+'_dp.fits'
+    fname=fitsloc+galno+'*'+type+'_smo'+mres+'_dp.fits'
     if file_test(fname) then begin
       im=readfits(fname,hd,/silent)
       if type eq 'xisrf' then gal_ms.xisrf=im[pxout,pyout]
@@ -214,7 +242,7 @@ for ind=0,n_elements(s.(0))-1 do begin
 
   
   all_ms=[all_ms,gal_ms]
-  print,n_elements(where(all_ms.irac4e eq all_ms.irac4e))
+  ;print,n_elements(where(all_ms.irac4e eq all_ms.irac4e))
 endfor
 
 save,filename=out+'.dat',all_ms

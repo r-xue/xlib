@@ -1,5 +1,5 @@
 PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
-    hi_res=hi_res,uv_res=uv_res,pacs3_res=pacs3_res,$
+    hi_res=hi_res,uv_res=uv_res,pacs3_res=pacs3_res,common_res=common_res,$
     select=select,ref=ref,$
     unmsk=unmsk, sz_temp=sz_temp,wtsm=wtsm,relax=relax,$
     gselect=gselect
@@ -12,18 +12,20 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   * deproject images to face-on view with surface brightness corrected by mutiplying cos(inc)
 ;
 ; INPUTS:
-;   FWHM       desired FWHM circular beam (in arcsec) after deprojection
-;              Note: turn off convolution by setting fwhm=0
-;   /KPC       FWHM is given in kpc rather than arcsec
-;   /UNMSK     do NOT use the mask image of IRAC1
-;   SZ_TEMP    template size in pixel default: 1024    
-;   select     choose only some types of data for processing
-;              e.g. select=[0,1] -- only process IRAC1 & IRAC4 
-;              (see the structure info in st_struct_fileinfo.pro)
-;   /hi_res    fwhm will be choosen automatically according to native resolutions of HI data
-;   /wtsm      derive the intneisity-weighted intensity at lower resolutions
-;   ref        use the reference galaxy table: 'CGP' or 'SGP'
-;   relax      the relaxing parameter for choosing common resolution (in arcsec)
+;   FWHM        desired FWHM circular beam (in arcsec) after deprojection
+;               Note: turn off convolution by setting fwhm=0
+;   /KPC        FWHM is given in kpc rather than arcsec
+;   /UNMSK      do NOT use the mask image of IRAC1
+;   SZ_TEMP     template size in pixel default: 1024    
+;   select      choose only some types of data for processing
+;               e.g. select=[0,1] -- only process IRAC1 & IRAC4 
+;               (see the structure info in st_struct_fileinfo.pro)
+;   /hi_res     fwhm will be choosen automatically according to native resolutions of HI data
+;   /common_res fwhm will be choosen automatically according to the best common deprojected resolutions
+;               offered by the selected multi-band dataset  
+;   /wtsm       derive the intneisity-weighted intensity at lower resolutions
+;   ref         use the reference galaxy table: 'CGP' or 'SGP'
+;   relax       the relaxing parameter for choosing common resolution (in arcsec)
 ;   
 ; OUTPUTS:
 ;   note:      only galaxies with file names like "*smo*.fits" were processed succesfully for 
@@ -40,6 +42,10 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;     gal_deproj_all,/hi_res, select=[4,5,6,7,8,9],ref='SGP',gselect=8,relax=1.5
 ;     gal_deproj_all,/hi_res, select=[4,5,6,7,8,9],ref='SGP',gselect=10,relax=1.5
 ;     gal_deproj_all,/hi_res, select=[4,5,6,7,8,9],ref='SGP',gselect=13,relax=0.5
+;   * THINGS sample  
+;     gal_deproj_all,/common_res, select=[17,18,19,20],ref='TGP',sz_temp=1024 (still limited by FOVs of HERACLES)
+;   * STING sample
+;     gal_deproj_all,/common_res, select=[0,1,4,5,6,7,8,9],ref='SGP'
 ;   * extracting a dataset for plotting Katrina's figures:
 ;     gal_deproj_all,fwhm=0.0,/kpc, select=[1,3,4],sz_temp=179,/unmsk 
 ;   * extracting a dataset for plotting a sample figure
@@ -105,8 +111,10 @@ subtypes=types[select]
 foreach ind,gselect do begin
   
     gal=s.(where(h eq 'Galaxy'))[ind]
-    galno  = strmid(gal, 3, 4)
-    if ref eq 'CGP' then galno = strmid(gal, 4, 4)
+;    galno  = strmid(gal, 3, 4)
+;    if ref eq 'CGP' then galno = strmid(gal, 4, 4)
+    ;if ref eq 'TGP' then galno=gal
+    galno=gal
     print, replicate('-',40)
     print, 'Working on galaxy number ',galno,' index',ind
     gpa  = float(s.(where(h eq 'Adopted PA (deg)'))[ind])
@@ -152,9 +160,34 @@ foreach ind,gselect do begin
       print, "-->  choosing PACS169 deprojected resolution: "+string(fwhm)
     endif
     
+    if keyword_set(common_res) then begin
+      fwhm=0.0
+      foreach type,subtypes do begin
+        bmaj=type.psf
+        bmin=type.psf
+        bpa=0.0
+        if type.psf eq -1 then begin
+          imgfl =type.path+type.prefix+galno+type.posfix+'.fits'
+          if file_test(imgfl) then begin
+            imgfl = READFITS(imgfl,imgfl_hd,/silent)
+            rd_hd, imgfl_hd, s = shi, c = chi, /full
+            bmaj=shi.bmaj
+            bmin=shi.bmin
+            bpa=shi.bpa
+          endif
+        endif
+        print,type.tag,'fwhm:',bmaj,bmin,format='(a10,a10,f10.2,f10.2)'
+        DEPROJ_BEAM, bmaj, bmin, bpa, gpa, ginc, test_bmaj,test_bmin,test_bpa
+        fwhm=test_bmin>test_bmaj>fwhm
+      endforeach
+      fwhm=fwhm+relax
+      kpc=0
+      print, "-->  Choosing the best deprojected resolution: "+string(fwhm)+' arcsec'
+    endif
+    
     if keyword_set(kpc) then res_as = fwhm*1000./as2pc else res_as = fwhm
     strres = strtrim(string(fix(res_as)),1)
-    print,'Smoothing to a resolution of '+string(res_as)+' arcsec'
+    print,'-->  Smoothing to a resolution of '+string(res_as)+' arcsec'
 
     ; SET UP TEMPLATE FOR REGRIDDING: default: 1024 x 1024, 1"
     refhd = MK_HD([ra,dec],[sz_temp,sz_temp],1)
@@ -162,7 +195,7 @@ foreach ind,gselect do begin
     foreach type,subtypes do begin
       
       imgfl =type.path+type.prefix+galno+type.posfix+'.fits'
-      print,imgfl
+      print,'check  ->'+imgfl
       if file_test(imgfl) then begin
         print,'process->'+imgfl
         mom0 = READFITS(imgfl,mom0_hd)
@@ -194,8 +227,8 @@ foreach ind,gselect do begin
         DEPROJ_IM, mom0s, mom0s_hd, mom0dp, mom0dp_hd, ginc, gpa
         if  file_test(mkfl) eq 1 and not keyword_set(unmsk) then flag='_mskd' else flag=''
         if  ifail eq 0 then flag=flag+'_smo'+strres else flag=''
-        WRITEFITS,'n'+galno+type.posfix+flag+'.fits',mom0s, mom0s_hd
-        WRITEFITS,'n'+galno+type.posfix+flag+'_dp.fits',mom0dp, mom0dp_hd
+        WRITEFITS,galno+type.posfix+flag+'.fits',mom0s, mom0s_hd
+        WRITEFITS,galno+type.posfix+flag+'_dp.fits',mom0dp, mom0dp_hd
         
         ; INTENSITY-WEIGHTED INTENSITY AT LOWER RESOLUTION
         if  ifail eq 0 and keyword_set(wtsm) then begin
@@ -205,8 +238,8 @@ foreach ind,gselect do begin
           print,"scale back by",scale
           mom0wts=mom0wts/(mom0s/scale)
           DEPROJ_IM, mom0wts, mom0wts_hd, mom0wtdp, mom0wtdp_hd, ginc, gpa
-          WRITEFITS,'n'+galno+type.posfix+'_iwt'+flag+'.fits',mom0wts, mom0wts_hd
-          WRITEFITS,'n'+galno+type.posfix+'_iwt'+flag+'_dp.fits',mom0wtdp, mom0wtdp_hd
+          WRITEFITS,galno+type.posfix+'_iwt'+flag+'.fits',mom0wts, mom0wts_hd
+          WRITEFITS,galno+type.posfix+'_iwt'+flag+'_dp.fits',mom0wtdp, mom0wtdp_hd
         endif
         
         
