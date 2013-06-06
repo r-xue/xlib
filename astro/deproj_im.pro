@@ -52,7 +52,7 @@ if oldbmaj*oldbmin ne 0.0 then begin
   
 endif
 
-if STRPOS(STRUPCASE(sxpar(out_hd, 'BUNIT')), 'BEAM') eq -1  then out=out*cos(incl/180.*!dpi)
+if STRPOS(STRUPCASE(sxpar(out_hd, 'BUNIT')), 'JY/B') eq -1  then out=out*cos(incl/180.*!dpi)
 
 
 SXADDPAR, out_hd, 'DATAMAX', max(out,/nan)
