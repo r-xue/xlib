@@ -104,8 +104,9 @@ if n_elements(gselect) eq 0 then gselect=indgen(n_elements(s.(0)))
 
 ; LOAD PATH/FILENAME INFO
 
-if n_elements(select) eq 0 then select=indgen(n_elements(types))
+
 types=gal_deproj_fileinfo(ref)
+if n_elements(select) eq 0 then select=indgen(n_elements(types))
 subtypes=types[select]
 
 
