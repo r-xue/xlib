@@ -5,6 +5,7 @@ PRO PLOTHIST1D,x,xbin,$
   clip=clip,$
   rot=rot,$
   nhist=nhist,$
+  maxhist=maxhist,$
   _extra=_extra
 
 if not keyword_set(xmin) then xmin=min(x,/nan)
@@ -37,7 +38,10 @@ if n_elements(det) ne 0 then begin
     hist=hist_det/(hist>1.0)
 endif
 print,min(hist),max(hist)
-if keyword_set(nhist) then hist=float(hist)/max(hist) 
+if n_elements(maxhist) eq 0 then maxhist=max(hist)
+if keyword_set(nhist) then begin
+  hist=float(hist)/maxhist
+endif
 
 dim=size(hist,/d)
 xc=hist_xmin+(indgen(dim[0]+1))*xbin
