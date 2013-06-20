@@ -92,7 +92,8 @@ ms = { $
   oh:!values.d_nan,$            ; log(o/h)+12
   ohlocal:!values.d_nan,$         ; log(o/h)+12 (local: considering the gradient)
   zm_local:!values.d_nan,$      ;<--- not implemented, for ZM value of each point
-  nh2_predict:!values.d_nan $   ;<--- not implemented, for predicted nh2 values
+  nh2_predict:!values.d_nan, $   ;<--- not implemented, for predicted nh2 values
+  sig_sfr:!values.d_nan $          ; sig_sfr from halpha
   }
 types=gal_deproj_fileinfo(ref)
 
@@ -111,7 +112,7 @@ for ind=0,n_elements(s.(0))-1 do begin
   as2pc=dist/206264.806
   inc=s.(where(h eq 'Adopted Inc (deg)'))[ind]
   
-  if ref ne 'CGP' then begin
+  if ref eq 'SGP' then begin
   oh=[s.(where(h eq 'Log(O/H)+12'))[ind],$
     s.(where(h eq 'Log(O/H)+12'))[ind]-s.(where(h eq 'Log(O/H)+12 Error'))[ind],$
     s.(where(h eq 'Log(O/H)+12'))[ind]+s.(where(h eq 'Log(O/H)+12 Error'))[ind]]
@@ -164,7 +165,7 @@ for ind=0,n_elements(s.(0))-1 do begin
   gal_ms.xco=xco
   gal_ms.contmsk=0.0
   
-  if ref ne 'CGP' then begin
+  if ref eq 'SGP' then begin
   gal_ms.zm=zm
   gal_ms.zm_ue=zm_ue
   gal_ms.zm_de=zm_de
@@ -205,6 +206,7 @@ for ind=0,n_elements(s.(0))-1 do begin
       if type.tag eq 'coe_lsen' then gal_ms.nh2lsene=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'co_hsen' then gal_ms.nh2hsen=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'coe_hsen' then gal_ms.nh2hsene=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'halpha' then gal_ms.sig_sfr=(calc_ssfr(im,hd,proj='GOLDMINE'))[pxout,pyout]
       if type.tag eq 'irac1' then gal_ms.irac1=im[pxout,pyout]
       if type.tag eq 'irac1e' then gal_ms.irac1e=im[pxout,pyout]
       if type.tag eq 'irac4' then gal_ms.irac4=im[pxout,pyout]
