@@ -1,0 +1,120 @@
+FUNCTION ST_FILEINFO
+;+
+; this structure includes fits file naming/path information
+;-
+types=replicate({path:'',prefix:'',posfix:'',tag:'',psf:-1.0,mask:''},22)
+types.path=['/Users/Rui/Workspace/sting/irac/',$
+  '/Users/Rui/Workspace/sting/irac/',$
+  '/Users/Rui/Workspace/sting/irac/',$
+  '/Users/Rui/Workspace/sting/irac/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Volumes/Scratch/data_repo/sting-hi/msc-products/hicont/',$
+  '/Volumes/Scratch/data_repo/sting-hi/msc-products/hicont/',$
+  '/Users/Rui/Workspace/sting/galex/',$
+  '/Users/Rui/Workspace/sting/galex/',$
+  '/Users/Rui/Workspace/sting/galex/',$
+  '/Users/Rui/Workspace/sting/galex/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Users/Rui/Workspace/sting/gromom/']
+types.prefix=['',$
+  '',$
+  '',$
+  '',$
+  '',$
+  '',$
+  '',$
+  '',$
+  '',$
+  '',$
+  'ngc',$
+  'ngc',$
+  'ngc',$
+  'ngc',$
+  'n',$
+  'n',$
+  'n',$
+  'n',$
+  'n',$
+  'n',$
+  'n',$
+  'n']
+types.posfix=[ '.phot_bgsub.1',$
+  '.phot_bgsub.1e',$
+  '.phot_bgsub.4',$
+  '.phot_bgsub.4e',$
+  'co.sgm.mom0',$
+  'co.sgm.emom0',$
+  'hi.sgm.mom0',$
+  'hi.sgm.emom0',$
+  'hi.cont.cm',$
+  'hi.cont.sen',$
+  '-nd-wt',$
+  '-nd-intbgsub',$
+  '-fd-wt',$
+  '-fd-intbgsub',$
+  'co.sgm.mom0_hsen',$
+  'co.sgm.emom0_hsen',$
+  'co.sgm.mom0_lsen',$
+  'co.sgm.emom0_lsen',$
+  'hi.sgm.mom0_hsen',$
+  'hi.sgm.emom0_hsen',$
+  'hi.sgm.mom0_lsen',$
+  'hi.sgm.emom0_lsen']
+types.tag=[   'irac1',$
+  'irac1e',$
+  'irac4',$
+  'irac4e',$
+  'co',$
+  'coe',$
+  'hi',$
+  'hie',$
+  'cont',$
+  'conte',$
+  'nuv-wt',$
+  'nuv',$
+  'fuv-wt',$
+  'fuv',$
+  'co_hsen',$
+  'coe_hsen',$
+  'co_lsen',$
+  'coe_lsen',$
+  'hi_hsen',$
+  'hie_hsen',$
+  'hi_lsen',$
+  'hie_lsen']
+types.psf=[   1.66,$
+  1.66,$
+  1.98,$
+  1.98,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
+  5.3,$
+  5.3,$
+  4.3,$
+  4.3,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
+  -1]
+types.mask=['.1.final_mask',replicate("",n_elements(types.psf)-1)]
+
+return,types
+
+END
