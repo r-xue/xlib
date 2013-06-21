@@ -21,7 +21,7 @@ if proj eq 'TGP' then begin
   fileinfo=things_fileinfo()
 endif
 
-if proj eq 'Coma' then begin
+if proj eq 'Coma' or proj eq 'Coma0' then begin
   fileinfo=coma_fileinfo()
 endif
 
