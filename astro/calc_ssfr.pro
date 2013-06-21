@@ -2,7 +2,7 @@ FUNCTION CALC_SSFR, INT, HD, PROJ=PROJ, FUV=FUV, M24=M24
 
 ;+
 ; NAME:
-;   CALC_CN
+;   CALC_SSFR
 ;
 ; PURPOSE:
 ;   calculate the column density according to the line brightness
@@ -21,6 +21,7 @@ FUNCTION CALC_SSFR, INT, HD, PROJ=PROJ, FUV=FUV, M24=M24
 ; HISTORY:
 ;
 ;   20130619    RX  introduced
+;   20130621    TW  use EXPTIME instead of P_EXPTIM
 ;
 ;-
 
@@ -76,7 +77,7 @@ if STRUPCASE(proj) eq 'LVL' then $
 ; GOLDMINE: 
 ; http://goldmine.mib.infn.it
 if STRUPCASE(proj) eq 'GOLDMINE' then $
-  cps2flux=10.^(sxpar(hd,'P_ZP'))/(sxpar(hd,'P_EXPTIM'))
+  cps2flux=10.^(sxpar(hd,'P_ZP'))/(sxpar(hd,'EXPTIME'))
 
 getrot,hd,angle,cdelt
 psize=abs(cdelt[0])*60.0*60
