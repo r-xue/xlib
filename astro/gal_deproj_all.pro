@@ -46,6 +46,8 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;     gal_deproj_all,/common_res, select=[17,18,19,20],ref='TGP',sz_temp=1024 (still limited by FOVs of HERACLES)
 ;   * STING sample
 ;     gal_deproj_all,/common_res, select=[0,1,4,5,6,7,8,9],ref='SGP'
+;     gal_deproj_all,fwhm=2.0,/kpc,select=[4,5,6,7,8,9],ref='SGP'
+;     gal_deproj_all,fwhm=1.0,/kpc,select=[4,5,6,7,8,9],ref='SGP'
 ;   * extracting a dataset for plotting Katrina's figures:
 ;     ;gal_deproj_all,fwhm=0.0,/kpc, select=[1,3,4],sz_temp=179,/unmsk 
 ;     gal_deproj_all,fwhm=0.0,/kpc, select=findgen(10),sz_temp=1024,/unmsk,ref='SGP'

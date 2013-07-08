@@ -21,6 +21,7 @@ PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
 ;   The original pixel is 1.5" size.
 ; GAL_DEPROJ_MS,'SGP',box=1024,reftype=6,out='st_ms',/MSPPC2
 ; GAL_DEPROJ_MS,'TGP',box=1024,reftype=17,out='thing_ms',/MSPPC2
+; GAL_DEPROJ_MS,'SGP',box=1024,reftype=6,out='st_ms',/MSPPC2
 ;-
 
 if n_elements(box) eq 0 then box=1024
@@ -112,7 +113,7 @@ for ind=0,n_elements(s.(0))-1 do begin
   as2pc=dist/206264.806
   inc=s.(where(h eq 'Adopted Inc (deg)'))[ind]
   
-  if ref eq 'SGP' then begin
+  if ref eq 'SGP' or ref eq 'TGP' then begin
   oh=[s.(where(h eq 'Log(O/H)+12'))[ind],$
     s.(where(h eq 'Log(O/H)+12'))[ind]-s.(where(h eq 'Log(O/H)+12 Error'))[ind],$
     s.(where(h eq 'Log(O/H)+12'))[ind]+s.(where(h eq 'Log(O/H)+12 Error'))[ind]]
@@ -165,7 +166,7 @@ for ind=0,n_elements(s.(0))-1 do begin
   gal_ms.xco=xco
   gal_ms.contmsk=0.0
   
-  if ref eq 'SGP' then begin
+  if ref eq 'SGP' or ref eq 'TGP' then begin
   gal_ms.zm=zm
   gal_ms.zm_ue=zm_ue
   gal_ms.zm_de=zm_de
@@ -215,7 +216,7 @@ for ind=0,n_elements(s.(0))-1 do begin
       if type.tag eq 'nuv-wt' then gal_ms.nuvwt=im[pxout,pyout]*ncps2mjypsr
       if type.tag eq 'fuv' then gal_ms.fuv=im[pxout,pyout]*fcps2mjypsr
       if type.tag eq 'fuv-wt' then gal_ms.fuvwt=im[pxout,pyout]*fcps2mjypsr
-      print,"sample_points:", n_elements(pxout)
+      print,"sample_points:", n_elements(pxout),mean(gal_ms.oh)
       ;print,type.tag,max(gal_ms.cont,/nan),max(im[pxout,pyout],/nan)
     endif
   endforeach

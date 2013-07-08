@@ -18,3 +18,8 @@ Here is a list of IDL libraries I borrow:
   beaumont-idl-library      https://github.com/ChrisBeaumont/beaumont-idl-library <github>
   SDSSIDL                   http://sdssidl.googlecode.com/svn/trunk <svn>
   DUSTEM_WRAP               http://dustemwrap.irap.omp.eu <web>
+  LaTexify                  http://slugidl.pbworks.com/w/page/37657460/latexify%20tutorial <web>
+  Marshall Perrin           http://www.stsci.edu/~mperrin/software/idl_sources.shtml
+  MGlib                     https://github.com/mgalloy/mglib <github>
+  SALVAGGIO                 https://www.cis.rit.edu/~cnspci/software.php
+  windt                     http://www.rxollc.com/idl/windt.html
