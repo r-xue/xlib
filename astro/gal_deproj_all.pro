@@ -82,9 +82,9 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;                 add GALEX data and IRAC4 processing
 ;   20130423  RX  add GALEX-wt images
 ;                 GALEX image units: CPS per pixel
-;   20140503  RX  rename it to gal_deproj_all.pro and make it a general-purpose procedure
+;   20130503  RX  rename it to gal_deproj_all.pro and make it a general-purpose procedure
 ;                 fix an issue when processing image in extensions
-;                 fix an issue when processing data from Herschel/PACS 
+;                 fix an issue when processing data from Herschel/PACS
 ;-
 
 ;+
@@ -204,10 +204,10 @@ foreach ind,gselect do begin
         print,'process->'+imgfl
         mom0 = READFITS(imgfl,mom0_hd)
         if n_elements(mom0) eq 1 then mom0 = READFITS(imgfl,mom0_hd,ext=1)
-        if (size(mom0))[0] gt 2 then begin
-          mom0=mom0[*,*,0]
-          SXADDPAR,mom0_hd,'NAXIS3',1
-        endif
+;        if (size(mom0))[0] gt 2 then begin
+;          mom0=mom0[*,*,0]
+;          SXADDPAR,mom0_hd,'NAXIS3',1
+;        endif
         mkfl = type.path+type.prefix+galno+type.mask+'.fits'
         if file_test(mkfl) eq 1 and not keyword_set(unmsk) then begin
            mk = READFITS(mkfl,mk_hd,/silent)
@@ -220,6 +220,7 @@ foreach ind,gselect do begin
         if STRPOS(type.posfix, '.4e') ne -1 then errm=1
         if STRPOS(type.posfix, '.1e') ne -1 then errm=1
         if STRPOS(type.posfix, '.sen') ne -1 then errm=1
+        if STRPOS(type.posfix, '.err') ne -1 then errm=1
         REGRID3D, mom0,mom0_hd,mom0rg,mom0rg_hd,refhd
         
 

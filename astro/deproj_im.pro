@@ -31,7 +31,15 @@ ADXY,in_hd,ra,dec,x_pos,y_pos
 message,/info, 'Deprojecting using INC of '+strtrim(incl,2)+' and PA of '+strtrim(posang,2)
 message,/info, 'Center position in pixels: '+strjoin([x_pos,y_pos],' ')
 
-out=GAL_FLAT_NAN(in,posang,incl,[x_pos,y_pos],INTERP=1)
+
+if (size(in))[0] eq 2 then out=GAL_FLAT_NAN(in,posang,incl,[x_pos,y_pos],INTERP=1)
+if (size(in))[0] eq 3 then begin
+  out=in
+  for i=0,(size(in,/d))[2]-1 do begin
+    out[*,*,i]=GAL_FLAT_NAN(in[*,*,i],posang,incl,[x_pos,y_pos],INTERP=1)
+  endfor
+endif
+
 out_hd=in_hd
 
 rd_hd, out_hd, s = h, c = c, /full
