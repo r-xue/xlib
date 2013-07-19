@@ -17,7 +17,7 @@ PRO CASA_MOSSEN,filename,pattern=pattern
 ;
 ; INPUTS:
 ;   filename  filename for the CASA clean product file set
-;             if you got AA.flux.fits AA.psf.fits AA.image.fits AA.sen,fits, 
+;             if you got AA.flux.fits AA.psf.fits AA.image.fits AA.sen.fits, 
 ;             then filename=AA
 ;             The output file name is AA.err.fits AA.nsen.fits
 ;
@@ -96,56 +96,4 @@ endforeach
 
 
 
-END
-
-PRO STING_CASA_MOSSEN
-
-; NOTES The noise in .flux<1/3 region of *.image.fits become weired and primary beam
-; correction is not reliable anymore. Do not use them for .err calculations  
-
-filelist=file_search('/Volumes/Scratch/reduc/sting-co/msc/n*/n*co.line.psf.fits')
-foreach file,filelist do begin
-  casa_mossen,repstr(file,'.psf.fits',''),pattern=pattern
-  sfits=repstr(file,'psf','cm')
-  efits=repstr(file,'psf','err')
-  pfits=repstr(file,'psf','flux')
-  im=readfits(sfits,hd)
-  flux=readfits(pfits,maskhd)
-  mask=float(flux gt 0.5) 
-  sen=ERR_CUBE(im, hd, pattern=pattern,mask=mask)
-
-  
-  fov=float(flux gt 0.5)
-  fov=total(fov,3)
-
-  peak=max(fov,/nan)
-  fov[where(fov lt peak,/null)]=!values.f_nan
-  fov[where(fov eq peak,/null)]=0.0
-  fov=cmreplicate(fov,(size(flux,/d))[2])
-    writefits,'test.fits',fov
-  sen=sen+fov
-  sxaddpar, hd, 'DATAMAX', max(sen,/nan)
-  sxaddpar, hd, 'DATAMIN', min(sen,/nan)
-  writefits,efits,sen,hd
-endforeach
-
-;  tf=[]
-;  ntf=[]
-;  for i=0,n_elements(fitslist)-1 do begin
-;    sfits=fitslist[i]
-;    efits=repstr(sfits,'psf',''
-;    cfits=repstr(sfits,'sen','cm')
-;    nsfits=repstr(sfits,'sen','err')
-;    nsfits=repstr(nsfits,'cube','err')
-;    sim=readfits(sfits,shd)
-;    cim=readfits(cfits,chd)
-;    nsim=ERR_CUBE(cim, chd, pattern=sim)
-;    writefits,nsfits,nsim,shd
-;    tf=[tf,mean(sim,/nan)]
-;    ntf=[ntf,mean(nsim,/nan)]
-;  endfor
-;  
-;  plot,tf,ntf,psym=2,xtitle='RMS (old) [Jy/beam]',ytitle='RMS (new) [Jy/beam]',charsize=2.0
-;  oplot,[0,1.0e6],[0,1.0e6]
-  
 END
