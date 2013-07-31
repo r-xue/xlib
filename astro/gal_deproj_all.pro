@@ -16,7 +16,9 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;               Note: turn off convolution by setting fwhm=0
 ;   /KPC        FWHM is given in kpc rather than arcsec
 ;   /UNMSK      do NOT use the mask image of IRAC1
-;   SZ_TEMP     template size in pixel default: 1024    
+;   SZ_TEMP     template size in pixel default: 1024
+;               it could be a catlogue header (e.g. 'HI sz_temp (")').
+;               then sz_temp value will be read from the matching column.
 ;   select      choose only some types of data for processing
 ;               e.g. select=[0,1] -- only process IRAC1 & IRAC4 
 ;               (see the structure info in st_struct_fileinfo.pro)
@@ -32,6 +34,11 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;              smoothing/deproejcting
 ;
 ; EXAMPLES:
+;   * FOV extracting:
+;     CO FOV: 
+;       gal_deproj_all,fwhm=0.0,/kpc, select=[0,1,2,3,4,6,7],sz_temp=179,/unmsk,ref='SGP'
+;     HI FOV: 
+;       gal_deproj_all,fwhm=0.0,/kpc, select=[0,1,2,3,8,10,11],sz_temp='HI sz_temp (")',/unmsk,ref='SGP'
 ;   * extracting a dataset with 1kpc resolution
 ;     gal_deproj_all,fwhm=1.0,/kpc 
 ;   * extracting a dataset with a round deprojected HI beam from the STING sample
@@ -45,11 +52,12 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   * THINGS sample  
 ;     gal_deproj_all,/common_res, select=[17,18,19,20],ref='TGP',sz_temp=1024 (still limited by FOVs of HERACLES)
 ;   * STING sample
-;     gal_deproj_all,/common_res, select=[0,1,4,5,6,7,8,9],ref='SGP'
-;     gal_deproj_all,fwhm=2.0,/kpc,select=[4,5,6,7,8,9],ref='SGP'
-;     gal_deproj_all,fwhm=1.0,/kpc,select=[4,5,6,7,8,9],ref='SGP'
+;     gal_deproj_all,/common_res, select=[0,1,4,5,6,7,8,9,10,11,12,13,14,15,16],ref='SGP'
+;     gal_deproj_all,fwhm=0.0, select=[0,1,4,5,6,7,8,9,10,11,12],ref='SGP' ; native resolution for each type of maps
+;     gal_deproj_all,fwhm=2.0,/kpc,select=[0,1,4,5,6,7,8,9,10,11,12],ref='SGP'
+;     gal_deproj_all,fwhm=1.0,/kpc,select=[0,1,4,5,6,7,8,9,10,11,12],ref='SGP'
 ;   * extracting a dataset for plotting Katrina's figures:
-;     ;gal_deproj_all,fwhm=0.0,/kpc, select=[1,3,4],sz_temp=179,/unmsk 
+;     gal_deproj_all,fwhm=0.0,/kpc, select=[0,1,2,3,4,6,7],sz_temp=179,/unmsk,ref='SGP'
 ;     gal_deproj_all,fwhm=0.0,/kpc, select=findgen(10),sz_temp=1024,/unmsk,ref='SGP'
 ;   * extracting a dataset for plotting a sample figure
 ;     gal_deproj_all,fwhm=0.0,/kpc, select=indgen(13),sz_temp=750,/unmsk, ref='CGP'
@@ -85,6 +93,7 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   20130503  RX  rename it to gal_deproj_all.pro and make it a general-purpose procedure
 ;                 fix an issue when processing image in extensions
 ;                 fix an issue when processing data from Herschel/PACS
+;   20130731  RX  use a header key to specify <sz_temp>
 ;-
 
 ;+
@@ -194,8 +203,11 @@ foreach ind,gselect do begin
     print,'-->  Smoothing to a resolution of '+string(res_as)+' arcsec'
 
     ; SET UP TEMPLATE FOR REGRIDDING: default: 1024 x 1024, 1"
-    refhd = MK_HD([ra,dec],[sz_temp,sz_temp],1)
-           
+    if size(sz_temp,/tn) eq size(' ',/tn) $ 
+      then sz_im=float(s.(where(h eq sz_temp))[ind]) $
+      else sz_im=sz_temp
+    refhd = MK_HD([ra,dec],[sz_im,sz_im],1)
+    print,'-->  setting up template '+string(sz_im)+'x'+string(1.0)+' arcsec'       
     foreach type,subtypes do begin
       
       imgfl =type.path+type.prefix+galno+type.posfix+'.fits'

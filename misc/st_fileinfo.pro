@@ -2,17 +2,24 @@ FUNCTION ST_FILEINFO
 ;+
 ; this structure includes fits file naming/path information
 ;-
-types=replicate({path:'',prefix:'',posfix:'',tag:'',psf:-1.0,mask:''},22)
+types=replicate({path:'',prefix:'',posfix:'',tag:'',psf:-1.0,mask:''},29)
 types.path=['/Users/Rui/Workspace/sting/irac/',$
   '/Users/Rui/Workspace/sting/irac/',$
   '/Users/Rui/Workspace/sting/irac/',$
   '/Users/Rui/Workspace/sting/irac/',$
-  '/Users/Rui/Workspace/sting/gromom/',$
-  '/Users/Rui/Workspace/sting/gromom/',$
-  '/Users/Rui/Workspace/sting/gromom/',$
-  '/Users/Rui/Workspace/sting/gromom/',$
+  '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
+  '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
+  '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
+  '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
+  '/Volumes/Scratch/reduc/sting-hi/mom0/',$
+  '/Volumes/Scratch/reduc/sting-hi/mom0/',$
+  '/Volumes/Scratch/reduc/sting-hi/mom0/',$
+  '/Volumes/Scratch/reduc/sting-hi/mom0/',$
   '/Volumes/Scratch/data_repo/sting-hi/msc-products/hicont/',$
   '/Volumes/Scratch/data_repo/sting-hi/msc-products/hicont/',$
+  '/Users/Rui/Workspace/sting/himom_sim/',$
+  '/Users/Rui/Workspace/sting/himom_sim/',$
+  '/Users/Rui/Workspace/sting/himom_sim/',$
   '/Users/Rui/Workspace/sting/galex/',$
   '/Users/Rui/Workspace/sting/galex/',$
   '/Users/Rui/Workspace/sting/galex/',$
@@ -27,6 +34,13 @@ types.path=['/Users/Rui/Workspace/sting/irac/',$
   '/Users/Rui/Workspace/sting/gromom/']
 types.prefix=['',$
   '',$
+  '',$
+  '',$
+  '',$
+  '',$
+  '',$
+  '',$
+  '',$  
   '',$
   '',$
   '',$
@@ -51,12 +65,19 @@ types.posfix=[ '.phot_bgsub.1',$
   '.phot_bgsub.1e',$
   '.phot_bgsub.4',$
   '.phot_bgsub.4e',$
-  'co.sgm.mom0',$
-  'co.sgm.emom0',$
-  'hi.sgm.mom0',$
-  'hi.sgm.emom0',$
+  'co.line.cm.sgm.mom0',$
+  'co.line.cm.sgm.emom0',$
+  'co.line.cm.sgm.mom1',$
+  'co.line.cm.sgm.snrpk',$
+  'hi.line.cm.sgm.mom0',$
+  'hi.line.cm.sgm.emom0',$
+  'hi.line.cm.sgm.mom1',$
+  'hi.line.cm.sgm.snrpk',$
   'hi.cont.cm',$
   'hi.cont.sen',$
+  'him.sgm.mom0',$
+  'himlow.sgm.mom0',$
+  'himhigh.sgm.mom0',$
   '-nd-wt',$
   '-nd-intbgsub',$
   '-fd-wt',$
@@ -75,10 +96,17 @@ types.tag=[   'irac1',$
   'irac4e',$
   'co',$
   'coe',$
+  'comom1',$
+  'cosnrpk',$
   'hi',$
   'hie',$
+  'himom1',$
+  'hisnrpk',$
   'cont',$
   'conte',$
+  'him',$
+  'himlow',$
+  'himhigh',$
   'nuv-wt',$
   'nuv',$
   'fuv-wt',$
@@ -95,6 +123,13 @@ types.psf=[   1.66,$
   1.66,$
   1.98,$
   1.98,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
   -1,$
   -1,$
   -1,$

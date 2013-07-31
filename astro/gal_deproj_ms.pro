@@ -62,6 +62,9 @@ ms = { $
   nh1:!values.d_nan,$           ; nh1 measurement
   nh1wt:!values.d_nan,$
   nh1e:!values.d_nan,$
+  nh1m:!values.d_nan,$           ; nh1 measurement
+  nh1mlow:!values.d_nan,$
+  nh1mhigh:!values.d_nan,$
   cont:!values.d_nan,$
   conte:!values.d_nan,$
   nh1hsen:!values.d_nan,$
@@ -195,6 +198,11 @@ for ind=0,n_elements(s.(0))-1 do begin
       if type.tag eq 'hie' then gal_ms.nh1e=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'cont' then gal_ms.cont=(calc_cn(im,'jypb2k',hd=hd))[pxout,pyout]
       if type.tag eq 'conte' then gal_ms.conte=(calc_cn(im,'jypb2k',hd=hd))[pxout,pyout] 
+      
+      if type.tag eq 'him' then gal_ms.nh1m=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'himlow' then gal_ms.nh1mlow=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'himhigh' then gal_ms.nh1mhigh=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      
       if type.tag eq 'hi_lsen' then gal_ms.nh1lsen=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'hie_lsen' then gal_ms.nh1lsene=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'hi_hsen' then gal_ms.nh1hsen=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]

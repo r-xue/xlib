@@ -27,7 +27,7 @@ foreach file,fl do begin
   writefits,out1,im,hd
   
   out2=str_replace(out1,'.fits','e.fits')
-  im[*,*]=robust_sigma(im)
+  im[*,*]=robust_sigma(im,/zero)
   writefits,out2,im,hd
   
 endforeach

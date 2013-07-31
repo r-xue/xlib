@@ -61,8 +61,8 @@ rd_hd, hd, s=s
 dn=findgen(nchan)
 for i=0,nchan-1 do begin
   iim=im[*,*,i]
-  iim=iim[where(flux[*,*,i] le 3.0)]
-  dn[i]=robust_sigma(iim)
+  iim=iim[where(flux[*,*,i] gt 0.50)]
+  dn[i]=robust_sigma(iim,/zero)
 endfor
 dn=dn/max(dn)
 ;
@@ -89,11 +89,21 @@ END
 
 PRO TEST_CASA_MOSSEN
 
-filelist=file_search('/Volumes/Scratch/reduc/sting-co/msc/*/n*co.line.psf.fits')
+filelist=file_search('/Volumes/Scratch/reduc/sting-co/mscr-nearest/n1156/n*co.line.psf.fits')
 foreach file,filelist do begin
   casa_mossen,str_replace(file,'.psf.fits',''),pattern=pattern
 endforeach
 
+END
 
+PRO TEST_CASA_MOSSEN_INTER
+
+a=readfits('/Volumes/Scratch/reduc/sting-co/mscr/n0772/n0772co.line.err.fits',ahd)
+b=readfits('/Volumes/Scratch/reduc/sting-co/mscr-nearest/n0772/n0772co.line.err.fits',bhd)
+rd_hd,ahd,s=sa
+rd_hd,bhd,s=sb
+window,0,xsize=750,ysize=750
+plot,a*sa.jypb2k,b*sb.jypb2k,xrange=[0,1.0],yrange=[0,1.0]
+oplot,[0,1],[0,1],color=cgcolor('red')
 
 END

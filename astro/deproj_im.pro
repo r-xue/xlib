@@ -19,7 +19,7 @@ PRO DEPROJ_IM, in, in_hd, out, out_hd, incl, posang
 ;
 ; HISTORY:
 ;
-;   20120310  TW  intorduced
+;   20120310  TW  introduced
 ;   20120405  RX  change beam informations and DO NOT scale image by
 ;                 cos(inc) when the pixel units are in Jy/beam 
 ;-
