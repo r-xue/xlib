@@ -22,6 +22,7 @@ PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
 ; GAL_DEPROJ_MS,'SGP',box=1024,reftype=6,out='st_ms',/MSPPC2
 ; GAL_DEPROJ_MS,'TGP',box=1024,reftype=17,out='thing_ms',/MSPPC2
 ; GAL_DEPROJ_MS,'SGP',box=1024,reftype=6,out='st_ms',/MSPPC2
+; GAL_DEPROJ_MS,'SGP',box=1024,reftype=4,out='st_ms'
 ;-
 
 if n_elements(box) eq 0 then box=1024

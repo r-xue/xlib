@@ -2,7 +2,7 @@ FUNCTION ST_FILEINFO
 ;+
 ; this structure includes fits file naming/path information
 ;-
-types=replicate({path:'',prefix:'',posfix:'',tag:'',psf:-1.0,mask:''},29)
+types=replicate({path:'',prefix:'',posfix:'',tag:'',psf:-1.0,mask:''},33)
 types.path=['/Users/Rui/Workspace/sting/irac/',$
   '/Users/Rui/Workspace/sting/irac/',$
   '/Users/Rui/Workspace/sting/irac/',$
@@ -11,6 +11,10 @@ types.path=['/Users/Rui/Workspace/sting/irac/',$
   '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
   '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
   '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
+  '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
+  '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
+  '/Volumes/Scratch/reduc/sting-hi/mom0/',$
+  '/Volumes/Scratch/reduc/sting-hi/mom0/',$
   '/Volumes/Scratch/reduc/sting-hi/mom0/',$
   '/Volumes/Scratch/reduc/sting-hi/mom0/',$
   '/Volumes/Scratch/reduc/sting-hi/mom0/',$
@@ -40,6 +44,10 @@ types.prefix=['',$
   '',$
   '',$
   '',$
+  '',$
+  '',$
+  '',$
+  '',$
   '',$  
   '',$
   '',$
@@ -49,10 +57,10 @@ types.prefix=['',$
   '',$
   '',$
   '',$
-  'ngc',$
-  'ngc',$
-  'ngc',$
-  'ngc',$
+  '',$
+  '',$
+  '',$
+  '',$
   'n',$
   'n',$
   'n',$
@@ -68,11 +76,15 @@ types.posfix=[ '.phot_bgsub.1',$
   'co.line.cm.sgm.mom0',$
   'co.line.cm.sgm.emom0',$
   'co.line.cm.sgm.mom1',$
+  'co.line.cm.sgm.mom2',$
   'co.line.cm.sgm.snrpk',$
+  'co.line.cm.sgm.rms',$
   'hi.line.cm.sgm.mom0',$
   'hi.line.cm.sgm.emom0',$
   'hi.line.cm.sgm.mom1',$
+  'hi.line.cm.sgm.mom2',$
   'hi.line.cm.sgm.snrpk',$
+  'hi.line.cm.sgm.rms',$
   'hi.cont.cm',$
   'hi.cont.sen',$
   'him.sgm.mom0',$
@@ -97,11 +109,15 @@ types.tag=[   'irac1',$
   'co',$
   'coe',$
   'comom1',$
+  'comom2',$
   'cosnrpk',$
+  'corms',$
   'hi',$
   'hie',$
   'himom1',$
+  'himom2',$
   'hisnrpk',$
+  'hirms',$
   'cont',$
   'conte',$
   'him',$
@@ -123,6 +139,10 @@ types.psf=[   1.66,$
   1.66,$
   1.98,$
   1.98,$
+  -1,$
+  -1,$
+  -1,$
+  -1,$
   -1,$
   -1,$
   -1,$

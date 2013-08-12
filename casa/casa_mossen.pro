@@ -5,15 +5,16 @@ PRO CASA_MOSSEN,filename,pattern=pattern
 ;   CASA_MOSSEN
 ;
 ; PURPOSE:
-;   CASA takes the dirty beam variation across channel into account when
-;   removing model components in the major cycle. In addition, the noise 
-;   is flatten in each dirty map to make the model component search easier
-;   in the minor cycle. However, ".flux" image doesn't provide any theoretical
-;   estimation of channel-wise noise variations (.flux is normalized to 1 in 
-;   each plane). This procedure could be used to create such theoretical 
-;   noise pattern cube, just like MIRAID/MOSSEN.
+;   CASA takes the dirty beam variation across channels into account when
+;   removing model components in the major cycle because it's done in visibility domain. 
+;   In addition, the noise is flatten in the dirty map to make the model component search easier
+;   in the minor cycle. However, ".flux" image doesn't provide any estimation of channel-wise 
+;   noise variations (.flux is normalized to 1 in each plane). 
+;   This procedure could be helpful to create a theoretical noise pattern cube, taking account of
+;   effects from: beam variation, primmary beam / mosaic pattern, and inconsistent spectral windows setup
+;   for different tracks.
 ;   
-;   NOTE: This procedure only works for CLEAN products from CASA 4.x
+;   NOTE: This procedure only works for CLEAN products from CASA 4.x, still experimental!!!
 ;
 ; INPUTS:
 ;   filename  filename for the CASA clean product file set
@@ -23,7 +24,6 @@ PRO CASA_MOSSEN,filename,pattern=pattern
 ;
 ; OUTPUTS:
 ;   pattern   noise pattern cube
-;             (strictly speaking, the below approach only mathematically correct
 ;               
 ;
 ; HISTORY:
@@ -82,7 +82,6 @@ oplot,s.v,dn,psym=10,linestyle=2,color=cgcolor('red')
 al_legend,filename,/bot
 device, /close
 set_plot,'X'
-
 
 
 END

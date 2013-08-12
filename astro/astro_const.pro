@@ -8,9 +8,9 @@ FUNCTION ASTRO_CONST
 
 ac={$
 ; PHYSICAL CONSTANTS
-c:2.99792458d10,$       ; speed of light CGS
-h:6.6260755d-27,$       ; Planck's constant CGS
-G:6.67259d-8,$          ; Grav const CGS
+c:2.99792458d10,$       ; speed of light CGS (cm s-1)
+h:6.6260755d-27,$       ; Planck's constant CGS (erg s)
+G:6.67259d-8,$          ; Grav const CGS (cm3 g-1 s-2)
 kb:1.380658d-16,$       ; Boltzmann's const CGS erg/K ; Boltzman constant
 a:7.56591d-15,$         ; Radiation constant CGS (a=4sigma/c) in erg cm^-3 k^-4
 sb:5.67051d-5,$         ; sigma (stefan-boltzmann const) CGS in erg cm^-2 k^-4 s^-1
