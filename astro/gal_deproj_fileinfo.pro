@@ -25,6 +25,10 @@ if proj eq 'Coma' or proj eq 'Coma0' then begin
   fileinfo=coma_fileinfo()
 endif
 
+if proj eq 'MGP' then begin
+  fileinfo=mcs_fileinfo()
+endif
+
 return,fileinfo
 
 END
