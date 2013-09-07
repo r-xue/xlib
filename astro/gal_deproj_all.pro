@@ -2,7 +2,7 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
     hi_res=hi_res,uv_res=uv_res,pacs3_res=pacs3_res,common_res=common_res,$
     select=select,ref=ref,$
     unmsk=unmsk, sz_temp=sz_temp,wtsm=wtsm,relax=relax,$
-    gselect=gselect, nodp=nodp
+    gselect=gselect, nodp=nodp, ps_temp=ps_temp
 ;+
 ; NAME:
 ;   gal_deproj_all
@@ -17,7 +17,8 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   /KPC        FWHM is given in kpc rather than arcsec
 ;   /UNMSK      do NOT use the mask image of IRAC1
 ;   SZ_TEMP     template size in pixel default: 1024
-;               it could be a catlogue header (e.g. 'HI sz_temp (")').
+;   PS_TEMP     pixesize for the common frame
+;               it could be a catalog header (e.g. 'HI sz_temp (")').
 ;               then sz_temp value will be read from the matching column.
 ;   select      choose only some types of data for processing
 ;               e.g. select=[0,1] -- only process IRAC1 & IRAC4 
@@ -30,11 +31,24 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   relax       the relaxing parameter for choosing common resolution (in arcsec)
 ;   /nodp       no deprojection is carried out by override inc=0.0
 ;   
+;   
 ; OUTPUTS:
 ;   note:      only galaxies with file names like "*smo*.fits" were processed succesfully for 
 ;              smoothing/deproejcting
 ;
 ; EXAMPLES:
+; 
+;   * MCs:
+;     extract a dataset with native resolution and on the same frame (in gasmap)
+;       gal_deproj_all,ps_temp=60.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./60.),ref='MGP',/nodp
+;       gal_deproj_all,ps_temp=60.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./60.),ref='MGP',/nodp
+;     extract a gasmap dataset with HI resolution and on the same frame (in gasmap-hires)
+;       gal_deproj_all,select=[1,2,4,5],ps_temp=30.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./30.),ref='MGP',/nodp,/common_res
+;       gal_deproj_all,select=[1,2,4,5],ps_temp=15.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./15.),ref='MGP',/nodp,/common_res
+;     extract a gapmap dataset with NANTEN resolution and on the same frame (in gasmap-nantenres)
+;       gal_deproj_all,select=[0,1,2,3,4,5],ps_temp=30.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./30.),ref='MGP',/nodp,/common_res
+;       gal_deproj_all,select=[0,1,2,3,4,5],ps_temp=15.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./15.),ref='MGP',/nodp,/common_res
+;
 ;   * FOV extracting:
 ;     CO FOV: 
 ;       gal_deproj_all,fwhm=0.0,/kpc, select=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,21,22],sz_temp=179,/unmsk,ref='SGP'
@@ -110,6 +124,7 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 if n_elements(fwhm) eq 0 then fwhm=0
 if n_elements(sz_temp) eq 0 then sz_temp=1024
 if n_elements(relax) eq 0 then relax=0.2
+if n_elements(ps_temp) eq 0 then ps_temp=1.0
 
 ; READ THE PARAMETERS FILE
 gal_struct_build,ref,s,h
@@ -205,10 +220,11 @@ foreach ind,gselect do begin
 
     ; SET UP TEMPLATE FOR REGRIDDING: default: 1024 x 1024, 1"
     if size(sz_temp,/tn) eq size(' ',/tn) $ 
-      then sz_im=float(s.(where(h eq sz_temp))[ind]) $
+      then sz_im=float(strsplit(s.(where(h eq sz_temp))[ind],',',/extract)) $
       else sz_im=sz_temp
-    refhd = MK_HD([ra,dec],[sz_im,sz_im],1)
-    print,'-->  setting up template '+string(sz_im)+'x'+string(1.0)+' arcsec'       
+    if n_elements(sz_im) eq 1 then sz_im=replicate(sz_im,2)
+    refhd = MK_HD([ra,dec],sz_im,ps_temp)
+    print,'-->  setting up template ['+strjoin(string(sz_im),',')+'] x '+string(ps_temp)+' arcsec'       
     foreach type,subtypes do begin
       
       imgfl =type.path+type.prefix+galno+type.posfix+'.fits'
@@ -234,6 +250,7 @@ foreach ind,gselect do begin
         if STRPOS(type.posfix, '.1e') ne -1 then errm=1
         if STRPOS(type.posfix, '.sen') ne -1 then errm=1
         if STRPOS(type.posfix, '.err') ne -1 then errm=1
+        if STRPOS(type.posfix, '.unc') ne -1 then errm=1
         REGRID3D, mom0,mom0_hd,mom0rg,mom0rg_hd,refhd
         
 
