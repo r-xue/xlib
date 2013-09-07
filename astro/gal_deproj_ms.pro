@@ -1,5 +1,6 @@
 PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
-  ores=ores,mres=mres,out=out,MSPPC2=MSPPC2, HELIUM=HELIUM
+  ores=ores,mres=mres,out=out,MSPPC2=MSPPC2, HELIUM=HELIUM,$
+  nodp=nodp
 
 ;+
 ; NAME:
@@ -9,7 +10,11 @@ PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
 ;   make measurement from deprojected commom resolution dataset
 ;  (will fetch a set of fits data from the current working directory)
 ;  box in arcsec
-;
+;  
+; INPUT:
+;   nodp:   by default: the program will search for files like "*smoXX_dp.fits"
+;           /nodp will let the program search for files with name "*smoXX.fits" 
+;   box:    sample template size in arcsec
 ; OUT
 ;   mesaurement structure:
 ;   st.gal  galaxy name
@@ -19,17 +24,23 @@ PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
 ;   GALEX images in CPS per pixel, CPS->Jy conversion could be found at
 ;   http://galex.stsci.edu/GR6/?page=faq
 ;   The original pixel is 1.5" size.
+; 
 ; GAL_DEPROJ_MS,'SGP',box=1024,reftype=6,out='st_ms',/MSPPC2
 ; GAL_DEPROJ_MS,'TGP',box=1024,reftype=17,out='thing_ms',/MSPPC2
 ; GAL_DEPROJ_MS,'SGP',box=1024,reftype=6,out='st_ms',/MSPPC2
 ; GAL_DEPROJ_MS,'SGP',box=1024,reftype=4,out='st_ms'
+; 
+; GAL_DEPROJ_MS,'MGP',reftype=1,out='mcs_ms',/msppc2,/nodp
+; GAL_DEPROJ_MS,'MGP',reftype=1,out='mcs_ms',/nodp
 ;-
 
-if n_elements(box) eq 0 then box=1024
 if n_elements(ores) eq 0 then ores='*'
 if n_elements(mres) eq 0 then mres='*'
 if n_elements(out) eq 0 then out='all_ms'
 if n_elements(reftype) eq 0 then reftype=0
+dp='_dp'
+if keyword_set(nodp) then dp=''
+
 ; SETUP
 fitsloc='./'
 ;fn='*_smo*_dp.fits'
@@ -75,8 +86,6 @@ ms = { $
   nh1lsenwt:!values.d_nan,$
   nh1lsene:!values.d_nan,$
   xisrf:!values.d_nan,$
-  pacs70:!values.d_nan,$
-  pacs160:!values.d_nan,$
   contmsk:!values.d_nan,$       ;<--- not implemented, for continuum masking
   nuv:!values.d_nan,$           ; nuv flux
   fuv:!values.d_nan,$           ; fuv flux
@@ -100,8 +109,12 @@ ms = { $
   nh2_predict:!values.d_nan, $   ;<--- not implemented, for predicted nh2 values
   sig_sfr:!values.d_nan $          ; sig_sfr from halpha
   }
-types=gal_deproj_fileinfo(ref)
 
+types=gal_deproj_fileinfo(ref)
+for i=0,n_elements(types.tag)-1 do begin
+  print,types[i].tag
+  ms=create_struct(ms,types[i].tag,!values.d_nan)
+endfor
 
 for ind=0,n_elements(s.(0))-1 do begin
   
@@ -144,17 +157,20 @@ for ind=0,n_elements(s.(0))-1 do begin
   d25=s.(where(h eq 'D_25 (")'))[ind]
   
   ; HEX SAMPLING
-  temp=fitsloc+galno+types[reftype].posfix+'_smo'+ores+'_dp.fits'
+  temp=fitsloc+galno+types[reftype].posfix+'_smo'+ores+dp+'.fits'
 
   if file_test(temp) eq 0 then continue
+  temp=(file_search(temp))[0]
   nh2=readfits(temp,nh2hd,/silent)
   sz=size(nh2,/d)
   getrot,nh2hd,angle,cdelt
   x_limit=[-sz[0]/2+1,sz[0]/2-1]*abs(cdelt[0])*3600.
   y_limit=[-sz[1]/2+1,sz[1]/2-1]*abs(cdelt[0])*3600.
-  
-  x_limit=[x_limit[0]>(-fix(box/2)),x_limit[1]<fix(box/2)]
-  y_limit=[y_limit[0]>(-fix(box/2)),y_limit[1]<fix(box/2)]
+  print,x_limit,y_limit
+  if keyword_set(box) then begin
+    x_limit=[x_limit[0]>(-fix(box/2)),x_limit[1]<fix(box/2)]
+    y_limit=[y_limit[0]>(-fix(box/2)),y_limit[1]<fix(box/2)]
+  endif
   sample_grid,[0.,0.],$
     sxpar(nh2hd,'BMAJ')*0.5*3600,$
     x_limit=x_limit,$
@@ -188,8 +204,8 @@ for ind=0,n_elements(s.(0))-1 do begin
   gal_ms.inc=inc
   
   foreach type, types do begin
-    fname=fitsloc+galno+type.posfix+'_smo'+ores+'_dp.fits'
-    fnamemsk=fitsloc+galno+type.posfix+'_mskd_smo'+ores+'_dp.fits'
+    fname=fitsloc+galno+type.posfix+'_smo'+ores+dp+'.fits'
+    fnamemsk=fitsloc+galno+type.posfix+'_mskd_smo'+ores+dp+'.fits'
 
     if file_test(fname) or file_test(fnamemsk) then begin
       if file_test(fnamemsk) then fname=fnamemsk
@@ -210,28 +226,41 @@ for ind=0,n_elements(s.(0))-1 do begin
       if type.tag eq 'hie_hsen' then gal_ms.nh1hsene=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'co' then gal_ms.nh2=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'coe' then gal_ms.nh2e=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'co_nanten' then gal_ms.nh2=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'coe_nanten' then gal_ms.nh2e=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'co_magma' then gal_ms.nh2=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      if type.tag eq 'coe_magma' then gal_ms.nh2e=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      
       if type.tag eq 'co21' then gal_ms.nh2=(calc_cn(im,'co2-1',hd=hd,xco=xco/0.8,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'co21e' then gal_ms.nh2e=(calc_cn(im,'co2-1',hd=hd,xco=xco/0.8,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'co_lsen' then gal_ms.nh2lsen=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'coe_lsen' then gal_ms.nh2lsene=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'co_hsen' then gal_ms.nh2hsen=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
       if type.tag eq 'coe_hsen' then gal_ms.nh2hsene=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
+      
       if type.tag eq 'halpha' then gal_ms.sig_sfr=(calc_ssfr(im,hd,proj='GOLDMINE'))[pxout,pyout]
+      
       if type.tag eq 'irac1' then gal_ms.irac1=im[pxout,pyout]
       if type.tag eq 'irac1e' then gal_ms.irac1e=im[pxout,pyout]
       if type.tag eq 'irac4' then gal_ms.irac4=im[pxout,pyout]
       if type.tag eq 'irac4e' then gal_ms.irac4e=im[pxout,pyout]
+      
+      if type.tag eq 'irac1' then gal_ms.irac1=im[pxout,pyout]
+      if type.tag eq 'irac1e' then gal_ms.irac1e=im[pxout,pyout]
+      
       if type.tag eq 'nuv' then gal_ms.nuv=im[pxout,pyout]*ncps2mjypsr
       if type.tag eq 'nuv-wt' then gal_ms.nuvwt=im[pxout,pyout]*ncps2mjypsr
       if type.tag eq 'fuv' then gal_ms.fuv=im[pxout,pyout]*fcps2mjypsr
       if type.tag eq 'fuv-wt' then gal_ms.fuvwt=im[pxout,pyout]*fcps2mjypsr
-      print,"sample_points:", n_elements(pxout),mean(gal_ms.oh)
+      tagindex=where(TAG_NAMES(ms) eq strupcase(type.tag))
+      gal_ms.(tagindex)=im[pxout,pyout]
+      print,"sample_points:", n_elements(pxout)
       ;print,type.tag,max(gal_ms.cont,/nan),max(im[pxout,pyout],/nan)
     endif
   endforeach
   
   foreach type, types do begin
-    fname=fitsloc+galno+type.posfix+'_iwt_smo'+ores+'_dp.fits'
+    fname=fitsloc+galno+type.posfix+'_iwt_smo'+ores+dp+'.fits'
     if file_test(fname) then begin
       im=readfits(fname,hd,/silent)
       if type.tag eq 'hi' then gal_ms.nh1wt=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
@@ -245,7 +274,7 @@ for ind=0,n_elements(s.(0))-1 do begin
   endforeach
   
   foreach type, ['xisrf'] do begin
-    fname=fitsloc+galno+'*'+type+'_smo'+mres+'_dp.fits'
+    fname=fitsloc+galno+'*'+type+'_smo'+mres+dp+'.fits'
     if file_test(fname) then begin
       im=readfits(fname,hd,/silent)
       if type eq 'xisrf' then gal_ms.xisrf=im[pxout,pyout]
@@ -254,9 +283,17 @@ for ind=0,n_elements(s.(0))-1 do begin
 
   
   all_ms=[all_ms,gal_ms]
+  
+  im[*]=0.0
+  im[pxout,pyout]=1.0
+  SXADDPAR, hd, 'DATAMAX', 0.0
+  SXADDPAR, hd, 'DATAMIN', 1.0
+  temp=repstr(temp,'.fits','.ms.fits')
+  writefits,temp,im,hd
   ;print,n_elements(where(all_ms.irac4e eq all_ms.irac4e))
 endfor
 
 save,filename=out+'.dat',all_ms
 END
+
 
