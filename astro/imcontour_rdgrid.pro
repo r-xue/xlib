@@ -3,7 +3,7 @@ pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
       _EXTRA = extra, XMID = xmid, YMID = ymid, OVERLAY = OVERLAY, $
        NOerase = noerase,window=window
 ;+
-; this is a slightly modified imcontour with the function of plotiing ra-dec grid
+; this is a slightly modified imcontour with the function of plotting ra-dec grid
 ;-
 ;+
 ; NAME:
@@ -337,28 +337,25 @@ pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
   endif
   
   ;+
-  ; Use tic positions in xpos and ypos( 0 ) to define RA's
-  s = size( xpos )
-  xy2ad, xpos, replicate( ypos[0], s[1] ), astr, a, d
+  ; plot ra-dec grid
   
-  ; Calculate lines of constant RA from bottom to top of image
-  print,[ !y.crange[0], ypos[*], !y.crange[1] ]
-  ypl = [ !y.crange[0], ypos[*], !y.crange[1] ]
-  for i = 0, s[1] - 1 do begin
-    xpl = cons_ra( a[i], ypl, astr )
-    oplot, xpl, ypl, linestyle = 1
-  end
+  if type eq 1 then begin 
   
-  ; Use tic positions in xpos( 0 ) and ypos to define Dec's
-  s = size( ypos )
-  xy2ad, replicate( xpos[0], s[1] ), ypos, astr, a, d
+  ypl=findgen(!y.crange[1]-!y.crange[0])
+  for i =0, (size(ra_grid))[1]-1 do begin
+    xpl=cons_ra(ra_grid[i],ypl,astr)
+    oplot, xpl, ypl, linestyle = 2
+  endfor
   
-  ; Calculate lines of constant Dec from left to right of image
-  xpl = [ !x.crange[0], xpos[*], !x.crange[1] ]
-  for i = 0, s[1] - 1 do begin
-    ypl = cons_dec( d[i], xpl, astr )
-    oplot, xpl, ypl, linestyle = 1
-  end
+  
+  xpl=findgen(!x.crange[1]-!x.crange[0])
+  for i =0, (size(dec_grid))[1]-1 do begin
+    ypl=cons_dec(dec_grid[i],xpl,astr)
+    oplot, xpl, ypl, linestyle = 2
+  endfor
+  
+  endif
+  
   ;-
   
   return                                          
