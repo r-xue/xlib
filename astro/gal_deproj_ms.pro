@@ -1,6 +1,6 @@
 PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
   ores=ores,mres=mres,out=out,MSPPC2=MSPPC2, HELIUM=HELIUM,$
-  nodp=nodp
+  nodp=nodp,ra=ra,dec=dec
 
 ;+
 ; NAME:
@@ -167,6 +167,8 @@ for ind=0,n_elements(s.(0))-1 do begin
   x_limit=[-sz[0]/2+1,sz[0]/2-1]*abs(cdelt[0])*3600.
   y_limit=[-sz[1]/2+1,sz[1]/2-1]*abs(cdelt[0])*3600.
   print,x_limit,y_limit
+  
+  ; by default, we will make measurements using a hex sampling grid
   if keyword_set(box) then begin
     x_limit=[x_limit[0]>(-fix(box/2)),x_limit[1]<fix(box/2)]
     y_limit=[y_limit[0]>(-fix(box/2)),y_limit[1]<fix(box/2)]
@@ -178,6 +180,12 @@ for ind=0,n_elements(s.(0))-1 do begin
     /hex,xout=xout,yout=yout
   pxout=round(-xout/3600./abs(cdelt[0])+sxpar(nh2hd,'CRPIX1')-1)
   pyout=round(yout/3600./abs(cdelt[0])+sxpar(nh2hd,'CRPIX2')-1)
+  
+  ; if ra/dec set, we will make measurements at specific locations (for magclouds)
+  if keyword_set(ra) then begin
+    
+    
+  endif
   
   
   gal_ms=replicate(ms,n_elements(xout))

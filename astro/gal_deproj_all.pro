@@ -39,9 +39,13 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ; EXAMPLES:
 ; 
 ;   * MCs:
-;     extract a dataset with native resolution and on the same frame (in gasmap)
+;     extract a dataset with native resolution + 15" pixel size on the same frame (in allmap-nat)
 ;       gal_deproj_all,ps_temp=60.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./60.),ref='MGP',/nodp
 ;       gal_deproj_all,ps_temp=60.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./60.),ref='MGP',/nodp
+;     extract a dataset with native resolution + 15" pixel size on the same frame (in allmap-nat-sp)
+;       gal_deproj_all,ps_temp=15.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./15.),ref='MGP',/nodp
+;       gal_deproj_all,ps_temp=15.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./15.),ref='MGP',/nodp
+;       
 ;     extract a gasmap dataset with HI resolution and on the same frame (in gasmap-hires)
 ;       gal_deproj_all,select=[1,2,4,5],ps_temp=30.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./30.),ref='MGP',/nodp,/common_res
 ;       gal_deproj_all,select=[1,2,4,5],ps_temp=15.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./15.),ref='MGP',/nodp,/common_res
