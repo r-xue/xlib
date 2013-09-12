@@ -1,5 +1,5 @@
 PRO OPLOTERRLIM,x,y,xe,ye,_extra=_extra,exp=exp,$
-  xlim=xlim,ylim=ylim,lsize=lsize
+  xlim=xlim,ylim=ylim,lsize=lsize,xexp=xexp,yexp=yexp
 ;+
 ; over plot errorbar + lower limit
 ; /exp: data points will be plotted as 10^[x,y]
@@ -21,6 +21,14 @@ for i=0,nd-1 do begin
   yt=y[i]+[0.0,-1.0,1.0,-3.0,3.0]*abs(ye[i])
   if keyword_set(exp) then begin
     xt=10.^xt
+    yt=10.^yt
+  endif
+  
+  if keyword_set(xexp) then begin
+    xt=10.^xt
+  endif
+  
+  if keyword_set(yexp) then begin
     yt=10.^yt
   endif
 

@@ -2,7 +2,7 @@ FUNCTION MCS_FILEINFO
 ;+
 ; this structure includes fits file naming/path information
 ;-
-types=replicate({path:'',prefix:'',posfix:'',tag:'',psf:-1.0,mask:''},16)
+types=replicate({path:'',prefix:'',posfix:'',tag:'',psf:-1.0,mask:''},20)
 types.path=[$
   '/Users/Rui/Workspace/magclouds/gasmap/',$
   '/Users/Rui/Workspace/magclouds/gasmap/',$
@@ -19,8 +19,12 @@ types.path=[$
   '/Volumes/Scratch/data_repo/herschel/HERITAGE/Data/',$
   '/Volumes/Scratch/data_repo/herschel/HERITAGE/Data/',$
   '/Volumes/Scratch/data_repo/herschel/HERITAGE/Data/',$
-  '/Volumes/Scratch/data_repo/herschel/HERITAGE/Data/']
-types.prefix=replicate('',16)
+  '/Volumes/Scratch/data_repo/herschel/HERITAGE/Data/',$
+  '/Volumes/Scratch/data_repo/21cm/gass/',$
+  '/Volumes/Scratch/data_repo/21cm/gass/',$
+  '/Volumes/Scratch/data_repo/21cm/gass/',$
+  '/Volumes/Scratch/data_repo/21cm/gass/']
+types.prefix=replicate('',20)
 types.posfix=[$
   '.co_nanten.cm.sm.mom0',$
   '.co_magma.cm.sm.mom0',$
@@ -37,7 +41,11 @@ types.posfix=[$
   '.HERITAGE.PACS160.unc',$
   '.HERITAGE.SPIRE250.unc',$
   '.HERITAGE.SPIRE350.unc',$
-  '.HERITAGE.SPIRE500.unc']
+  '.HERITAGE.SPIRE500.unc',$
+  '_gass.gm.mc.mom0',$
+  '_gass.gm.mc.emom0',$
+  '_gass.gm.mw.mom0',$
+  '_gass.gm.mw.emom0']
 types.tag=[$
   'co_nanten',$
   'co_magma',$
@@ -54,7 +62,11 @@ types.tag=[$
   'pacs160e',$
   'spire250e',$
   'spire350e',$
-  'spire500e']
+  'spire500e',$
+  'higass_mc',$
+  'higasse_mc',$
+  'higass_mw',$
+  'higasse_mw']
 types.psf=[$
   -1,$
   -1,$
@@ -71,7 +83,11 @@ types.psf=[$
     11.4,$;pacs160
     18.2,$;SPIRE250
     24.9,$;SPIRE350
-    36.3];SPIRE500
+    36.3,$;SPIRE500
+    -1,$
+    -1,$
+    -1,$
+    -1]
   
 types.mask=replicate("",n_elements(types.path))
 
