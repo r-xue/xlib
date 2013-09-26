@@ -25,9 +25,29 @@ if proj eq 'Coma' or proj eq 'Coma0' then begin
   fileinfo=coma_fileinfo()
 endif
 
+; READ FILEINFO FROM A CSV FILE
 if proj eq 'MGP' then begin
-  fileinfo=mcs_fileinfo()
+  
+  path=ProgramRootDir()
+  csvfile=path+'../data/'+proj+'_fileinfo.csv'
+  s=READ_CSV(csvfile,header=h)
+  ; switch from a structure to a structure array
+  fileinfo=[]
+  for j=0,n_elements(s.(0))-1 do begin
+    tmpst={}
+    for i=0,n_elements(h)-1 do begin
+      tmpst=create_struct(tmpst,h[i],(s.(i))[j])
+    endfor
+    fileinfo=[fileinfo,tmpst]
+  endfor
+  
 endif
+
+
+;if proj eq 'MGP' then begin
+;  fileinfo=mcs_fileinfo()
+;endif
+
 
 return,fileinfo
 
