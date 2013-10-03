@@ -4,7 +4,7 @@ PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
 
 ;+
 ; NAME:
-;   ST_MEASURE
+;   GAL_DPROJ_MS
 ;
 ; PURPOSE:
 ;   make measurement from deprojected commom resolution dataset
