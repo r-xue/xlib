@@ -2,7 +2,7 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
     hi_res=hi_res,uv_res=uv_res,pacs3_res=pacs3_res,common_res=common_res,$
     select=select,ref=ref,$
     unmsk=unmsk, sz_temp=sz_temp,wtsm=wtsm,relax=relax,$
-    gselect=gselect, nodp=nodp, ps_temp=ps_temp
+    gselect=gselect, nodp=nodp, ps_temp=ps_temp, im_temp=im_temp
 ;+
 ; NAME:
 ;   gal_deproj_all
@@ -20,6 +20,7 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   PS_TEMP     pixesize for the common frame
 ;               it could be a catalog header (e.g. 'HI sz_temp (")').
 ;               then sz_temp value will be read from the matching column.
+;   im_temp    choose a map type for the frame template. this will override ps_temp & sz_temp
 ;   select      choose only some types of data for processing
 ;               e.g. select=[0,1] -- only process IRAC1 & IRAC4 
 ;               (see the structure info in st_struct_fileinfo.pro)
@@ -39,6 +40,8 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ; EXAMPLES:
 ; 
 ;   * MCs:
+;     extract a dataset of M24+CO with common resolution + 30" pixel size on the same frame (in magmap)
+;       gal_deproj_all,select=[1,4,22],gselect=[0],im_temp=1,ref='MGP',/nodp,/common
 ;     extract a dataset with native resolution + 60" pixel size on the same frame (in allmap-nat)
 ;       gal_deproj_all,ps_temp=60.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./60.),ref='MGP',/nodp
 ;       gal_deproj_all,ps_temp=60.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./60.),ref='MGP',/nodp
@@ -223,11 +226,18 @@ foreach ind,gselect do begin
     print,'-->  Smoothing to a resolution of '+string(res_as)+' arcsec'
 
     ; SET UP TEMPLATE FOR REGRIDDING: default: 1024 x 1024, 1"
+    
     if size(sz_temp,/tn) eq size(' ',/tn) $ 
       then sz_im=float(strsplit(s.(where(h eq sz_temp))[ind],',',/extract)) $
       else sz_im=sz_temp
     if n_elements(sz_im) eq 1 then sz_im=replicate(sz_im,2)
     refhd = MK_HD([ra,dec],sz_im,ps_temp)
+    
+    if  keyword_set(im_temp) then begin
+        refim=types[im_temp].path+types[im_temp].prefix+galno+types[im_temp].posfix+'.fits'
+        tmp=readfits(refim,refhd,/silent)
+    endif
+    
     print,'-->  setting up template ['+strjoin(string(sz_im),',')+'] x '+string(ps_temp)+' arcsec'       
     foreach type,subtypes do begin
       
