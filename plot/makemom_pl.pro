@@ -74,10 +74,10 @@ for i=0,1 do begin
   
   rd_hd,imhd,s=s
   psize=abs(s.cdelt[0])*3600
-  print,psize
+;  print,psize
   sz=size(im,/d)
-  print,s.bmaj/60.0
-  print,s.bmin/60.0
+;  print,s.bmaj/60.0
+;  print,s.bmin/60.0
   tvellipse,s.bmaj/2.0/psize,s.bmin/2.0/psize,$
             sz[0]/10.0,sz[1]/10.0,$
             s.bpa,$

@@ -4,6 +4,8 @@ pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
        NOerase = noerase,window=window
 ;+
 ; this is a slightly modified imcontour with the function of plotting ra-dec grid
+; it only works for -sin -tan -car projections because of limitations from cons_ra(),cons_dec()
+; In addition, the tick marks are not correct at the top/right axes. cgdisp still does a better job.
 ;-
 ;+
 ; NAME:
@@ -346,13 +348,29 @@ pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
     xpl=cons_ra(ra_grid[i],ypl,astr)
     oplot, xpl, ypl, linestyle = 2
   endfor
-  
-  
   xpl=findgen(!x.crange[1]-!x.crange[0])
   for i =0, (size(dec_grid))[1]-1 do begin
     ypl=cons_dec(dec_grid[i],xpl,astr)
     oplot, xpl, ypl, linestyle = 2
   endfor
+  
+;  rd_hd, hdr, str=str,cmat=cmat,/full
+;  getrot, hdr, rot, psize
+;  dgrid=abs(psize[0])
+;  for i =0, (size(ra_grid))[1]-1 do begin
+;      rgrid=[min(cmat.dec),max(cmat.dec)]
+;      decpl=findgen(ceil((rgrid[1]-rgrid[0])/dgrid+1))*dgrid+rgrid[0]
+;      rapl=replicate(ra_grid[i],n_elements(decpl))
+;      ad2xy,rapl,decpl,astr,xpl,ypl
+;      oplot, xpl, ypl, linestyle = 1
+;  endfor
+;  for i =0, (size(dec_grid))[1]-1 do begin
+;      rgrid=[min(cmat.ra),max(cmat.ra)]
+;      rapl=findgen(ceil((rgrid[1]-rgrid[0])/dgrid+1))*dgrid+rgrid[0]
+;      decpl=replicate(dec_grid[i],n_elements(rapl))
+;      ad2xy,rapl,decpl,astr,xpl,ypl
+;      oplot, xpl, ypl, linestyle = 1
+;  endfor
   
   endif
   
