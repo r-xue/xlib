@@ -40,7 +40,7 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ; EXAMPLES:
 ; 
 ;   * MCs:
-;     extract a dataset of M24+CO with common resolution + 30" pixel size on the same frame (in magmap)
+;     extract a dataset of M24+CO with common resolution on the same frame (in magmap)
 ;       gal_deproj_all,select=[1,4,22],gselect=[0],im_temp=1,ref='MGP',/nodp,/common
 ;     extract a dataset with native resolution + 60" pixel size on the same frame (in allmap-nat)
 ;       gal_deproj_all,ps_temp=60.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./60.),ref='MGP',/nodp
