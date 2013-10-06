@@ -2,7 +2,7 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
     hi_res=hi_res,uv_res=uv_res,pacs3_res=pacs3_res,common_res=common_res,$
     select=select,ref=ref,$
     unmsk=unmsk, sz_temp=sz_temp,wtsm=wtsm,relax=relax,$
-    gselect=gselect, nodp=nodp, ps_temp=ps_temp, im_temp=im_temp
+    gselect=gselect, nodp=nodp, ps_temp=ps_temp, im_temp=im_temp,radec_temp=radec_temp
 ;+
 ; NAME:
 ;   gal_deproj_all
@@ -20,7 +20,8 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   PS_TEMP     pixesize for the common frame
 ;               it could be a catalog header (e.g. 'HI sz_temp (")').
 ;               then sz_temp value will be read from the matching column.
-;   im_temp    choose a map type for the frame template. this will override ps_temp & sz_temp
+;   im_temp     choose a map type for the frame template. this will override ps_temp & sz_temp
+;   radec_temp  specify template center
 ;   select      choose only some types of data for processing
 ;               e.g. select=[0,1] -- only process IRAC1 & IRAC4 
 ;               (see the structure info in st_struct_fileinfo.pro)
@@ -42,6 +43,7 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   * MCs:
 ;     extract a dataset of M24+CO with common resolution on the same frame (in magmap)
 ;       gal_deproj_all,select=[1,4,22],gselect=[0],im_temp=1,ref='MGP',/nodp,/common
+;       gal_deproj_all,select=[31,32,29],gselect=[0],im_temp=31,ref='MGP',/nodp
 ;     extract a dataset with native resolution + 60" pixel size on the same frame (in allmap-nat)
 ;       gal_deproj_all,ps_temp=60.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./60.),ref='MGP',/nodp
 ;       gal_deproj_all,ps_temp=60.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./60.),ref='MGP',/nodp
@@ -232,6 +234,9 @@ foreach ind,gselect do begin
       else sz_im=sz_temp
     if n_elements(sz_im) eq 1 then sz_im=replicate(sz_im,2)
     refhd = MK_HD([ra,dec],sz_im,ps_temp)
+    if  keyword_set(radec_temp) then begin
+        refhd=mk_hd(radec_temp,sz_im,ps_temp)
+    endif
     
     if  keyword_set(im_temp) then begin
         refim=types[im_temp].path+types[im_temp].prefix+galno+types[im_temp].posfix+'.fits'

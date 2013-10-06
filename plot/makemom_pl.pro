@@ -36,8 +36,7 @@ for i=0,1 do begin
   
   im=prefix+'.mom'+strtrim(i,2)+'.fits'
   im=readfits(im,imhd)
-  if n_elements(scale) eq 0 then scale=1.0
-  im=im*scale
+  if n_elements(scale) ne 0 and i eq 0 then im=im*scale 
   
   pos=pos_mp(i,[2,1],[0.05,0.05],[0.05,0.05,0.05,0.2])
   pos=pos.position
@@ -50,6 +49,22 @@ for i=0,1 do begin
     cgloadct,13
     cgimage,im,pos=pos,stretch=1,/noe,/KEEP_ASPECT_RATIO
   endif
+  
+  rd_hd,imhd,s=s
+  psize=abs(s.cdelt[0])*3600
+  ;print,psize
+  sz=size(im,/d)
+  ;print,s.bmaj/60.0
+  ;print,s.bmin/60.0
+  print,s.bmaj/2.0/psize
+  tvellipse,s.bmaj/2.0/psize,s.bmin/2.0/psize,$
+      sz[0]/10.0,sz[1]/10.0,$
+      s.bpa,$
+      /data,noclip=0,color=cgcolor('cyan'),/fill
+  tvellipse,s.bmaj/2.0/psize,s.bmin/2.0/psize,$
+      sz[0]/10.0,sz[1]/10.0,$
+      s.bpa,$
+      /data,noclip=0,color=cgcolor('black')
   
   cgloadct,0
   if (where(im eq im))[0] ne -1 then begin
@@ -72,20 +87,7 @@ for i=0,1 do begin
   POSITION=pos
   cgloadct,0
   
-  rd_hd,imhd,s=s
-  psize=abs(s.cdelt[0])*3600
-;  print,psize
-  sz=size(im,/d)
-;  print,s.bmaj/60.0
-;  print,s.bmin/60.0
-  tvellipse,s.bmaj/2.0/psize,s.bmin/2.0/psize,$
-            sz[0]/10.0,sz[1]/10.0,$
-            s.bpa,$
-            /data,noclip=0,color=cgcolor('cyan'),/fill
-  tvellipse,s.bmaj/2.0/psize,s.bmin/2.0/psize,$
-            sz[0]/10.0,sz[1]/10.0,$
-            s.bpa,$
-            /data,noclip=0,color=cgcolor('black')
+
   
 endfor
 

@@ -1,5 +1,6 @@
-PRO IMSPEC,im,hd,ra,dec,velo,spec,psize=psize,ave=ave,$
-  silent=silent
+PRO IMSPEC,im,hd,ra,dec,velo,spec,$
+    psize=psize,ave=ave,$
+    silent=silent,method=method
 ;+
 ; NAME:
 ;   IMSPEC
@@ -31,22 +32,30 @@ PRO IMSPEC,im,hd,ra,dec,velo,spec,psize=psize,ave=ave,$
 
 rd_hd, hd, s=s
 velo=s.v
+  nxyz=size(im,/d)
+  
+if not keyword_set(method) then method=0
 
-if n_elements(psize) eq 0 then psize=sqrt(s.bmaj*s.bmin)*2./3.
+
+if n_elements(psize) eq 0 then psize=sqrt(s.bmaj*s.bmin)*1/2.
 if psize eq 0.0 then psize=1.0
-if not keyword_set(silent) then print,"psize:",psize
+;if not keyword_set(silent) then print,"psize:",psize
 
-if not keyword_set(ave) then begin 
+
+; regrid and extract the center pixel
+if method eq 2 then begin 
   
   mkhdr,imhd_ref,4,[11,11]
   imhd_ref=mk_hd([ra,dec],[11,11],psize/3600.)
   regrid3d,im,hd,im_sub,hd_sub,imhd_ref
   spec=(im_sub[5,5,*])[*]
 
-endif else begin
+endif
 
+; average over an aperture
+if  method eq 1 then begin
   adxy,hd,ra,dec,x,y
-  nxyz=size(im,/d)
+
   dist_ellipse, ell, nxyz[0:1], x, y,1.0,0.0
   getrot,hd,rotang,cdelt
   ell=ell*abs(cdelt[0])*60.0*60 ;
@@ -58,9 +67,22 @@ endif else begin
       spec[j]=mean(im[tagin+j*nxyz[0]*nxyz[1]],/nan)
     endfor
   endif
+endif
 
-endelse
-
+; nearest
+if  method eq 0 then begin
+    adxy,hd,ra,dec,x,y
+    if  round(x) ge 0 and $
+        round(x) lt nxyz[0] and $
+        round(y) ge 0 and $
+        round(y) lt nxyz[1] then begin
+        spec=im[round(x),round(y),*]
+    endif else begin
+        spec=replicate(!values.f_nan,nxyz[2])
+    endelse
+    
+endif
+ 
 jypb2k=1.0
 if STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'JY/B') ne -1 then jypb2k=s.jypb2k
 spec=spec*jypb2k
