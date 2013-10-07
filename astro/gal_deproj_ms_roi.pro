@@ -38,7 +38,7 @@ ms = { $
   typetag=[31,32,29,30,33,2,5]
 
   imroi=readfits(roi,hdroi,/silent)
-  gal_ms=replicate(ms,max(imroi))
+  gal_ms=replicate(ms,max(imroi,/nan))
 
   foreach type,types[typetag] do begin
       im='LMC'+type.posfix+'.fits'
@@ -61,9 +61,8 @@ ms = { $
           conf=3.05d-4*1e6*(psize/3600)^2.0
       endif
       
-      for ind=1,max(imroi) do begin
+      for ind=1,max(imroi,/nan) do begin
           roitag=where(imroi eq ind)
-
           tagindex=where(TAG_NAMES(ms) eq strupcase(type.tag))
           gal_ms[ind-1].(tagindex)=total(im[roitag],/nan)
           
@@ -84,10 +83,10 @@ ms = { $
   
 END
 
-PRO TEST_GAL_DEPROJ_MS_POI_PLOT
+PRO TEST_GAL_DEPROJ_MS_ROI_PLOT
 
 
-;GAL_DEPROJ_MS_ROI,roi='lmc_v9.co.vbin.sgm.roi.fits'
+GAL_DEPROJ_MS_ROI,roi='lmc_v9.co.vbin.sgm.roi.fits'
 
 restore,'magma_roi_ms.dat'
 
@@ -204,12 +203,28 @@ im=readfits('lmc_v9.co.vbin.sgm.mask.fits',hd)
 ;    base=shift(newim,0,-i,0)+base
 ;endfor
 
-base=total(im,3)
+base=total(im,3,/nan)
+
+; for x-y pixel without any channel coverage fov0 eq 0.0
+im[where(im eq im)]=1.0
+im[where(im ne im)]=0.0
+fov0=total(im,3,/nan)
 ;newim=padding(base,-step)
 
 label=label_region(base gt 0, all_neighbors = all_neighbors, /ulong)
+label=float(label)
 
+label[where(fov0 eq 0)]=!values.f_nan
+base[where(fov0 eq 0)]=!values.f_nan
+
+
+; roi code
+sxaddpar, hd, 'DATAMAX', max(label,/nan)
+sxaddpar, hd, 'DATAMIN', min(label,/nan)
 writefits,'lmc_v9.co.vbin.sgm.roi.fits',float(label),hd
+
+sxaddpar, hd, 'DATAMAX', max(base,/nan)
+sxaddpar, hd, 'DATAMIN', min(base,/nan)
 writefits,'lmc_v9.co.vbin.sgm.mask0.fits',float(base),hd
     
 END
