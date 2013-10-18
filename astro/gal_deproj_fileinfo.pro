@@ -26,7 +26,7 @@ if proj eq 'Coma' or proj eq 'Coma0' then begin
 endif
 
 ; READ FILEINFO FROM A CSV FILE
-if proj eq 'MGP' then begin
+if proj eq 'MGP' or proj eq 'MAGMA' then begin
   
   path=ProgramRootDir()
   csvfile=path+'../data/'+proj+'_fileinfo.csv'
