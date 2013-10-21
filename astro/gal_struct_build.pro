@@ -8,7 +8,7 @@ PRO GAL_STRUCT_BUILD, proj, s, h, silent=silent
 
 
 path=ProgramRootDir()
-csvfile=path+'data/'+proj+'.csv'
+csvfile=path+'../data/'+proj+'.csv'
   
 s=READ_CSV(csvfile,header=h)
 
