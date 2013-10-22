@@ -1,31 +1,41 @@
-PRO DISP_FITS,im,hd,refhd,_extra=extra,subrange=subrange
+PRO DISP_FITS,im,hd,refhd,$
+    position=position,_extra=extra,$
+    subrange=subrange,subim=subim,dummy=dummy,noplot=noplot
 ;+
 ; NAME:
 ;   disp_fits
 ; 
 ; PURPOSE:
-;   plot a fits image in a pre-defined region
+;   plot a fits image in a specified region
 ; 
 ; INPUTS:
 ;   IM          data image
 ;   HD          data hd
-;   REFHD       fits header defining the plotting region
+;   REFHD       header specifying the region to be plotted
 ;               note: refhd pixel size doesn't really matter here.
+;   position   plott position
+;   _EXTRA      any keywords for cgimgscl
 ;   
-;   _EXTRA      any keywords for imcontour and cgimgscl
+; KEYWORD:
+;   noplot      don't plot, just for testing, or deriving subrange/subim
 ;   
 ; OUTPUTS:
 ;   SUBRANGE    [xmin,xmax,ymin,ymax] 
-;               index range of the smallest rectangle covering the plotted
-;               region 
+;               index range (defined in IM) of the smallest rectangle covering 
+;               the plotted region
+;   SUBIM       a cutoff from IM just large enough to cover the plotted region
+;   DUMMY       a template from refhd 
+;                
 ; HISTORY:
 ;
 ;   20120701  RX  introduced    
 ;   20131019  RX  performace enhancement
 ;                 rename it to disp_fits.pro
+;                 
 ;-
 
-dummy=intarr(sxpar(refhd,'NAXIS1'),sxpar(refhd,'NAXIS2'),/nozero)
+dummy=fltarr(sxpar(refhd,'NAXIS1'),sxpar(refhd,'NAXIS2'))
+dummy[*]=0
 nxy=size(dummy,/d)
 
 ; GET REF BOUNDARY IN THE TARGET IMAGE
@@ -47,6 +57,8 @@ xmin=floor(min(bx))>0.0
 xmax=ceil(max(bx))<nxy[0]-1.0
 ymin=floor(min(by))>0.0
 ymax=ceil(max(by))<nxy[1]-1.0
+
+
 make_2d,findgen(xmax-xmin+1)+xmin,findgen(ymax-ymin+1)+ymin,xx,yy
 obj_roi=obj_new('IDLanROI',round(bx),round(by))
 tag_roi=obj_roi->containspoints(xx[*],yy[*])
@@ -70,30 +82,30 @@ xyxy,hd,refhd,bx,by
 
 ; IMAGE SCALING
 subim=im[xmin:xmax,ymin:ymax]
-min_value=min(subim,/nan)
-max_value=max(subim,/nan)
-sim = cgImgScl(subim, minvalue=min_value,maxvalue=max_value,_extra=extra)
+sim = cgImgScl(subim,_extra=extra)
 
 ; PLOTTING
-;imcontour,dummy,refhd,levels=0,/noe,/nodata,_ref_extra=extra
+if not keyword_set(noplot) then begin
+    cgimage,dummy,position=position,_extra=extra
+    imcontour,dummy,refhd,/noe,levels=[0],position=position,$
+        xtitle='',ytitle='',subtitle=' ',xstyle=4,ystyle=4
+    for i=0,np-1 do begin
+        polyfill,bx[i,*],by[i,*],color=sim[tag_roi[i]],$
+            noclip=0
+    endfor
+endif
 
-for i=0,np-1 do begin
-    polyfill,bx[i,*],by[i,*],color=sim[tag_roi[i]],noclip=0,/data
-endfor
 
-;imcontour,dummy,refhd,levels=0,/noe,/nodata,_ref_extra=extra
-
-    
 END
 
 
 
 PRO TEST_DISP_FITS
 
-im=readfits('/Users/Rui/Workspace/magclouds/sagemap/LMC_IRAC8.0_mosaic.fits',hd)
-ra=82.7
-dec=-71.11
-refhd=MK_HD([ra,dec],500,1.)
+im=readfits('lmc_v9.co.vbin.sgm.mom0_roi14.fits',hd)
+ra=85.61
+dec=-71.34
+refhd=MK_HD([ra,dec],[350,700],1.)
 print,refhd
 
 set_plot, 'ps'
@@ -107,11 +119,13 @@ device, filename='test.eps', $
 !p.charsize=1.0
 !p.charthick=2.0
 
+pos=[0.2,0.2,0.8,0.8]
 cgloadct,3,/rev
-disp_fits,im,hd,refhd,pos=pos,/overlay,$
-    xtitle=xtitle,ytitle=ytitle,subtitle=subtitle,xtickname=xtickname,ytickname=ytickname,$
-    c_lab=0,Stretch=5
+disp_fits,im,hd,refhd,position=pos,stretch=5,/keep,dummy=dummy
 cgloadct,0
+imcontour,dummy,refhd,/noe,levels=[0],position=pos,TYPE=0,/overlay,/nodata
+
+
 device, /close
 set_plot,'X'
 
