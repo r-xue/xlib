@@ -76,7 +76,6 @@ foreach type,types do begin
 
     print,'--->',type.tag
     im=readfits(type.path+gal+type.posfix+'.fits',hd)
-    
     for i=0,n_elements(roilist)-1 do begin
     
         nxy=size(roi,/d)
@@ -358,6 +357,13 @@ for i=0,n_elements(roilist)-1 do begin
         print,'--->',type.tag
         pos=pos_mp(kk,[3,2],[0.01,0.01],[0.1,0.1])
         im=readfits(gal+type.posfix+'_roi'+strtrim(fix(roilist[i]),2)+'.fits',hd)
+        tmpsz=size(im,/d)
+        if  type.tag eq 'irac8_org' or type.tag eq 'irac8resid_org' or type.tag eq 'mips24_org' then begin
+            hrebin,im,hd,newim,newhd,ceil(tmpsz[0]/5.0),ceil(tmpsz[1]/5.0)
+            im=newim
+            hd=newhd
+        endif
+        
         pos=pos.position
         
         xtitle=''
@@ -397,7 +403,7 @@ for i=0,n_elements(roilist)-1 do begin
             min_value=0.
             max_value=40.0
         endif
-        cgloadct,3,/rev
+        cgloadct,3
         
         disp_fits,im,hd,subroihd,$
             position=pos,stretch=stretch,minvalue=min_value,maxvalue=max_value,/KEEP_ASPECT_RATIO,/noe
