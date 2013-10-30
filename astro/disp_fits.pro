@@ -88,7 +88,7 @@ sim = cgImgScl(subim,_extra=extra)
 if not keyword_set(noplot) then begin
     cgimage,dummy,position=position,_extra=extra
     imcontour,dummy,refhd,/noe,levels=[0],position=position,$
-        xtitle='',ytitle='',subtitle=' ',xstyle=4,ystyle=4
+        xtitle='',ytitle='',subtitle=' ',xstyle=4,ystyle=4,/nodata
     for i=0,np-1 do begin
         polyfill,bx[i,*],by[i,*],color=sim[tag_roi[i]],$
             noclip=0

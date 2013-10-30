@@ -147,9 +147,12 @@ END
 PRO TEST_MOSSEN
 
 casa_mossen,'n891co.line'
-makemom,'n891co.line.cm.fits',errfile='n891co.line.err.fits',method=21
+makemom,'n891co.line.cm.fits',errfile='n891co.line.err.fits',$
+    method=21,thresh=4,edge=2,smofac=[3,3],$
+    /kelvin
 makemom_pl,'n891co.line.cm.sgm'
 END
+
 
 PRO ST_MOSSEN,version,files=files
 
