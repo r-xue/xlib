@@ -1,11 +1,14 @@
 pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
       YTITLE=ytitle, SUBTITLE = subtitle, XDELTA = xdelta, YDELTA = ydelta, $
       _EXTRA = extra, XMID = xmid, YMID = ymid, OVERLAY = OVERLAY, $
-       NOerase = noerase,window=window
+       NOerase = noerase,window=window,$
+       axes=axes
 ;+
 ; this is a slightly modified imcontour with the function of plotting ra-dec grid
 ; it only works for -sin -tan -car projections because of limitations from cons_ra(),cons_dec()
 ; In addition, the tick marks are not correct at the top/right axes. cgdisp still does a better job.
+; 
+; Also, axes will return a strcuture containing tickmark information.
 ;-
 ;+
 ; NAME:
@@ -280,7 +283,16 @@ pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
          XTICKNAME = xlab, YTICKNAME = ylab, SUBTITLE = subtitle, $
          XMINOR = xminor, YMINOR = yminor, _EXTRA = extra, XRAn=xran, $
 	 YRAN = yran,noerase=noerase,WINDOW=window
-	 
+   axes={   xticks:nx,$
+            yticks:ny,$
+            xtickv:xpos,$
+            ytickv:ypos,$
+            xtickname:xlab,$
+            ytickname:ylab,$
+            xminor:xminor,$
+            yminor:yminor,$
+            xrange:xran,$
+            yrange:yran}
   
 ;  Write info about the contour plot if desired
 
