@@ -40,6 +40,10 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;
 ; EXAMPLES:
 ; 
+;   * SDI vs. MSC test:
+;     extract a dataset with common resolution on the same frame
+;       gal_deproj_all,gselect=[14],im_temp=1,ref='MSC',/nodp,/common
+;       
 ;   * MCs:
 ;     extract a dataset of M24/CO/I8/I8resid/HI with common resolution on the same frame 
 ;       gal_deproj_all,select=[1,4,22],gselect=[0],im_temp=1,ref='MGP',/nodp,/common
@@ -282,7 +286,7 @@ foreach ind,gselect do begin
         DEPROJ_IM, mom0s, mom0s_hd, mom0dp, mom0dp_hd, ginc, gpa
         if  file_test(mkfl) eq 1 and not keyword_set(unmsk) then flag='_mskd' else flag=''
         if  ifail eq 0 then flag=flag+'_smo'+strres else flag=''
-        WRITEFITS,galno+type.posfix+flag+'.fits',mom0s, mom0s_hd
+        WRITEFITS,type.prefix+galno+type.posfix+flag+'.fits',mom0s, mom0s_hd
         if not keyword_set(nodp) then WRITEFITS,galno+type.posfix+flag+'_dp.fits',mom0dp, mom0dp_hd
         
         ; INTENSITY-WEIGHTED INTENSITY AT LOWER RESOLUTION
@@ -293,7 +297,7 @@ foreach ind,gselect do begin
           print,"scale back by",scale
           mom0wts=mom0wts/(mom0s/scale)
           DEPROJ_IM, mom0wts, mom0wts_hd, mom0wtdp, mom0wtdp_hd, ginc, gpa
-          WRITEFITS,galno+type.posfix+'_iwt'+flag+'.fits',mom0wts, mom0wts_hd
+          WRITEFITS,type.prefix+galno+type.posfix+'_iwt'+flag+'.fits',mom0wts, mom0wts_hd
           if not keyword_set(nodp) then WRITEFITS,galno+type.posfix+'_iwt'+flag+'_dp.fits',mom0wtdp, mom0wtdp_hd
         endif
         
