@@ -8,7 +8,7 @@ PRO XLS2STRUCT,xlsfile,tab,hdr,silent=silent,refresh=refresh
 ;   read a spreadsheet and load data into an IDL structure
 ;
 ; INPUTS:
-;   xlsfile     xlsfile name (actually can be almost any spreadsheet format, e.g. odt) 
+;   xlsfile     xlsfile name (could be any spreadsheet format, e.g. odt) 
 ;               by default, the xlsx file will be convert into csv,
 ;               then read by IDL
 ;
@@ -27,16 +27,22 @@ PRO XLS2STRUCT,xlsfile,tab,hdr,silent=silent,refresh=refresh
 ; NOTE:
 ;   
 ;   unoconv+libreoffice may occasionally hang.
-;   using them in the listenser mode can solve this problem:
+;   the listenser mode of unoconv can solve this problem:
 ;   >unoconv --listener&
+;   >sleep 20
+;   >unoconv -f pdf *.odt
+;   >unoconv -f doc *.odt
+;   >unoconv -f html *.odt
+;   >kill -15 %-
 ;   
 ;   A csv file with the same root name will be created in your spreasheet directory 
-;   
+;
 ; HISTORY:
 ;
-;   20130410  RX  modified from h2line_struct_build.pro
+;   20130410  RX  introduced
 ;
 ;-
+
 
 rootname=cgrootname(xlsfile,dir=dir,ext=ext)
 csvfile=xlsfile
