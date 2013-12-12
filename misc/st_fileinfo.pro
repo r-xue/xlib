@@ -3,10 +3,10 @@ FUNCTION ST_FILEINFO
 ; this structure includes fits file naming/path information
 ;-
 types=replicate({path:'',prefix:'',posfix:'',tag:'',psf:-1.0,mask:''},33)
-types.path=['/Users/Rui/Workspace/sting/irac/',$
-  '/Users/Rui/Workspace/sting/irac/',$
-  '/Users/Rui/Workspace/sting/irac/',$
-  '/Users/Rui/Workspace/sting/irac/',$
+types.path=['/Volumes/Scratch/data_repo/projects/sting/irac/',$
+  '/Volumes/Scratch/data_repo/projects/sting/irac/',$
+  '/Volumes/Scratch/data_repo/projects/sting/irac/',$
+  '/Volumes/Scratch/data_repo/projects/sting/irac/',$
   '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
   '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
   '/Volumes/Scratch/reduc/sting-co/mscr/mom0/',$
@@ -24,10 +24,10 @@ types.path=['/Users/Rui/Workspace/sting/irac/',$
   '/Users/Rui/Workspace/sting/himom_sim/',$
   '/Users/Rui/Workspace/sting/himom_sim/',$
   '/Users/Rui/Workspace/sting/himom_sim/',$
-  '/Users/Rui/Workspace/sting/galex/',$
-  '/Users/Rui/Workspace/sting/galex/',$
-  '/Users/Rui/Workspace/sting/galex/',$
-  '/Users/Rui/Workspace/sting/galex/',$
+  '/Volumes/Scratch/data_repo/projects/sting/galex/',$
+  '/Volumes/Scratch/data_repo/projects/sting/galex/',$
+  '/Volumes/Scratch/data_repo/projects/sting/galex/',$
+  '/Volumes/Scratch/data_repo/projects/sting/galex/',$
   '/Users/Rui/Workspace/sting/gromom/',$
   '/Users/Rui/Workspace/sting/gromom/',$
   '/Users/Rui/Workspace/sting/gromom/',$

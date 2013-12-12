@@ -3,33 +3,33 @@ FUNCTION THINGS_FILEINFO
 ; this structure includes fits file naming/path information
 ;-
 types=replicate({path:'',prefix:'',posfix:'',tag:'',psf:-1.0,mask:''},27)
-types.path=['/Users/Rui/Workspace/things/irac12/',$
-  '/Users/Rui/Workspace/things/irac12/',$
-  '/Users/Rui/Workspace/things/irac4/',$
-  '/Users/Rui/Workspace/things/irac4/',$
-  '/Users/Rui/Workspace/things/mips/',$
-  '/Users/Rui/Workspace/things/mips/',$
-  '/Users/Rui/Workspace/things/mips/',$
-  '/Users/Rui/Workspace/things/herschel/',$
-  '/Users/Rui/Workspace/things/herschel/',$
-  '/Users/Rui/Workspace/things/herschel/',$
-  '/Users/Rui/Workspace/things/herschel/',$
-  '/Users/Rui/Workspace/things/herschel/',$
-  '/Users/Rui/Workspace/things/herschel/',$
-  '/Users/Rui/Workspace/things/galex/',$
-  '/Users/Rui/Workspace/things/galex/',$
-  '/Users/Rui/Workspace/things/galex/',$
-  '/Users/Rui/Workspace/things/galex/',$
-  '/Users/Rui/Workspace/things/co/',$
-  '/Users/Rui/Workspace/things/co/',$
-  '/Users/Rui/Workspace/things/hi/',$
-  '/Users/Rui/Workspace/things/hi/',$
-  '/Users/ruixue/Workspace/sting/gromom/',$
-  '/Users/ruixue/Workspace/sting/gromom/',$
-  '/Users/ruixue/Workspace/sting/gromom/',$
-  '/Users/ruixue/Workspace/sting/gromom/',$
-  '/Users/ruixue/Workspace/sting/gromom/',$
-  '/Users/ruixue/Workspace/sting/gromom/']
+types.path=['/Volumes/Scratch/data_repo/projects/things/irac12/',$
+  '/Volumes/Scratch/data_repo/projects/things/irac12/',$
+  '/Volumes/Scratch/data_repo/projects/things/irac4/',$
+  '/Volumes/Scratch/data_repo/projects/things/irac4/',$
+  '/Volumes/Scratch/data_repo/projects/things/mips/',$
+  '/Volumes/Scratch/data_repo/projects/things/mips/',$
+  '/Volumes/Scratch/data_repo/projects/things/mips/',$
+  '/Volumes/Scratch/data_repo/projects/things/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/things/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/things/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/things/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/things/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/things/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/things/galex/',$
+  '/Volumes/Scratch/data_repo/projects/things/galex/',$
+  '/Volumes/Scratch/data_repo/projects/things/galex/',$
+  '/Volumes/Scratch/data_repo/projects/things/galex/',$
+  '/Volumes/Scratch/data_repo/projects/things/co/',$
+  '/Volumes/Scratch/data_repo/projects/things/co/',$
+  '/Volumes/Scratch/data_repo/projects/things/hi/',$
+  '/Volumes/Scratch/data_repo/projects/things/hi/',$
+  '/Users/ruixue/Workspace/things/gromom/',$
+  '/Users/ruixue/Workspace/things/gromom/',$
+  '/Users/ruixue/Workspace/things/gromom/',$
+  '/Users/ruixue/Workspace/things/gromom/',$
+  '/Users/ruixue/Workspace/things/gromom/',$
+  '/Users/ruixue/Workspace/things/gromom/']
 types.prefix=['NGC',$
   'NGC',$
   'ngc',$

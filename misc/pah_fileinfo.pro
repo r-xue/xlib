@@ -3,25 +3,25 @@ FUNCTION PAH_FILEINFO
 ; this structure includes fits file naming/path information
 ;-
 types=replicate({path:'',prefix:'',posfix:'',tag:'',psf:-1.0,mask:''},25)
-types.path=['/Users/Rui/Workspace/pah/irac12/',$
-  '/Users/Rui/Workspace/pah/irac12/',$
-  '/Users/Rui/Workspace/pah/irac4/',$
-  '/Users/Rui/Workspace/pah/irac4/',$
-  '/Users/Rui/Workspace/pah/mips/',$
-  '/Users/Rui/Workspace/pah/mips/',$
-  '/Users/Rui/Workspace/pah/mips/',$
-  '/Users/Rui/Workspace/pah/herschel/',$
-  '/Users/Rui/Workspace/pah/herschel/',$
-  '/Users/Rui/Workspace/pah/herschel/',$
-  '/Users/Rui/Workspace/pah/herschel/',$
-  '/Users/Rui/Workspace/pah/herschel/',$
-  '/Users/Rui/Workspace/pah/herschel/',$
-  '/Users/Rui/Workspace/pah/galex/',$
-  '/Users/Rui/Workspace/pah/galex/',$
-  '/Users/Rui/Workspace/pah/galex/',$
-  '/Users/Rui/Workspace/pah/galex/',$
-  '/Users/Rui/Workspace/pah/co/',$
-  '/Users/Rui/Workspace/pah/21cm/',$
+types.path=['/Volumes/Scratch/data_repo/projects/pah/irac12/',$
+  '/Volumes/Scratch/data_repo/projects/pah/irac12/',$
+  '/Volumes/Scratch/data_repo/projects/pah/irac4/',$
+  '/Volumes/Scratch/data_repo/projects/pah/irac4/',$
+  '/Volumes/Scratch/data_repo/projects/pah/mips/',$
+  '/Volumes/Scratch/data_repo/projects/pah/mips/',$
+  '/Volumes/Scratch/data_repo/projects/pah/mips/',$
+  '/Volumes/Scratch/data_repo/projects/pah/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/pah/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/pah/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/pah/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/pah/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/pah/herschel/',$
+  '/Volumes/Scratch/data_repo/projects/pah/galex/',$
+  '/Volumes/Scratch/data_repo/projects/pah/galex/',$
+  '/Volumes/Scratch/data_repo/projects/pah/galex/',$
+  '/Volumes/Scratch/data_repo/projects/pah/galex/',$
+  '/Volumes/Scratch/data_repo/projects/pah/co/',$
+  '/Volumes/Scratch/data_repo/projects/pah/21cm/',$
   '/Users/ruixue/Workspace/sting/gromom/',$
   '/Users/ruixue/Workspace/sting/gromom/',$
   '/Users/ruixue/Workspace/sting/gromom/',$
