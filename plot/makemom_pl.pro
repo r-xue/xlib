@@ -29,8 +29,8 @@ xsize=10,ysize=7,/inches,/col,xoffset=0,yoffset=0,/cmyk
 !x.thick = 2.0
 !y.thick = 2.0
 !z.thick = 2.0
-!p.charsize=1.0
-!p.charthick=1.0
+!p.charsize=1.5
+!p.charthick=1.5
 
 for i=0,1 do begin
   
@@ -38,12 +38,12 @@ for i=0,1 do begin
   im=readfits(im,imhd)
   if n_elements(scale) ne 0 and i eq 0 then im=im*scale 
   
-  pos=pos_mp(i,[2,1],[0.05,0.05],[0.05,0.05,0.05,0.2])
+  pos=pos_mp(i,[2,1],[0.025,0.025],[0.06,0.05,0.04,0.2])
   pos=pos.position
 
   if i eq 0 then begin
-    cgloadct,3,/rev
-    cgimage,im,pos=pos,stretch=1,/noe,minvalue=0.0,/KEEP_ASPECT_RATIO
+    cgloadct,13
+    cgimage,im,pos=pos,stretch=1,/noe,/KEEP_ASPECT_RATIO
   endif
   if i eq 1 then begin
     cgloadct,13
@@ -52,11 +52,8 @@ for i=0,1 do begin
   
   rd_hd,imhd,s=s
   psize=abs(s.cdelt[0])*3600
-  ;print,psize
   sz=size(im,/d)
-  ;print,s.bmaj/60.0
-  ;print,s.bmin/60.0
-  print,s.bmaj/2.0/psize
+  ;print,s.bmaj/2.0/psize
   tvellipse,s.bmaj/2.0/psize,s.bmin/2.0/psize,$
       sz[0]/10.0,sz[1]/10.0,$
       s.bpa,$
@@ -68,10 +65,18 @@ for i=0,1 do begin
   
   cgloadct,0
   if (where(im eq im))[0] ne -1 then begin
+    ;imcontour_rdgrid,im,imhd,nlevels=7,$
+    ;/noe,pos=pos,$
+    ;/nodata,title=dataid,/overlay,/type,$
+    ;xtitle='Right Ascension (J2000)',ytitle='Declination (J2000)',subtitle=' '
+    xtitle=!null
+    ytitle=!null
+    if i eq 1 then ytitle='' 
     imcontour_rdgrid,im,imhd,nlevels=7,$
-    /noe,pos=pos,$
-    /nodata,title=dataid,/overlay,/type,$
-    xtitle='Right Ascension (J2000)',ytitle='Declination (J2000)',subtitle=' '
+        /noe,pos=pos,$
+        /nodata,title=dataid,/overlay,$
+        xtitle=xtitle,ytitle=ytitle,subtitle=' ',$
+        color='red',AXISCOLOR='red'
   endif
 ;  tmp=im
 ;  tmp=(tmp eq tmp)
@@ -81,10 +86,16 @@ for i=0,1 do begin
 ;  xtitle='Right Ascension (J2000)',ytitle='Declination (J2000)',subtitle=' '
   
   pos=[pos[0],pos[3],pos[2],pos[3]]+[0.0,0.05,0.0,0.10]
-  if i eq 0 then cgloadct,3,/rev
-  if i eq 1 then cgloadct,13
+  if i eq 0 then begin
+    cgloadct,13;3,/rev
+    title='Intensity ['+strtrim(sxpar(imhd,'BUNIT'),2)+']'
+  endif
+  if i eq 1 then begin
+    cgloadct,13
+    title='Velocity Field ['+strtrim(sxpar(imhd,'BUNIT'),2)+']'
+  endif
   cgCOLORBAR, range=[min(im,/nan),max(im,/nan)], $
-  POSITION=pos
+  POSITION=pos,title=title,tlocation='TOP'
   cgloadct,0
   
 

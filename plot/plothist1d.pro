@@ -6,8 +6,13 @@ PRO PLOTHIST1D,x,xbin,$
   rot=rot,$
   nhist=nhist,$
   maxhist=maxhist,$
-  _extra=_extra
+  _extra=_extra,$
+  nofill=nofill,$
+  noerr=noerr
 
+;+
+; need documentation
+;-
 if not keyword_set(xmin) then xmin=min(x,/nan)
 if not keyword_set(xmax) then xmax=min(x,/nan)
 
@@ -78,9 +83,11 @@ endif
 
 
 ; default extra: color=cgcolor('black'),orien=-45,/line_fill
-polyfill,xc,yc,noclip=0,_extra=_extra
+
+if not keyword_set(nofill) then polyfill,xc,yc,noclip=0,_extra=_extra
+
 oplot,xc,yc,linestyle=0,_extra=_extra
-if keyword_set(det) then begin
+if keyword_set(det) and not keyword_set(noerr) then begin
 oploterror,xp,yp,xe[*,0],ye[*,0],/lobar,psym=3,/nohat
 oploterror,xp,yp,xe[*,1],ye[*,1],/hibar,psym=3,/nohat
 endif

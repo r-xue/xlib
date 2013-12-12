@@ -49,8 +49,8 @@ yb=0
 
 if px eq 0 then xb=1          ; left edge
 if px eq nxy[0]-1 then xb=2   ; right edge
-if py eq 0 then yb=1          ; top edge
-if py eq nxy[1]-1 then yb=2   ; bottom edge
+if py eq 0 then yb=2          ; top edge
+if py eq nxy[1]-1 then yb=1   ; bottom edge
 
 return,{position:poset,xb:xb,yb:yb,px:px,py:py}
 
