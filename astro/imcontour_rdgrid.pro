@@ -1,15 +1,16 @@
 pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
       YTITLE=ytitle, SUBTITLE = subtitle, XDELTA = xdelta, YDELTA = ydelta, $
       _EXTRA = extra, XMID = xmid, YMID = ymid, OVERLAY = OVERLAY, $
-       NOerase = noerase,window=window,$
-       axes=axes
+       NOerase = noerase,window=window,axes=axes,rdgrid=rdgrid
 ;+
 ; this is a slightly modified imcontour with the function of plotting ra-dec grid
 ; it only works for -sin -tan -car projections because of limitations from cons_ra(),cons_dec()
 ; In addition, the tick marks are not correct at the top/right axes. cgdisp still does a better job.
 ; 
 ; Also, axes will return a strcuture containing tickmark information.
+; tickmarks at upper/right axis were ignored
 ;-
+
 ;+
 ; NAME:
 ;       IMCONTOUR
@@ -234,8 +235,6 @@ pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
      xpos = cons_ra( ra_grid,0,astr )     ;Line of constant RA
      ypos = cons_dec( dec_grid,0,astr)   ;Line of constant Dec
 
-
-
      if sexig then begin 
         xunits = 'Right Ascension'
         yunits = 'Declination'
@@ -277,13 +276,24 @@ pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
                           ' Latitude ' + strtrim(string(dec_cen,'(f6.2)'),2)
 
   if N_elements( SUBTITLE)  EQ 0 then subtitle = !P.SUBTITLE
+  if not keyword_set(rdgrid) then begin
   cgContour,im, $
          XTICKS = nx, YTICKS = ny, POSITION=pos, XSTYLE=1, YSTYLE=1,$
          XTICKV = xpos, YTICKV = ypos, XTITLE=xtitle, YTITLE=ytitle, $
          XTICKNAME = xlab, YTICKNAME = ylab, SUBTITLE = subtitle, $
          XMINOR = xminor, YMINOR = yminor, _EXTRA = extra, XRAn=xran, $
 	 YRAN = yran,noerase=noerase,WINDOW=window
-   axes={   xticks:nx,$
+  endif else begin
+  cgContour,im, $
+         XTICKS = nx, YTICKS = ny, POSITION=pos, XSTYLE=8, YSTYLE=8,$
+         XTICKV = xpos, YTICKV = ypos, XTITLE=xtitle, YTITLE=ytitle, $
+         XTICKNAME = xlab, YTICKNAME = ylab, SUBTITLE = subtitle, $
+         XMINOR = xminor, YMINOR = yminor, _EXTRA = extra, XRAn=xran, $
+	 YRAN = yran,noerase=noerase,WINDOW=window
+  axis,xaxis=1,xticks=1,xminor=1,xtickname=replicate(' ',2)
+  axis,yaxis=1,yticks=1,yminor=1,ytickname=replicate(' ',2)
+  endelse
+	    axes={   xticks:nx,$
             yticks:ny,$
             xtickv:xpos,$
             ytickv:ypos,$
@@ -350,22 +360,19 @@ pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
  
   endif
   
-  ;+
-  ; plot ra-dec grid
-  
+  ;+ ; plot ra-dec grid
   if type eq 1 then begin 
-  
+  if keyword_set(rdgrid) then begin
   ypl=findgen(!y.crange[1]-!y.crange[0])
   for i =0, (size(ra_grid))[1]-1 do begin
-    xpl=cons_ra(ra_grid[i],ypl,astr)
-    oplot, xpl, ypl, linestyle = 2
+  xpl=cons_ra(ra_grid[i],ypl,astr)
+  oplot, xpl, ypl, linestyle = 2
   endfor
   xpl=findgen(!x.crange[1]-!x.crange[0])
   for i =0, (size(dec_grid))[1]-1 do begin
     ypl=cons_dec(dec_grid[i],xpl,astr)
     oplot, xpl, ypl, linestyle = 2
   endfor
-  
 ;  rd_hd, hdr, str=str,cmat=cmat,/full
 ;  getrot, hdr, rot, psize
 ;  dgrid=abs(psize[0])
@@ -383,10 +390,10 @@ pro imcontour_rdgrid, im, hdr, TYPE=type, PUTINFO=putinfo, XTITLE=xtitle,  $
 ;      ad2xy,rapl,decpl,astr,xpl,ypl
 ;      oplot, xpl, ypl, linestyle = 1
 ;  endfor
-  
   endif
-  
+  endif
   ;-
+  
   
   return                                          
   end                                         

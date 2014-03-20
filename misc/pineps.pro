@@ -27,3 +27,23 @@ cmd="rm -rf "+psfiles
 if keyword_set(clean) then spawn,cmd
 
 END
+
+
+PRO TEST_PINEPS
+
+list=file_search("*/*mom*.eps")
+list=repstr(list,'.eps','')
+pineps,'sting_msc_momx',list
+
+
+END
+
+
+PRO MC_PINEPS
+
+list=file_search("?mc/??????.eps")
+list=repstr(list,'.eps','')
+pineps.csh
+
+
+END

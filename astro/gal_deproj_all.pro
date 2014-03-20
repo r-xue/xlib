@@ -20,8 +20,8 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   PS_TEMP     pixesize for the common frame
 ;               it could be a catalog header (e.g. 'HI sz_temp (")').
 ;               then sz_temp value will be read from the matching column.
+;   RADEC_TEMP  specify template center
 ;   im_temp     choose a map type for the frame template. this will override ps_temp & sz_temp
-;   radec_temp  specify template center
 ;   select      choose only some types of data for processing
 ;               e.g. select=[0,1] -- only process IRAC1 & IRAC4 
 ;               (see the structure info in st_struct_fileinfo.pro)
@@ -45,9 +45,11 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;       gal_deproj_all,gselect=[14],im_temp=1,ref='MSC',/nodp,/common
 ;       
 ;   * MCs:
-;     extract a dataset of M24/CO/I8/I8resid/HI with common resolution on the same frame 
+;     extract a dataset of M24/CO/I8/I8resid/HI with common resolution on the same frame
+;       gal_deproj_all,select=[4,7,8,9,10,11,12,13,14,15,16,17,31,32,33,34,41]-2,gselect=[0],ref='MGP',/nodp,radec_temp=[81.0385,-71.9047],ps_temp=15,sz_temp=71,fwhm=46
+;       gal_deproj_all,select=[4,7,8,9,10,11,12,13,14,15,16,17,31,32,33,34,41]-2,gselect=[0],ref='MGP',/nodp,radec_temp=[78.9374,-68.0443],ps_temp=15,sz_temp=71,fwhm=46
 ;       gal_deproj_all,select=[1,4,22],gselect=[0],im_temp=1,ref='MGP',/nodp,/common
-;       gal_deproj_all,select=[31,32,29,30,33,2,5,6,7,8,9,10,34],gselect=[0],im_temp=31,ref='MGP',/nodp (in magmap)
+;       gal_deproj_all,select=[4,7,24,25,26,33,34,37,39]-2,gselect=[0],im_temp=4,ref='MGP',/nodp,/common_res
 ;       gal_deproj_all,select=[31,32,29,30,33,2,5,6,7,8,9,10,34],gselect=[0],im_temp=31,ref='MGP',/nodp (in magmap-grid)
 ;     extract a dataset with native resolution + 60" pixel size on the same frame (in allmap-nat)
 ;       gal_deproj_all,ps_temp=60.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./60.),ref='MGP',/nodp
@@ -248,7 +250,10 @@ foreach ind,gselect do begin
         tmp=readfits(refim,refhd,/silent)
     endif
     
-    print,'-->  setting up template ['+strjoin(string(sz_im),',')+'] x '+string(ps_temp)+' arcsec'       
+    getrot,refhd,tmpra,tmpcd
+    tmpsz=[abs(sxpar(refhd,'naxis1')),abs(sxpar(refhd,'naxis2'))]
+
+    print,'-->  setting up template ['+strjoin(string(tmpsz),',')+'] x '+string(abs(tmpcd[0]*60.*60.))+' arcsec'       
     foreach type,subtypes do begin
       
       imgfl =type.path+type.prefix+galno+type.posfix+'.fits'
