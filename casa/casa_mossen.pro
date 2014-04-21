@@ -19,10 +19,11 @@ PRO CASA_MOSSEN,filename,pattern=pattern,$
 ;   NOTE:   This procedure only works for CLEAN products from CASA 4.2, still experimental!
 ;
 ; INPUTS:
+; 
 ;   filename    filename root for the CLEAN product file set
 ;               if you got AA.flux.fits, AA.psf.fits, etc., 
 ;               then filename=AA
-;               the output file name is AA.err.fits
+;               
 ;
 ;   pbstat     the .flux level above which we use to evaluate the normalized noise 
 ;               (default: 0.5)
@@ -30,13 +31,18 @@ PRO CASA_MOSSEN,filename,pattern=pattern,$
 ;               (default: 1/3)
 ;   _extra      any keywords for err_cube.pro
 ; 
-; KEYWORDS:  
+; KEYWORDS:
+;   
 ;   mask0       mask pixels where some channels are blank.
 ;               this optional might be useful if for the primary beam masking from CASA slightly
 ;               varied across different channels and you don't like it... 
 ;   
 ; OUTPUTS:
+;   
+;   the output file name is AA.err.fits
+;   
 ;   pattern     normalized noise pattern cube
+;               
 ;               
 ;
 ; EXAMPLE:
@@ -143,15 +149,6 @@ set_plot,'X'
 
 END
 
-
-PRO TEST_MOSSEN
-
-casa_mossen,'n891co.line'
-makemom,'n891co.line.cm.fits',errfile='n891co.line.err.fits',$
-    method=21,thresh=4,edge=2,smofac=[3,3],$
-    /kelvin
-makemom_pl,'n891co.line.cm.sgm'
-END
 
 
 PRO ST_MOSSEN,version,files=files

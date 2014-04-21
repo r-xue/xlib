@@ -48,6 +48,10 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;     extract a dataset of M24/CO/I8/I8resid/HI with common resolution on the same frame
 ;       gal_deproj_all,select=[4,7,8,9,10,11,12,13,14,15,16,17,31,32,33,34,41]-2,gselect=[0],ref='MGP',/nodp,radec_temp=[81.0385,-71.9047],ps_temp=15,sz_temp=71,fwhm=46
 ;       gal_deproj_all,select=[4,7,8,9,10,11,12,13,14,15,16,17,31,32,33,34,41]-2,gselect=[0],ref='MGP',/nodp,radec_temp=[78.9374,-68.0443],ps_temp=15,sz_temp=71,fwhm=46
+;       gal_deproj_all,select=[4,7,8,9,10,11,12,13,14,15,16,17,31,32,33,34,41,3,6]-2,gselect=[0],ref='MGP',/nodp,radec_temp=[80.56, -67.95],ps_temp=15,sz_temp=71,fwhm=46
+;       gal_deproj_all,select=[4,7,8,9,10,11,12,13,14,15,16,17,31,32,33,34,41,3,6]-2,gselect=[0],ref='MGP',/nodp,radec_temp=[74.26666667,-66.40138889],ps_temp=15,sz_temp=181,fwhm=46
+;       gal_deproj_all,select=[4,7,8,9,10,11,12,13,14,15,16,17,31,32,33,34,41,3,6]-2,gselect=[0],ref='MGP',/nodp,radec_temp=[85.,-70.5],ps_temp=15,sz_temp=721,fwhm=46
+;
 ;       gal_deproj_all,select=[1,4,22],gselect=[0],im_temp=1,ref='MGP',/nodp,/common
 ;       gal_deproj_all,select=[4,7,24,25,26,33,34,37,39]-2,gselect=[0],im_temp=4,ref='MGP',/nodp,/common_res
 ;       gal_deproj_all,select=[31,32,29,30,33,2,5,6,7,8,9,10,34],gselect=[0],im_temp=31,ref='MGP',/nodp (in magmap-grid)

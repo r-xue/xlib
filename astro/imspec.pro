@@ -1,6 +1,7 @@
 PRO IMSPEC,im,hd,ra,dec,velo,spec,$
     psize=psize,ave=ave,$
-    silent=silent,method=method
+    silent=silent,method=method,$
+    car=car
 ;+
 ; NAME:
 ;   IMSPEC
@@ -54,8 +55,8 @@ endif
 
 ; average over an aperture
 if  method eq 1 then begin
-  adxy,hd,ra,dec,x,y
-
+  if not keyword_set(car) then adxy,hd,ra,dec,x,y
+  if keyword_set(car) then adxy_car,hd,ra,dec,x,y
   dist_ellipse, ell, nxyz[0:1], x, y,1.0,0.0
   getrot,hd,rotang,cdelt
   ell=ell*abs(cdelt[0])*60.0*60 ;
@@ -71,14 +72,16 @@ endif
 
 ; nearest
 if  method eq 0 then begin
-    adxy,hd,ra,dec,x,y
+    if not keyword_set(car) then adxy,hd,ra,dec,x,y
+    if keyword_set(car) then adxy_car,hd,ra,dec,x,y
     if  round(x) ge 0 and $
         round(x) lt nxyz[0] and $
         round(y) ge 0 and $
         round(y) lt nxyz[1] then begin
-        spec=im[round(x),round(y),*]
+        spec=(im[round(x),round(y),*])[*]
     endif else begin
         spec=replicate(!values.f_nan,nxyz[2])
+        print,x,y
     endelse
     
 endif

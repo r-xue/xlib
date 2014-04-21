@@ -8,7 +8,7 @@ if not keyword_set(right) then right=''
 if not keyword_set(space) then space='\phn'
 
 s=string(number,format=format)
-s=repchr(s,' ',space)
+s=repstr(s,' ',space)
 
 sublen=strlen(s)
 if not keyword_set(len) then len=sublen

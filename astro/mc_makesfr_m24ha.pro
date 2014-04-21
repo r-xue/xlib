@@ -15,9 +15,9 @@ PRO MC_MAKESFR_M24HA,gal
   ;-
   
   ; LOAD MIPS/H-alpha
-  m24=readfits('/Volumes/Scratch/data_repo/spitzer/SAGE-'+gal+'/convol/'+gal+'_MIPS24_GAUSS41.fits',m24hd)
+  m24=readfits(gal+'_MIPS24_GAUSS41_smo60.fits',m24hd)
   ha='013' & if gal eq "SMC" then ha='510'
-  ha=readfits('/Volumes/Scratch/data_repo/shassa/'+ha+'.fl.fits',hahd)
+  ha=readfits(gal+'.fl_smo60.fits',hahd)
   
   print,size(m24, /tn)
   print,size(ha, /tn)
@@ -29,14 +29,12 @@ PRO MC_MAKESFR_M24HA,gal
   ntag=where(ha lt 0.0)
   if ntag[0] ne -1 then ha[ntag]=!VALUES.F_NAN
   
-  querysimbad,gal,ra,dec
-  sz=fix(10.*60.*60./48.)
-  mkhdr,imhd_ref,4,[sz-1,sz-1]
-  make_astr,astr,delt=[-48., 48.]/3600, crpix=fix([sz/2,sz/2]),crval=[ra,dec+1.]
-  putast,imhd_ref,astr
+
   
-  hastrom,m24,m24hd,m24_sub,m24hd_sub,imhd_ref
-  hastrom,ha,hahd,ha_sub,hahd_sub,imhd_ref
+  m24_sub=m24
+  m24hd_sub=m24hd
+  ha_sub=ha
+  hahd_sub=hahd
   
   ; ergkpc -> luminosity surface density  LSD -> erg s^-1 kpc^-2
   dr2ergkpc=2.29444*10.^(35-42)
@@ -54,20 +52,20 @@ PRO MC_MAKESFR_M24HA,gal
   
   sxaddpar, m24hd_sub, 'DATAMAX', max(m24_sub,/nan)
   sxaddpar, m24hd_sub, 'DATAMIN', min(m24_sub,/nan)
-  writefits,gal+'_m24.fits',m24_sub, m24hd_sub
+  writefits,gal+'_m24_smo60.fits',m24_sub, m24hd_sub
   
   sxaddpar, hahd_sub, 'DATAMAX', max(ha_sub,/nan)
   sxaddpar, hahd_sub, 'DATAMIN', min(ha_sub,/nan)
-  writefits,gal+'_ha.fits',ha_sub, hahd_sub
+  writefits,gal+'_ha_smo60.fits',ha_sub, hahd_sub
   
   sfrhd=hahd_sub
   sxaddpar, sfrhd, 'DATAMAX', max(sfr,/nan)
   sxaddpar, sfrhd, 'DATAMIN', min(sfr,/nan)
-  writefits,gal+'_sfr.fits',sfr, sfrhd
+  writefits,gal+'_sfr_smo60.fits',sfr, sfrhd
   
   sfrrhd=hahd_sub
   sxaddpar, sfrrhd, 'DATAMAX', max(sfrr,/nan)
   sxaddpar, sfrrhd, 'DATAMIN', min(sfr,/nan)
-  writefits,gal+'_sfr_m24frac.fits',sfrr, sfrrhd
+  writefits,gal+'_sfr_m24frac_smo60.fits',sfrr, sfrrhd
   
 END
