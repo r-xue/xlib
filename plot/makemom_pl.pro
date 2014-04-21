@@ -43,7 +43,13 @@ for i=0,1 do begin
 
   if i eq 0 then begin
     cgloadct,13
-    cgimage,im,pos=pos,stretch=1,/noe,/KEEP_ASPECT_RATIO
+    minvalue=min(im,/nan)
+    maxvalue=max(im,/nan)
+    if  minvalue eq maxvalue then begin
+        minvalue=-1 & maxvalue=1
+    endif
+    cgimage,im,pos=pos,stretch=1,/noe,/KEEP_ASPECT_RATIO,minvalue=minvalue,maxvalue=maxvalue
+
   endif
   if i eq 1 then begin
     cgloadct,13
@@ -64,20 +70,22 @@ for i=0,1 do begin
       /data,noclip=0,color=cgcolor('black')
   
   cgloadct,0
-  if (where(im eq im))[0] ne -1 then begin
+  ;if (where(im eq im and im ne 0.0))[0] ne -1 then begin
     ;imcontour_rdgrid,im,imhd,nlevels=7,$
     ;/noe,pos=pos,$
     ;/nodata,title=dataid,/overlay,/type,$
     ;xtitle='Right Ascension (J2000)',ytitle='Declination (J2000)',subtitle=' '
     xtitle=!null
     ytitle=!null
-    if i eq 1 then ytitle='' 
-    imcontour_rdgrid,im,imhd,nlevels=7,$
+    if i eq 1 then ytitle=''
+    print,size(im,/dim)
+    tmp=im & tmp[1]=0 & tmp[0]=1. 
+    imcontour_rdgrid,tmp,imhd,$
         /noe,pos=pos,$
         /nodata,title=dataid,/overlay,$
         xtitle=xtitle,ytitle=ytitle,subtitle=' ',$
         color='red',AXISCOLOR='red'
-  endif
+  ;endif
 ;  tmp=im
 ;  tmp=(tmp eq tmp)
 ;  imcontour_rdgrid,float(tmp),imhd,levels=[0.5],$
@@ -94,7 +102,10 @@ for i=0,1 do begin
     cgloadct,13
     title='Velocity Field ['+strtrim(sxpar(imhd,'BUNIT'),2)+']'
   endif
-  cgCOLORBAR, range=[min(im,/nan),max(im,/nan)], $
+  crange=[min(im,/nan),max(im,/nan)]
+  if crange[0] eq crange[1] or (where(im eq im))[0] eq -1 then crange=[-1.,1.]
+  print, crange
+  cgCOLORBAR, range=crange, $
   POSITION=pos,title=title,tlocation='TOP'
   cgloadct,0
   

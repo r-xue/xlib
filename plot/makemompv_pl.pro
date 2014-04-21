@@ -29,7 +29,8 @@ cgloadct,13
 cgimage,im,pos=pos,stretch=1,/noe,/keep
 cgloadct,0
 cgloadct,11,/rev
-imcontour_rdgrid,im,imhd,nlevels=4,c_lab=0,$
+tmp=im & tmp[1]=0 & tmp[0]=1. 
+imcontour_rdgrid,tmp,imhd,nlevels=4,c_lab=0,$
     /noe,pos=pos,/nodata,axes=axes,color='red',AXISCOLOR='red'
 
 subpos=[pos[0],pos[3]+0.01,pos[2],pos[3]+0.26]    
