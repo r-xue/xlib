@@ -1,4 +1,4 @@
-PRO CASA_MOSSEN,filename,pattern=pattern,$
+PRO CASA_MOSSEN,prefix,postfix,pattern=pattern,$
     pbstat=pbstat,pbkeep=pbkeep,$
     mask0=mask0,_EXTRA=extra
 
@@ -55,6 +55,8 @@ PRO CASA_MOSSEN,filename,pattern=pattern,$
 ;
 ;-
 
+filename=prefix+'.'+postfix
+
 if not keyword_set(pbstat) then pbstat=0.5
 if not keyword_set(pbkeep) then pbkeep=1./3.
 
@@ -66,7 +68,12 @@ if  file_test(filename+'.cpsf.fits') then begin
     psf=readfits(filename+'.cpsf.fits',psfhd) 
 endif else begin
     bpp=0
-    psf=readfits(filename+'.psf.fits',psfhd)
+    if  file_test(filename+'.psf.fits') then begin 
+        psf=readfits(filename+'.psf.fits',psfhd)
+    endif else begin
+        filename2=repstr(filename,'line','coli')
+        psf=readfits(filename2+'.psf.fits',psfhd)
+    endelse    
 endelse
 
 
@@ -75,28 +82,38 @@ endelse
 pattern=1.0/flux
 cn=findgen(nchan)
 
+if  file_test(prefix+'.src.ms.sumwt.log') then begin
+    readcol,prefix+'.src.ms.sumwt.log',vs
+endif else begin
+    vs=cn*0.0+1.0
+endelse    
 for i=0,nchan-1 do begin
     print,  'chan:',strtrim(i,2),$
-            '.flux peak:',max(flux[*,*,i],/nan,floc),$
-            '.psf peak:',max(psf[*,*,i],/nan,ploc)
+            ' .f_peak:',string(max(flux[*,*,i],/nan,floc),format='(f0.2)'),$
+            ' .p_peak:',string(max(psf[*,*,i],/nan,ploc),format='(f0.2)'),$
+            ' .sumwt:',string(vs[nchan-i-1],format='(f0.2)')
     indflux=array_indices(flux[*,*,i],floc)
     indpsf=array_indices(flux[*,*,i],ploc)
     spsf=shift(psf[*,*,i],indflux[0]-indpsf[0],indflux[1]-indpsf[1])
     if  bpp eq 1 then begin
-        ipsf=spsf*(pattern[*,*,i])^4.0
+        ipsf=spsf*(pattern[*,*,i])^1.0
     endif
     if  bpp eq 0 then begin
-        ipsf=spsf*(pattern[*,*,i])^2.0
+        ipsf=spsf
     endif
-    ipsf[where(pattern[*,*,i] gt 4.00,/null)]=!values.f_nan
-    cn[i]=sig2rms(psf=ipsf,/nonormalize)
+    ipsf[where(flux[*,*,i] le pbstat,/null)]=!values.f_nan
+    ipsf=ipsf/max(ipsf,/nan)
+    cn[i]=sig2rms(psf=ipsf,/non)
+    print,cn[i]
+    if  file_test(prefix+'.src.ms.sumwt.log') then begin
+        cn[i]=(1./vs[nchan-i-1])^0.5/cn[i]
+    endif
     pattern[*,*,i]=cn[i]*pattern[*,*,i]
 endfor
 pattern=pattern/min(pattern,/nan)
 
 mask=float(flux gt pbstat)
 sen=ERR_CUBE(im/flux, hd, pattern=pattern,mask=mask,_extra=extra)
-
 
 if  keyword_set(mask0) then begin
     fov=total(float(flux gt pbkeep),3)
@@ -119,12 +136,15 @@ writefits,filename+'.err.fits',sen,hd
 rd_hd, hd, s=s
 dn=findgen(nchan)
 cn=findgen(nchan)
-nrms=robust_sigma(im/flux/pattern,/zero)
+;nrms=robust_sigma(im/flux/pattern,/zero)
 for i=0,nchan-1 do begin
     iim=im[*,*,i]
-    iim=iim[where(flux[*,*,i] gt 0.25)]
+    iim=iim[where(flux[*,*,i] gt pbstat)]
     dn[i]=robust_sigma(iim,/zero)
-    cn[i]=nrms*min(pattern[*,*,i],/nan)
+    ;dn[i]=errfind(iim)
+    ;dn[i]=STDDEV(iim)
+    ;cn[i]=nrms*min(pattern[*,*,i],/nan)
+    cn[i]=min(sen[*,*,i],/nan)
 endfor
 
 ;
@@ -138,11 +158,16 @@ device, filename=filename+'.err.eps', $
 !z.thick = 2.0
 !p.charsize=1.0
 !p.charthick=1.0
+cgloadct,0
 
 yrange=[-0.2,1.2]*max([cn,dn])
 plot,s.v,cn,psym=10,xstyle=1,ystyle=1,yrange=yrange
 oplot,s.v,dn,psym=10,linestyle=2,color=cgcolor('red')
+oplot,s.v,cn,psym=symcat(16),linestyle=2
+oplot,s.v,dn,psym=symcat(9),linestyle=2,color=cgcolor('red')
 al_legend,filename,/bot
+
+cgloadct,0
 device, /close
 set_plot,'X'
 

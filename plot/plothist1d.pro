@@ -42,7 +42,7 @@ if n_elements(det) ne 0 then begin
     hist_err=binomial_err(hist_det,hist,cf_level=0.99)
     hist=hist_det/(hist>1.0)
 endif
-print,min(hist),max(hist)
+;print,min(hist),max(hist)
 if n_elements(maxhist) eq 0 then maxhist=max(hist)
 if keyword_set(nhist) then begin
   hist=float(hist)/maxhist

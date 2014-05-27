@@ -45,6 +45,11 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;       gal_deproj_all,gselect=[14],im_temp=1,ref='MSC',/nodp,/common
 ;       
 ;   * MCs:
+;   
+;     extract a dataset for the dust SED fitting
+;     
+;       gal_deproj_all,select=[8,9,10,11,12,13,14,15,16,17,31,32]-2,ps_temp=10.0,ref='MGP',/nodp,/common_res,sz_temp=fix([8.0,7.8]*60.*60./10.)
+;       
 ;     extract a dataset of M24/CO/I8/I8resid/HI with common resolution on the same frame
 ;       gal_deproj_all,select=[4,7,8,9,10,11,12,13,14,15,16,17,31,32,33,34,41]-2,gselect=[0],ref='MGP',/nodp,radec_temp=[81.0385,-71.9047],ps_temp=15,sz_temp=71,fwhm=46
 ;       gal_deproj_all,select=[4,7,8,9,10,11,12,13,14,15,16,17,31,32,33,34,41]-2,gselect=[0],ref='MGP',/nodp,radec_temp=[78.9374,-68.0443],ps_temp=15,sz_temp=71,fwhm=46
