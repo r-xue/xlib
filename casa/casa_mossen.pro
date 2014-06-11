@@ -62,6 +62,8 @@ if not keyword_set(pbkeep) then pbkeep=1./3.
 
 flux=readfits(filename+'.flux.fits',fluxhd)
 im=readfits(filename+'.image.fits',hd)
+rd_hd,hd,s=s
+sgrid=s.v
 nchan=(size(im,/d))[2]
 if  file_test(filename+'.cpsf.fits') then begin
     bpp=1
@@ -82,16 +84,23 @@ endelse
 pattern=1.0/flux
 cn=findgen(nchan)
 
+ncol=0
 if  file_test(prefix+'.src.ms.sumwt.log') then begin
-    readcol,prefix+'.src.ms.sumwt.log',vs
+    ncol=count_columns(prefix+'.src.ms.sumwt.log')
+    if  ncol eq 1 then readcol,prefix+'.src.ms.sumwt.log',vs
+    if  ncol eq 3 then readcol,prefix+'.src.ms.sumwt.log',ich,iv,vs
 endif else begin
     vs=cn*0.0+1.0
 endelse    
 for i=0,nchan-1 do begin
+    
+    ipick=nchan-i-1
+    if  ncol eq 3 then tmp=min(abs(sgrid[i]-iv),ipick)
     print,  'chan:',strtrim(i,2),$
             ' .f_peak:',string(max(flux[*,*,i],/nan,floc),format='(f0.2)'),$
             ' .p_peak:',string(max(psf[*,*,i],/nan,ploc),format='(f0.2)'),$
-            ' .sumwt:',string(vs[nchan-i-1],format='(f0.2)')
+            ' .sumwt:',string(vs[ipick],format='(f0.2)'),$
+            ' .ipick:',string(ipick)
     indflux=array_indices(flux[*,*,i],floc)
     indpsf=array_indices(flux[*,*,i],ploc)
     spsf=shift(psf[*,*,i],indflux[0]-indpsf[0],indflux[1]-indpsf[1])
@@ -106,7 +115,7 @@ for i=0,nchan-1 do begin
     cn[i]=sig2rms(psf=ipsf,/non)
     print,cn[i]
     if  file_test(prefix+'.src.ms.sumwt.log') then begin
-        cn[i]=(1./vs[nchan-i-1])^0.5/cn[i]
+        cn[i]=(1./vs[ipick])^0.5/cn[i]
     endif
     pattern[*,*,i]=cn[i]*pattern[*,*,i]
 endfor
