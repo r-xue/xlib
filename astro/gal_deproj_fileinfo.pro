@@ -12,21 +12,12 @@ if proj eq 'CGP' then begin
   fileinfo=pah_fileinfo()
 endif
 
-; FOR STING
-if proj eq 'SGP' then begin
-  fileinfo=st_fileinfo()
-endif
-
-if proj eq 'TGP' then begin
-  fileinfo=things_fileinfo()
-endif
-
 if proj eq 'Coma' or proj eq 'Coma0' then begin
   fileinfo=coma_fileinfo()
 endif
 
 ; READ FILEINFO FROM A CSV FILE
-projlist=['MGP','MAGMA','MSC']
+projlist=['MGP','MAGMA','MSC','SGP','TGP']
 if (where(proj eq projlist))[0] ne -1 then begin
   
   path=ProgramRootDir()
@@ -43,12 +34,6 @@ if (where(proj eq projlist))[0] ne -1 then begin
   endfor
   
 endif
-
-
-;if proj eq 'MGP' then begin
-;  fileinfo=mcs_fileinfo()
-;endif
-
 
 return,fileinfo
 

@@ -38,6 +38,7 @@ if  n_elements(hd) ne 0 then begin
   rd_hd, hd, s = s, c = c, /full
   if STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'JY/B') ne -1 then jypb2k=s.jypb2k
 endif
+
 den=int*jypb2k
 
 ; IF not in KM/S but in m/s then convert the value into km/s
@@ -65,6 +66,7 @@ if STRUPCASE(LINE) eq 'JYPB2K' then begin
   kkm2den=1.0
   fac=1.0
 endif
+
 den=den*kkm2den
 
 if keyword_set(MSPPC2) then begin

@@ -29,7 +29,12 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;   /common_res fwhm will be choosen automatically according to the best common deprojected resolutions
 ;               offered by the selected multi-band dataset  
 ;   /wtsm       derive the intneisity-weighted intensity at lower resolutions
-;   ref         use the reference galaxy table: 'CGP' or 'SGP'
+;   ref         galaxy metadata tag: 
+;                   CGP:        CANON survey
+;                   Coma:       Coma Cluster
+;                   MAGMA/MGP:  LMC/SMC
+;                   SGP:        STING           CO10/HI21cm
+;                   TGP:        THING/HERACLES  CO21/HI21cm
 ;   relax       the relaxing parameter for choosing common resolution (in arcsec)
 ;   /nodp       no deprojection is carried out by override inc=0.0
 ;   
@@ -40,6 +45,20 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;
 ; EXAMPLES:
 ; 
+;   * G/n mapping test (STING + MAGMA-LMC/SMC + THING/HERACLES: (in sting/gas-com)
+;     extract a CO+HI dataset with smallest common resolution
+;     LMC/SMC:
+;       HI+MAGMA
+;           gal_deproj_all,select=[1,2,4,5],ps_temp=30.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./30.),ref='MGP',/nodp,/common_res
+;           gal_deproj_all,select=[1,2,4,5],ps_temp=15.0,gselect=[1],sz_temp=fix([3.3,2.8]*60.*60./15.),ref='MGP',/nodp,/common_res,radec_temp=[15.84013,-72.871587]
+;       HI+NANTEN+MAGMA
+;           gal_deproj_all,select=[0,1,2,3,4,5],ps_temp=30.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./30.),ref='MGP',/nodp,/common_res
+;           gal_deproj_all,select=[0,1,2,3,4,5],ps_temp=15.0,gselect=[1],sz_temp=fix([3.3,2.8]*60.*60./15.),ref='MGP',/nodp,/common_res,radec_temp=[15.84013,-72.871587]
+;     STING:
+;           gal_deproj_all,select=[6,7,12,13]-2,ref='SGP',/nodp,/common_res
+;     THINGS/HERACLES
+;           gal_deproj_all,select=[17,18,19,20],ref='TGP',sz_temp=1024,/nodp,/common_res (still limited by FOVs of HERACLES)
+;   
 ;   * SDI vs. MSC test:
 ;     extract a dataset with common resolution on the same frame
 ;       gal_deproj_all,gselect=[14],im_temp=1,ref='MSC',/nodp,/common
@@ -66,11 +85,11 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;     extract a dataset with native resolution + 15" pixel size on the same frame (in allmap-nat-sp)
 ;       gal_deproj_all,ps_temp=15.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./15.),ref='MGP',/nodp
 ;       gal_deproj_all,ps_temp=15.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./15.),ref='MGP',/nodp
-;       
-;     extract a gasmap dataset with HI resolution and on the same frame (in gasmap-hires)
+
+;     extract a gasmap dataset with HI resolution and on the same frame (in gasmap-hires) * this version is for MAGCLOUDS
 ;       gal_deproj_all,select=[1,2,4,5],ps_temp=30.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./30.),ref='MGP',/nodp,/common_res
 ;       gal_deproj_all,select=[1,2,4,5],ps_temp=15.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./15.),ref='MGP',/nodp,/common_res
-;     extract a gapmap dataset with NANTEN resolution and on the same frame (in gasmap-nantenres)
+;     extract a gapmap dataset with NANTEN resolution and on the same frame (in gasmap-nantenres) * this version is for MAGCLOUDS
 ;       gal_deproj_all,select=[0,1,2,3,4,5],ps_temp=30.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./30.),ref='MGP',/nodp,/common_res
 ;       gal_deproj_all,select=[0,1,2,3,4,5],ps_temp=15.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./15.),ref='MGP',/nodp,/common_res
 ;
@@ -142,7 +161,6 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;NOTE:
 ;   IRAC appx PSF: http://irsa.ipac.caltech.edu/data/SPITZER/docs/irac/iracinstrumenthandbook/5/
 ;   GALEX appx PSF: http://www.galex.caltech.edu/wiki/Public:Documentation/Chapter_2
-;
 ;-
 ; DEFAULT OPTIONS
 !except=1
@@ -167,7 +185,7 @@ foreach ind,gselect do begin
 ;    galno  = strmid(gal, 3, 4)
 ;    if ref eq 'CGP' then galno = strmid(gal, 4, 4)
     ;if ref eq 'TGP' then galno=gal
-    galno=gal
+    galno=strtrim(gal,2)
     print, replicate('-',40)
     print, 'Working on galaxy number ',galno,' index',ind
     gpa  = float(s.(where(h eq 'Adopted PA (deg)'))[ind])
@@ -264,7 +282,7 @@ foreach ind,gselect do begin
 
     print,'-->  setting up template ['+strjoin(string(tmpsz),',')+'] x '+string(abs(tmpcd[0]*60.*60.))+' arcsec'       
     foreach type,subtypes do begin
-      
+
       imgfl =type.path+type.prefix+galno+type.posfix+'.fits'
       print,'check  ->'+imgfl
       if file_test(imgfl) then begin
@@ -301,7 +319,7 @@ foreach ind,gselect do begin
         if  file_test(mkfl) eq 1 and not keyword_set(unmsk) then flag='_mskd' else flag=''
         if  ifail eq 0 then flag=flag+'_smo'+strres else flag=''
         WRITEFITS,type.prefix+galno+type.posfix+flag+'.fits',mom0s, mom0s_hd
-        if not keyword_set(nodp) then WRITEFITS,galno+type.posfix+flag+'_dp.fits',mom0dp, mom0dp_hd
+        if not keyword_set(nodp) then WRITEFITS,type.prefix+galno+type.posfix+flag+'_dp.fits',mom0dp, mom0dp_hd
         
         ; INTENSITY-WEIGHTED INTENSITY AT LOWER RESOLUTION
         if  ifail eq 0 and keyword_set(wtsm) then begin

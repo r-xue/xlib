@@ -26,7 +26,7 @@ FUNCTION XGAUFIT,x,y,yerr=yerr,$
 ;   with a specific number of components 
 ;   
 ;   ref: http://ifs.wikidot.com/pan
-;   ***currently, we don't fit a and b actually***
+;   ***currently, we don't fit a and b***
 ;-
 !except=1
 if n_elements(yerr) eq 1 then yerror=replicate(yerr,n_elements(x))
