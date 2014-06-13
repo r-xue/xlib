@@ -12,7 +12,7 @@ FUNCTION CALC_CN, INT, LINE, HD=HD, $
 ;   INT         data (either 2d or 1D vector)
 ;   LINE        specify the observed line: e.g. CO1-0, HI21cm, CO2-1
 ;   [HD]        header for deriving jypb2k etc.. 
-;               assuming INT in K km^-s if HD not presented 
+;               assuming INT in K*km/s if HD not presented 
 ;   [XCO]       change the default XCO factor: 2.0x10^20 cm^-2
 ;   /MSPPC2     change the output in units of M_sun/pc^2, default: cm^-2
 ;   /HELIUM     if the output inits are M_sun/pc^2, the helium mass is included
@@ -42,9 +42,11 @@ endif
 den=int*jypb2k
 
 ; IF not in KM/S but in m/s then convert the value into km/s
-if  STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'KM/S') eq -1 and $
-    STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'M/S') ne -1 $
-    then den=den/1000.0
+if  n_elements(hd) ne 0 then begin
+    if  STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'KM/S') eq -1 and $
+        STRPOS(STRUPCASE(sxpar(hd, 'BUNIT')), 'M/S') ne -1 $
+        then den=den/1000.0
+endif
 
 ; KEVIN->CM^-2
 if STRUPCASE(LINE) eq 'CO1-0' then begin
@@ -62,7 +64,7 @@ if STRUPCASE(LINE) eq 'HI' then begin
   kkm2den=1.823e18
   fac=1.0
 endif
-if STRUPCASE(LINE) eq 'JYPB2K' then begin
+if STRUPCASE(LINE) eq 'KKM/S' then begin
   kkm2den=1.0
   fac=1.0
 endif
