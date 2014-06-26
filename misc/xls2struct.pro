@@ -49,7 +49,9 @@ csvfile=xlsfile
 if  ext ne 'csv' then begin
     csvfile=dir+rootname+'.csv'
     if keyword_set(refresh) then begin
-        cmd='unoconv -f csv -o '+csvfile+' '+xlsfile
+        ;cmd='unoconv -f csv -o '+csvfile+' '+xlsfile
+        cmd='unoconv -f csv '+xlsfile
+        ;print,cmd
         spawn,cmd
     endif
 endif
