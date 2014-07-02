@@ -172,8 +172,8 @@ cgloadct,0
 yrange=[-0.2,1.2]*max([cn,dn])
 plot,s.v,cn,psym=10,xstyle=1,ystyle=1,yrange=yrange
 oplot,s.v,dn,psym=10,linestyle=2,color=cgcolor('red')
-oplot,s.v,cn,psym=symcat(16),linestyle=2
-oplot,s.v,dn,psym=symcat(9),linestyle=2,color=cgcolor('red')
+oplot,s.v,cn,psym=cgsymcat(16),linestyle=2
+oplot,s.v,dn,psym=cgsymcat(9),linestyle=2,color=cgcolor('red')
 al_legend,filename,/bot
 
 cgloadct,0
