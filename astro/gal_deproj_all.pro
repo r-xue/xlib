@@ -55,10 +55,11 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;           gal_deproj_all,select=[0,1,2,3,4,5],ps_temp=30.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./30.),ref='MGP',/nodp,/common_res
 ;           gal_deproj_all,select=[0,1,2,3,4,5],ps_temp=15.0,gselect=[1],sz_temp=fix([3.3,2.8]*60.*60./15.),ref='MGP',/nodp,/common_res,radec_temp=[15.84013,-72.871587]
 ;     STING:
-;           gal_deproj_all,select=[6,7,12,13]-2,ref='SGP',/nodp,/common_res
+;           gal_deproj_all,select=[2,3,4,5,6,7,12,13]-2,ref='SGP',/nodp,/common_res
+;           gal_deproj_all,select=[12,13]-2,ref='SGP',/nodp
 ;     THINGS/HERACLES
 ;           gal_deproj_all,select=[17,18,19,20],ref='TGP',sz_temp=1024,/nodp,/common_res (still limited by FOVs of HERACLES)
-;   
+;           gal_deproj_all,select=[21,22]-2,ref='TGP',sz_temp=1024,/nodp (tgp-hinat)
 ;   * SDI vs. MSC test:
 ;     extract a dataset with common resolution on the same frame
 ;       gal_deproj_all,gselect=[14],im_temp=1,ref='MSC',/nodp,/common
@@ -95,9 +96,11 @@ PRO GAl_DEPROJ_ALL, fwhm=fwhm, kpc=kpc, $
 ;
 ;   * FOV extracting:
 ;     CO FOV: 
-;       gal_deproj_all,fwhm=0.0,/kpc, select=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,21,22],sz_temp=179,/unmsk,ref='SGP'
+;       gal_deproj_all,fwhm=0.0,/kpc, select=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,23,24,35,36]-2,sz_temp=179,/unmsk,ref='SGP'
 ;     HI FOV: 
-;       gal_deproj_all,fwhm=0.0,/kpc, select=[0,1,2,3,9,10,11,12],sz_temp='HI sz_temp (")',/unmsk,ref='SGP'
+;       gal_deproj_all,fwhm=0.0,/kpc, select=[2,3,4,5,12,13,14,16,36,37,18]-2,sz_temp='HI sz_temp (")',/unmsk,ref='SGP'
+;       
+;       
 ;   * extracting a dataset with 1kpc resolution
 ;     gal_deproj_all,fwhm=1.0,/kpc 
 ;   * extracting a dataset with a round deprojected HI beam from the STING sample
