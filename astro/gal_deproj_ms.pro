@@ -1,6 +1,8 @@
-PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
-  ores=ores,mres=mres,out=out,MSPPC2=MSPPC2, HELIUM=HELIUM,$
-  nodp=nodp,ra=ra,dec=dec
+PRO GAL_DEPROJ_MS2,ref=ref,$
+    select=select,gselect=gselect,$
+    box=box,$
+    ores=ores,mres=mres,out=out,MSPPC2=MSPPC2, HELIUM=HELIUM,$
+    nodp=nodp,ra=ra,dec=dec
 
 ;+
 ; NAME:
@@ -24,6 +26,15 @@ PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
 ;   GALEX images in CPS per pixel, CPS->Jy conversion could be found at
 ;   http://galex.stsci.edu/GR6/?page=faq
 ;   The original pixel is 1.5" size.
+;   
+; Regard to the metallicity from Moustakas et al. 2010
+;   Log(O/H)+12     [KK04/PT05]:    center metallicity from mean(r/r25<0.1), or L-Z value, in table 9
+;   Log(O/H)+12M    [KK04/PT05]:    characteristic metallicity from mean(0.1<r/r25<0.1), or L-Z value, in table 9
+;   Log(O/H)+12C    [KK04/PT05]:    center metallicity for gradient model in table 8
+;   Log(O/H)+12G    [KK04/PT05]:    slope for gradient model in table 8
+;   When Log(O/H)+12G=0, Log(O/H)+12C=Log(O/H)+12M=Log(O/H)+12 will be a mean value across the entire area with Z measurements
+;   In the letter paper, we used mean(KK04/PT05) and the gradient results (if available)
+;   The previous L-Z figure used the characteristic metallicity for plotting
 ; 
 ; GAL_DEPROJ_MS,'SGP',box=1024,reftype=6,out='st_ms',/MSPPC2
 ; GAL_DEPROJ_MS,'TGP',box=1024,reftype=17,out='thing_ms',/MSPPC2
@@ -32,12 +43,24 @@ PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
 ; 
 ; GAL_DEPROJ_MS,'MGP',reftype=1,out='mcs_ms',/msppc2,/nodp
 ; GAL_DEPROJ_MS,'MGP',reftype=1,out='mcs_ms',/nodp
+; 
+; gal_deproj_ms2,ref='TGP',select=[17,18,19,20,27,28,29],box=1024,out='test.ms',/nodp
+; gal_deproj_ms2,ref='SGP',select=[12,13,6,7]-2,box=1024,out='test.ms',/nodp
+; gal_deproj_ms2,ref='MGP',select=[3,4,6,7]-2,box=4e4,out='test.ms',/nodp
+; 
+; gal_deproj_ms2,ref='TGP',select=[19,20],box=1024,out='tgp.ms',/nodp,ores=''
+; gal_deproj_ms2,ref='SGP',select=[12,13]-2,box=1024,out='sgp.ms',/nodp,ores=''
+; 
+; gal_deproj_ms2,ref='TGP',select=[17,18,19,20],box=1024,out='tgp.ms',/nodp,ores='_smo*'
+; gal_deproj_ms2,ref='SGP',select=[6,7,12,13,2,3,4,5]-2,box=1024,out='sgp.ms',/nodp,ores='_smo*'
 ;-
 
-if n_elements(ores) eq 0 then ores='*'
+
+
+if n_elements(ores) eq 0 then ores='_smo*'
 if n_elements(mres) eq 0 then mres='*'
 if n_elements(out) eq 0 then out='all_ms'
-if n_elements(reftype) eq 0 then reftype=0
+if n_elements(select_ref) eq 0 then select_ref=0
 dp='_dp'
 if keyword_set(nodp) then dp=''
 
@@ -47,82 +70,40 @@ fitsloc='./'
 ;fl=file_search(fitsloc+fn,count=ct)
 xco=2.0e20
 
-ncps2mjypsr=33.65*1d-12/(1.5*1.5/(3283.*3600.*3600.))
-fcps2mjypsr=108.*1d-12/(1.5*1.5/(3283.*3600.*3600.))
 
 ; LOAD ST STRUCTURE
 gal_struct_build,ref,s,h,/silent
+if n_elements(gselect) eq 0 then gselect=indgen(n_elements(s.(0)))
 
 ; LOOP THROUGH ALL GALAXIE
-
 all_ms=[]
-
-; note: each sampling point is a structure like below
+; note: each sampling point is a basic set of structure tags like below     
 ms = { $
   galno:"", $
   inc:!values.d_nan,$
-  nh2:!values.d_nan,$           ; nh2 measurement
-  nh2wt:!values.d_nan,$         ; mass-weighted
-  nh2e:!values.d_nan,$
-  nh2hsen:!values.d_nan,$
-  nh2hsenwt:!values.d_nan,$
-  nh2hsene:!values.d_nan,$
-  nh2lsen:!values.d_nan,$
-  nh2lsenwt:!values.d_nan,$ 
-  nh2lsene:!values.d_nan,$
-  xco:!values.d_nan,$           ; xco used
-  nh1:!values.d_nan,$           ; nh1 measurement
-  nh1wt:!values.d_nan,$
-  nh1e:!values.d_nan,$
-  nh1m:!values.d_nan,$           ; nh1 measurement
-  nh1mlow:!values.d_nan,$
-  nh1mhigh:!values.d_nan,$
-  cont:!values.d_nan,$
-  conte:!values.d_nan,$
-  nh1hsen:!values.d_nan,$
-  nh1hsenwt:!values.d_nan,$
-  nh1hsene:!values.d_nan,$
-  nh1lsen:!values.d_nan,$
-  nh1lsenwt:!values.d_nan,$
-  nh1lsene:!values.d_nan,$
-  xisrf:!values.d_nan,$
-  contmsk:!values.d_nan,$       ;<--- not implemented, for continuum masking
-  nuv:!values.d_nan,$           ; nuv flux
-  fuv:!values.d_nan,$           ; fuv flux
-  nuvwt:!values.d_nan,$           ; nuv flux
-  fuvwt:!values.d_nan,$           ; fuv flux
-  irac1:!values.d_nan,$         ; irac1 flux
-  irac1e:!values.d_nan,$        ; irac1 flux error (crude)
-  irac4:!values.d_nan,$         ; irac4 flux
-  irac4e:!values.d_nan,$        ; irac4 flux error (crude)
   d25:!values.d_nan,$           ; d25 value
+  rad:!values.d_nan,$
   as2pc:!values.d_nan,$
   res:!values.d_nan,$
   xoffset:!values.d_nan,$       ; ra offset from center for the sampling point
   yoffset:!values.d_nan,$       ; dec offset from center  for the sampling point
-  zm:!values.d_nan,$            ; zm value
-  zm_de:!values.d_nan,$         ; zm error bar (lower)
-  zm_ue:!values.d_nan,$         ; zm error bar (upper)
-  oh:!values.d_nan,$            ; log(o/h)+12
-  ohlocal:!values.d_nan,$         ; log(o/h)+12 (local: considering the gradient)
-  zm_local:!values.d_nan,$      ;<--- not implemented, for ZM value of each point
-  nh2_predict:!values.d_nan, $   ;<--- not implemented, for predicted nh2 values
-  sig_sfr:!values.d_nan $          ; sig_sfr from halpha
+  ohkk04:!values.d_nan,$        ; theoretical approach 
+  ohpt05:!values.d_nan $        ; emperical approach
   }
-
+; attach more tags
 types=gal_deproj_fileinfo(ref)
-for i=0,n_elements(types.tag)-1 do begin
-  print,types[i].tag
-  ms=create_struct(ms,types[i].tag,!values.d_nan)
-endfor
+if n_elements(select) eq 0 then select=indgen(n_elements(types))
+subtypes=types[select]
+foreach type, subtypes do begin
+  print,type.tag
+  ms=create_struct(ms,type.tag,!values.d_nan)
+endforeach
 
-for ind=0,n_elements(s.(0))-1 do begin
+
+foreach ind,gselect do begin
   
   gal=s.(where(h eq 'Galaxy'))[ind]
-  ;galno  = strmid(gal, 3, 4)
-  ;if ref eq 'CGP' then galno  = strmid(gal, 4, 4)
-  ;if ref eq 'TGP' then 
-  galno = gal
+  galno = strtrim(gal,2)
   print, replicate('-',40)
   print, 'Working on galaxy number ',galno,' index',ind
   print, replicate('-',40)
@@ -130,40 +111,23 @@ for ind=0,n_elements(s.(0))-1 do begin
   as2pc=dist/206264.806
   inc=s.(where(h eq 'Adopted Inc (deg)'))[ind]
   
-  if ref eq 'SGP' or ref eq 'TGP' then begin
-  oh=[s.(where(h eq 'Log(O/H)+12'))[ind],$
-    s.(where(h eq 'Log(O/H)+12'))[ind]-s.(where(h eq 'Log(O/H)+12 Error'))[ind],$
-    s.(where(h eq 'Log(O/H)+12'))[ind]+s.(where(h eq 'Log(O/H)+12 Error'))[ind]]
-;  oh=[s.(where(h eq 'Log(O/H)+12 KK04'))[ind],$
-;    s.(where(h eq 'Log(O/H)+12 KK04'))[ind]-s.(where(h eq 'Log(O/H)+12 Error'))[ind],$
-;    s.(where(h eq 'Log(O/H)+12 KK04'))[ind]+s.(where(h eq 'Log(O/H)+12 Error'))[ind]]
-  ohref=s.(where(h eq 'Ref(Z)'))[ind]
-  zm=oh2z(oh[0])
-  zm_de=oh2z(oh[1])
-  zm_ue=oh2z(oh[2])
-  ohc=(s.(where(h eq 'Log(O/H)+12C KK04'))[ind]+s.(where(h eq 'Log(O/H)+12C PT05'))[ind])/2.0
-  ohg=(s.(where(h eq 'Log(O/H)+12G KK04'))[ind]+s.(where(h eq 'Log(O/H)+12G PT05'))[ind])/2.0
-  
-;  ohc=(s.(where(h eq 'Log(O/H)+12C KK04'))[ind]+s.(where(h eq 'Log(O/H)+12C KK04'))[ind])/2.0
-;  ohg=(s.(where(h eq 'Log(O/H)+12G KK04'))[ind]+s.(where(h eq 'Log(O/H)+12G KK04'))[ind])/2.0
-;  
-;  if ohref eq 'M2010' then begin
-;  ohc=oh_conv(ohc,'kk04-d02')
-;  oh=oh_conv(oh,'kk04-d02')
-;  endif
-  
+  if ref eq 'SGP' or ref eq 'TGP' or ref eq 'MGP' then begin
+    ohref=s.(where(h eq 'Ref(Z)'))[ind]
+    ohkk04=[s.(where(h eq 'Log(O/H)+12C KK04'))[ind],s.(where(h eq 'Log(O/H)+12G KK04'))[ind]]
+    ohpt05=[s.(where(h eq 'Log(O/H)+12C PT05'))[ind],s.(where(h eq 'Log(O/H)+12G PT05'))[ind]]  
   endif
   
   d25=s.(where(h eq 'D_25 (")'))[ind]
   
   ; HEX SAMPLING
-  temp=fitsloc+galno+types[reftype].posfix+'_smo'+ores+dp+'.fits'
-
+  temp=fitsloc+subtypes[select_ref].prefix+galno+subtypes[select_ref].posfix+ores+dp+'.fits'
+  print,temp
   if file_test(temp) eq 0 then continue
   temp=(file_search(temp))[0]
   nh2=readfits(temp,nh2hd,/silent)
   sz=size(nh2,/d)
   getrot,nh2hd,angle,cdelt
+  rd_hd,nh2hd,s=ss
   x_limit=[-sz[0]/2+1,sz[0]/2-1]*abs(cdelt[0])*3600.
   y_limit=[-sz[1]/2+1,sz[1]/2-1]*abs(cdelt[0])*3600.
   print,x_limit,y_limit
@@ -174,92 +138,45 @@ for ind=0,n_elements(s.(0))-1 do begin
     y_limit=[y_limit[0]>(-fix(box/2)),y_limit[1]<fix(box/2)]
   endif
   sample_grid,[0.,0.],$
-    sxpar(nh2hd,'BMAJ')*0.5*3600,$
+    0.5*ss.bmaj,$
     x_limit=x_limit,$
     y_limit=y_limit,$
     /hex,xout=xout,yout=yout
   pxout=round(-xout/3600./abs(cdelt[0])+sxpar(nh2hd,'CRPIX1')-1)
   pyout=round(yout/3600./abs(cdelt[0])+sxpar(nh2hd,'CRPIX2')-1)
-  
-  ; if ra/dec set, we will make measurements at specific locations (for magclouds)
-  if keyword_set(ra) then begin
-    
-    
-  endif
-  
-  
+
+  adxy,nh2hd,s.(where(h eq 'RA2000 (deg)'))[ind],s.(where(h eq 'DEC2000 (deg)'))[ind],maskx,masky
+  dist_ellipse, ell, [sxpar(nh2hd,'naxis1'), sxpar(nh2hd,'naxis2')], $
+      maskx, masky, $
+      1./abs(cos(inc/90.*0.5*!pi)), s.(where(h eq 'Adopted PA (deg)'))[ind]
+  ell=ell*abs(cdelt[0])*3600. ; in arcsec
+
   gal_ms=replicate(ms,n_elements(xout))
   gal_ms.xoffset=xout
   gal_ms.yoffset=yout
-  gal_ms.xco=xco
-  gal_ms.contmsk=0.0
+  gal_ms.rad=ell[pxout,pyout]
   
-  if ref eq 'SGP' or ref eq 'TGP' then begin
-  gal_ms.zm=zm
-  gal_ms.zm_ue=zm_ue
-  gal_ms.zm_de=zm_de
-  gal_ms.oh=oh[0]
-  gal_ms.ohlocal=ohc+ohg/(d25/2.0)*sqrt(xout^2.0+yout^2.0)
-  ohlocaltag=where(gal_ms.ohlocal eq 0.0)
-  if ohlocaltag[0] ne -1 then gal_ms[ohlocaltag].ohlocal=gal_ms[ohlocaltag].oh
+  if ref eq 'SGP' or ref eq 'TGP' or ref eq 'MGP' then begin
+  gal_ms.ohkk04=ohkk04[0]+ohkk04[1]/(d25/2.0)*gal_ms.rad
+  gal_ms.ohpt05=ohpt05[0]+ohpt05[1]/(d25/2.0)*gal_ms.rad
   endif
   
   gal_ms.galno=galno
   
   gal_ms.as2pc=as2pc
-  gal_ms.res=sxpar(nh2hd,'BMAJ')*3600.*as2pc
+  gal_ms.res=0.5*ss.bmaj*as2pc
   gal_ms.d25=d25
   gal_ms.inc=inc
-  
-  foreach type, types do begin
-    fname=fitsloc+galno+type.posfix+'_smo'+ores+dp+'.fits'
-    fnamemsk=fitsloc+galno+type.posfix+'_mskd_smo'+ores+dp+'.fits'
 
+  
+  foreach type, subtypes do begin
+    fname=fitsloc+type.prefix+galno+type.posfix+ores+dp+'.fits'
+    fnamemsk=fitsloc+type.prefix+galno+type.posfix+'_mskd'+ores+dp+'.fits'
+    
     if file_test(fname) or file_test(fnamemsk) then begin
       if file_test(fnamemsk) then fname=fnamemsk
+      print,"reading: ",fname
       im=readfits(fname,hd,/silent)
-      print,fname
-      if type.tag eq 'hi' then gal_ms.nh1=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'hie' then gal_ms.nh1e=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'cont' then gal_ms.cont=(calc_cn(im,'jypb2k',hd=hd))[pxout,pyout]
-      if type.tag eq 'conte' then gal_ms.conte=(calc_cn(im,'jypb2k',hd=hd))[pxout,pyout] 
-      
-      if type.tag eq 'him' then gal_ms.nh1m=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'himlow' then gal_ms.nh1mlow=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'himhigh' then gal_ms.nh1mhigh=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      
-      if type.tag eq 'hi_lsen' then gal_ms.nh1lsen=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'hie_lsen' then gal_ms.nh1lsene=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'hi_hsen' then gal_ms.nh1hsen=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'hie_hsen' then gal_ms.nh1hsene=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'co' then gal_ms.nh2=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'coe' then gal_ms.nh2e=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'co_nanten' then gal_ms.nh2=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'coe_nanten' then gal_ms.nh2e=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'co_magma' then gal_ms.nh2=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'coe_magma' then gal_ms.nh2e=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      
-      if type.tag eq 'co21' then gal_ms.nh2=(calc_cn(im,'co2-1',hd=hd,xco=xco/0.8,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'co21e' then gal_ms.nh2e=(calc_cn(im,'co2-1',hd=hd,xco=xco/0.8,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'co_lsen' then gal_ms.nh2lsen=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'coe_lsen' then gal_ms.nh2lsene=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'co_hsen' then gal_ms.nh2hsen=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'coe_hsen' then gal_ms.nh2hsene=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      
-      if type.tag eq 'halpha' then gal_ms.sig_sfr=(calc_ssfr(im,hd,proj='GOLDMINE'))[pxout,pyout]
-      
-      if type.tag eq 'irac1' then gal_ms.irac1=im[pxout,pyout]
-      if type.tag eq 'irac1e' then gal_ms.irac1e=im[pxout,pyout]
-      if type.tag eq 'irac4' then gal_ms.irac4=im[pxout,pyout]
-      if type.tag eq 'irac4e' then gal_ms.irac4e=im[pxout,pyout]
-      
-      if type.tag eq 'irac1' then gal_ms.irac1=im[pxout,pyout]
-      if type.tag eq 'irac1e' then gal_ms.irac1e=im[pxout,pyout]
-      
-      if type.tag eq 'nuv' then gal_ms.nuv=im[pxout,pyout]*ncps2mjypsr
-      if type.tag eq 'nuv-wt' then gal_ms.nuvwt=im[pxout,pyout]*ncps2mjypsr
-      if type.tag eq 'fuv' then gal_ms.fuv=im[pxout,pyout]*fcps2mjypsr
-      if type.tag eq 'fuv-wt' then gal_ms.fuvwt=im[pxout,pyout]*fcps2mjypsr
       tagindex=where(TAG_NAMES(ms) eq strupcase(type.tag))
       gal_ms.(tagindex)=im[pxout,pyout]
       print,"sample_points:", n_elements(pxout)
@@ -267,39 +184,27 @@ for ind=0,n_elements(s.(0))-1 do begin
     endif
   endforeach
   
-  foreach type, types do begin
-    fname=fitsloc+galno+type.posfix+'_iwt_smo'+ores+dp+'.fits'
-    if file_test(fname) then begin
-      im=readfits(fname,hd,/silent)
-      if type.tag eq 'hi' then gal_ms.nh1wt=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'co' then gal_ms.nh2wt=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'hi_lsen' then gal_ms.nh1lsenwt=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'co_lsen' then gal_ms.nh2lsenwt=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'hi_hsen' then gal_ms.nh1hsenwt=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      if type.tag eq 'co_hsen' then gal_ms.nh2hsenwt=(calc_cn(im,'co1-0',hd=hd,xco=xco,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
-      print,"sample_points:", n_elements(pxout)
-    endif
-  endforeach
-  
-  foreach type, ['xisrf'] do begin
-    fname=fitsloc+galno+'*'+type+'_smo'+mres+dp+'.fits'
-    if file_test(fname) then begin
-      im=readfits(fname,hd,/silent)
-      if type eq 'xisrf' then gal_ms.xisrf=im[pxout,pyout]
-    endif
-  endforeach
-
-  
   all_ms=[all_ms,gal_ms]
   
   im[*]=0.0
   im[pxout,pyout]=1.0
   SXADDPAR, hd, 'DATAMAX', 0.0
   SXADDPAR, hd, 'DATAMIN', 1.0
-  temp=repstr(temp,'.fits','.ms.fits')
+  im[*]=0.0
+  im[pxout,pyout]=gal_ms.rad
+  SXADDPAR, hd, 'DATAMAX', min(gal_ms.hi,/nan)
+  SXADDPAR, hd, 'DATAMIN', max(gal_ms.hi,/nan)
+  temp=repstr(temp,'.fits','.sampling.fits')
   writefits,temp,im,hd
-  ;print,n_elements(where(all_ms.irac4e eq all_ms.irac4e))
-endfor
+  
+
+  im=ell/mean(gal_ms.d25/2.0)
+  SXADDPAR, hd, 'DATAMAX', min(im,/nan)
+  SXADDPAR, hd, 'DATAMIN', max(im,/nan)
+  temp=repstr(temp,'.fits','.dist.fits')
+  writefits,temp,im,hd
+  
+endforeach
 
 save,filename=out+'.dat',all_ms
 END
