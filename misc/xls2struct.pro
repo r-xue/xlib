@@ -2,7 +2,7 @@ PRO XLS2STRUCT,xlsfile,tab,hdr,silent=silent,refresh=refresh
 
 ;+
 ; NAME:
-;   XLS2STRUCT
+;   XLS2STRUCT ***(replaced by read_table.pro)***
 ;
 ; PURPOSE:
 ;   read a spreadsheet and load data into an IDL structure
@@ -43,28 +43,7 @@ PRO XLS2STRUCT,xlsfile,tab,hdr,silent=silent,refresh=refresh
 ;
 ;-
 
-
-rootname=cgrootname(xlsfile,dir=dir,ext=ext)
-csvfile=xlsfile
-if  ext ne 'csv' then begin
-    csvfile=dir+rootname+'.csv'
-    if keyword_set(refresh) then begin
-        ;cmd='unoconv -f csv -o '+csvfile+' '+xlsfile
-        cmd='unoconv -f csv '+xlsfile
-        ;print,cmd
-        spawn,cmd
-    endif
-endif
-
-tab=READ_CSV(csvfile,header=hdr)
-
-if not keyword_set(silent) then begin
-    print,'header--->'
-    for i=0,n_elements(hdr)-1 do begin
-        print,"<"+hdr[i]+">",size(tab[0].(i),/tn),format='(a-50,a-50)'
-    endfor
-    print,'column: ', n_elements(hdr)
-    print,'rows:   ', n_elements(tab.(0))
-endif
+tab=read_table(xlsfile,header=hdr,silent=silent,refresh=refresh)
 
 END
+
