@@ -1,8 +1,11 @@
-PRO GAL_DEPROJ_MS2,ref=ref,$
-    select=select,gselect=gselect,$
+PRO GAL_DEPROJ_MS,$
+    cat=cat,$
+    gselect=gselect,bselect=bselect,$           ; select galaxies and bands based on index in tables
+    gkey=gkey,gval=gval,$                       ; select galaxies based on label
+    bkey=bkey,bval=bval,$                       ; select bands based on label
     box=box,$
-    ores=ores,mres=mres,out=out,MSPPC2=MSPPC2, HELIUM=HELIUM,$
-    nodp=nodp,ra=ra,dec=dec
+    ores=ores,out=out,$
+    nodp=nodp
 
 ;+
 ; NAME:
@@ -55,29 +58,26 @@ PRO GAL_DEPROJ_MS2,ref=ref,$
 ; gal_deproj_ms2,ref='SGP',select=[6,7,12,13,2,3,4,5]-2,box=1024,out='sgp.ms',/nodp,ores='_smo*'
 ;-
 
-
-
-if n_elements(ores) eq 0 then ores='_smo*'
-if n_elements(mres) eq 0 then mres='*'
-if n_elements(out) eq 0 then out='all_ms'
-if n_elements(select_ref) eq 0 then select_ref=0
+resolve_routine,'gal_deproj_meta'
 dp='_dp'
 if keyword_set(nodp) then dp=''
+if n_elements(ores) eq 0 then ores='_smo*'
+if n_elements(out) eq 0 then out='all_ms'
+if n_elements(select_ref) eq 0 then select_ref=0
 
-; SETUP
+
+
+if  not keyword_set(cat) then cat='nearby'
+GAL_DEPROJ_META, cat, s, h, types, typesh,$
+    gselect=gselect,bselect=bselect,$
+    gkey=gkey,gval=gval,$
+    bkey=bkey,bval=bval
+
 fitsloc='./'
-;fn='*_smo*_dp.fits'
-;fl=file_search(fitsloc+fn,count=ct)
-xco=2.0e20
+gselect=indgen(n_elements(s.(0)))
 
 
-; LOAD ST STRUCTURE
-gal_struct_build,ref,s,h,/silent
-if n_elements(gselect) eq 0 then gselect=indgen(n_elements(s.(0)))
-
-; LOOP THROUGH ALL GALAXIE
-all_ms=[]
-; note: each sampling point is a basic set of structure tags like below     
+; Each sampling point is a basic set of structure tags like below     
 ms = { $
   galno:"", $
   inc:!values.d_nan,$
@@ -90,14 +90,25 @@ ms = { $
   ohkk04:!values.d_nan,$        ; theoretical approach 
   ohpt05:!values.d_nan $        ; emperical approach
   }
+all_ms=[]
+
 ; attach more tags
-types=gal_deproj_fileinfo(ref)
-if n_elements(select) eq 0 then select=indgen(n_elements(types))
+select=indgen(n_elements(types))
 subtypes=types[select]
 foreach type, subtypes do begin
-  print,type.tag
+  usetag=0
+  foreach ind,gselect do begin
+    gal=s.(where(h eq 'Galaxy'))[ind]
+    galno = strtrim(gal,2)
+    fname=fitsloc+type.prefix+galno+type.posfix+ores+dp+'.fits'
+    fnamemsk=fitsloc+type.prefix+galno+type.posfix+'_mskd'+ores+dp+'.fits'
+    if  file_test(fname) or file_test(fnamemsk) then usetag=1
+  endforeach
+  if usetag eq 0 then continue
+  print,'add tag: ',type.tag
   ms=create_struct(ms,type.tag,!values.d_nan)
 endforeach
+
 
 
 foreach ind,gselect do begin
@@ -111,18 +122,27 @@ foreach ind,gselect do begin
   as2pc=dist/206264.806
   inc=s.(where(h eq 'Adopted Inc (deg)'))[ind]
   
-  if ref eq 'SGP' or ref eq 'TGP' or ref eq 'MGP' then begin
+  isz=where(h eq 'Ref(Z)')
+  
+  if  isz[0] ne -1 then begin
     ohref=s.(where(h eq 'Ref(Z)'))[ind]
     ohkk04=[s.(where(h eq 'Log(O/H)+12C KK04'))[ind],s.(where(h eq 'Log(O/H)+12G KK04'))[ind]]
     ohpt05=[s.(where(h eq 'Log(O/H)+12C PT05'))[ind],s.(where(h eq 'Log(O/H)+12G PT05'))[ind]]  
   endif
-  
+
   d25=s.(where(h eq 'D_25 (")'))[ind]
   
   ; HEX SAMPLING
-  temp=fitsloc+subtypes[select_ref].prefix+galno+subtypes[select_ref].posfix+ores+dp+'.fits'
-  print,temp
-  if file_test(temp) eq 0 then continue
+  temp=''
+  foreach type, subtypes do begin
+      fname=fitsloc+type.prefix+galno+type.posfix+ores+dp+'.fits'
+      fnamemsk=fitsloc+type.prefix+galno+type.posfix+'_mskd'+ores+dp+'.fits'
+      if file_test(fname) then temp=fname
+      if file_test(fnamemsk) then temp=fnamemsk 
+  endforeach
+  print,"choose frame template  ->",temp
+  if temp eq '' then continue
+  
   temp=(file_search(temp))[0]
   nh2=readfits(temp,nh2hd,/silent)
   sz=size(nh2,/d)
@@ -146,9 +166,10 @@ foreach ind,gselect do begin
   pyout=round(yout/3600./abs(cdelt[0])+sxpar(nh2hd,'CRPIX2')-1)
 
   adxy,nh2hd,s.(where(h eq 'RA2000 (deg)'))[ind],s.(where(h eq 'DEC2000 (deg)'))[ind],maskx,masky
+  if  dp eq '_dp' then ellinc=1.0 else ellinc=1./abs(cos(inc/90.*0.5*!pi))
   dist_ellipse, ell, [sxpar(nh2hd,'naxis1'), sxpar(nh2hd,'naxis2')], $
       maskx, masky, $
-      1./abs(cos(inc/90.*0.5*!pi)), s.(where(h eq 'Adopted PA (deg)'))[ind]
+      ellinc, s.(where(h eq 'Adopted PA (deg)'))[ind]
   ell=ell*abs(cdelt[0])*3600. ; in arcsec
 
   gal_ms=replicate(ms,n_elements(xout))
@@ -156,13 +177,12 @@ foreach ind,gselect do begin
   gal_ms.yoffset=yout
   gal_ms.rad=ell[pxout,pyout]
   
-  if ref eq 'SGP' or ref eq 'TGP' or ref eq 'MGP' then begin
-  gal_ms.ohkk04=ohkk04[0]+ohkk04[1]/(d25/2.0)*gal_ms.rad
-  gal_ms.ohpt05=ohpt05[0]+ohpt05[1]/(d25/2.0)*gal_ms.rad
+  if isz[0] ne -1  then begin
+    gal_ms.ohkk04=ohkk04[0]+ohkk04[1]/(d25/2.0)*gal_ms.rad
+    gal_ms.ohpt05=ohpt05[0]+ohpt05[1]/(d25/2.0)*gal_ms.rad
   endif
   
   gal_ms.galno=galno
-  
   gal_ms.as2pc=as2pc
   gal_ms.res=0.5*ss.bmaj*as2pc
   gal_ms.d25=d25
@@ -175,7 +195,8 @@ foreach ind,gselect do begin
     
     if file_test(fname) or file_test(fnamemsk) then begin
       if file_test(fnamemsk) then fname=fnamemsk
-      print,"reading: ",fname
+      print,"searching: ",fname
+      print,"reading:   ",file_search(fname)
       im=readfits(fname,hd,/silent)
       tagindex=where(TAG_NAMES(ms) eq strupcase(type.tag))
       gal_ms.(tagindex)=im[pxout,pyout]
@@ -190,23 +211,34 @@ foreach ind,gselect do begin
   im[pxout,pyout]=1.0
   SXADDPAR, hd, 'DATAMAX', 0.0
   SXADDPAR, hd, 'DATAMIN', 1.0
-  im[*]=0.0
-  im[pxout,pyout]=gal_ms.rad
-  SXADDPAR, hd, 'DATAMAX', min(gal_ms.hi,/nan)
-  SXADDPAR, hd, 'DATAMIN', max(gal_ms.hi,/nan)
-  temp=repstr(temp,'.fits','.sampling.fits')
-  writefits,temp,im,hd
-  
-
-  im=ell/mean(gal_ms.d25/2.0)
+  outfits=repstr(temp,'.fits','.sampling.fits')
+  writefits,outfits,im,hd
+ 
+  im=ell/(d25/2.0)
   SXADDPAR, hd, 'DATAMAX', min(im,/nan)
   SXADDPAR, hd, 'DATAMIN', max(im,/nan)
-  temp=repstr(temp,'.fits','.dist.fits')
-  writefits,temp,im,hd
+  outfits=repstr(temp,'.fits','.radr25.fits')
+  writefits,outfits,im,hd
+  
+  if isz[0] ne -1  then begin
+    ohkk04=ohkk04[0]+ohkk04[1]/(d25/2.0)*ell
+    ohpt05=ohpt05[0]+ohpt05[1]/(d25/2.0)*ell
+    
+    SXADDPAR, hd, 'DATAMAX', min(ohkk04,/nan)
+    SXADDPAR, hd, 'DATAMIN', max(ohkk04,/nan)
+    outfits=repstr(temp,'.fits','.ohkk04.fits')
+    writefits,outfits,ohkk04,hd
+    SXADDPAR, hd, 'DATAMAX', min(ohpt05,/nan)
+    SXADDPAR, hd, 'DATAMIN', max(ohpt05,/nan)
+    outfits=repstr(temp,'.fits','.ohpt05.fits')
+    writefits,outfits,ohpt05,hd
+  endif
   
 endforeach
 
-save,filename=out+'.dat',all_ms
+print,n_elements(all_ms)
+save,all_ms,filename=out+'.dat',/compress
+
 END
 
 
