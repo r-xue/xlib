@@ -21,12 +21,12 @@ if  not keyword_set(b) then b=5d            ; b value
 
 b=5
 r=3d-17*z
-sigma=1.9d-21*z*0.0001
+sigma=1.9d-21*z
 dn=5.8d-11/niuv
 
 nh2=10d^(dindgen(2400)*0.01)
 tag=where(nh2 eq 10.^25)
-y=APDR_FUN(nh2,b=b,sigma=sigma,/sqrt)
+y=APDR_FUN(nh2,b=b,sigma=sigma)
 int=nh2*0.0
 for i=1,n_elements(nh2)-1 do begin
     s=tsum(nh2,y,0,i)
@@ -44,7 +44,7 @@ END
 
 PRO TEST_APDR
 
-apdr,nh2,nh1,/plot
+apdr,nh2,nh1,/plot,niuv=30
 
 END
 

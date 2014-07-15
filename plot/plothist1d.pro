@@ -8,7 +8,8 @@ PRO PLOTHIST1D,x,xbin,$
   maxhist=maxhist,$
   _extra=_extra,$
   nofill=nofill,$
-  noerr=noerr
+  noerr=noerr,$
+  floor1=floor1
 
 ;+
 ; need documentation
@@ -86,7 +87,9 @@ endif
 
 if not keyword_set(nofill) then polyfill,xc,yc,noclip=0,_extra=_extra
 
+if keyword_set(floor1) then yc=yc>1
 oplot,xc,yc,linestyle=0,_extra=_extra
+
 if keyword_set(det) and not keyword_set(noerr) then begin
 oploterror,xp,yp,xe[*,0],ye[*,0],/lobar,psym=3,/nohat
 oploterror,xp,yp,xe[*,1],ye[*,1],/hibar,psym=3,/nohat
