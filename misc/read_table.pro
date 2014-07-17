@@ -52,11 +52,13 @@ FUNCTION READ_TABLE,file,header=header,$
 ;                   tab[1]={FIELD01:a2,FIELD02:b2,FIELD04:c2...}
 ;                   header=[a_header,b_header,...]
 ;               /scalar will turn off this feature.
-;   /keeptag    structure from read_csv have awkward names
+;   /keeptag    structure from read_csv have awkward tag names
 ;               READ_TABLE() will rename tags to valid tagnames converted from header using idl_validname()
 ;               /keeptag will turn off this feature
 ;               but you have to maintain the converted valid tag is unique..  
-;   
+;               if you see "Conflicting or duplicate structure tag definition:", you have to adjuste your table
+;               header or use /keeptag 
+;               
 ; REQURIEMENT (for non-csv files):
 ;   unoconv     https://github.com/dagwieers/unoconv
 ;   libreoffice http://www.libreoffice.org

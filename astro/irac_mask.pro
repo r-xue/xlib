@@ -14,7 +14,7 @@ PRO IRAC_MASK,gal,band,cat
 
 path=ProgramRootDir() 
 
-GAL_STRUCT_BUILD, cat,sting,header,/silent
+GAL_DEPROJ_META, cat,sting,header,/silent
 
 
 inp=gal+'.phot.'+band+'.fits'
