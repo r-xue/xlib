@@ -1,3 +1,18 @@
+PRO APDR_HI2H2viaSFL,sig_hi,sig_h2
+;+
+;   if the SF law is indead linear.
+;   NUV-based SFR can be used to trace H2 never seen in CO because of H2 detection snestivity.
+;
+;-
+sig_hi=10.^[-0.4,0.4,1.0,-0.4]
+SFR=10.^[-6.,-6.,-3.25,-4.25]
+
+sig_h2=SFR/(10.^(-2.1))    
+
+
+END
+
+
 PRO APDR_COMP
 
 apdr,nh2c,nh1c,niuv=23,z=1.0,geo='complex'
@@ -14,6 +29,11 @@ fh2_mckee=km_model(xmodel,1.0,3.0)
 nh1k=xmodel*(1.-fh2_mckee)/8.00635e-21
 nh2k=xmodel*fh2_mckee/8.00635e-21
 nh2k[where(nh2k le 1e14)]=10.^10
+
+
+APDR_HI2H2viaSFL,sig_hi,sig_h2
+nh1u=sig_hi/8.00635e-21*1.6/2.3
+nh2u=sig_h2*(1.6/2.3)/8.00635e-21/2.0
 
 rmol_hydro,nh1r,nh2r
 
@@ -42,6 +62,9 @@ plot,[1],[1],/xlog,/ylog,thick=5,xstyle=1,ystyle=1,$
 ;        ytickformat='logticks_exp',xtickformat='logticks_exp'
 xabssen=10.^21
 yabssen=10.^21
+polyfill,nh1u,nh2u,color=cgcolor('gray')
+xyouts,nh1u[0],nh2u[0]*5.0,$
+    'Expected H2-HI Relation!cbased on observed linear SFR-H2 relation !cAnd observed SFR-HI relation from (Bigiel et al. 2008,2010)',charsize=0.5
 xp=[10.,xabssen,xabssen,10.]
 yp=[10,10,yabssen,yabssen]
 oplot,xp,yp,noclip=0,color=cgcolor('grey'),thick=20
@@ -75,6 +98,7 @@ oplot,nh1g[nh_tag],nh2g[nh_tag],linestyle=0,color=cgcolor('green'),thick=5
 oplot,nh1g,nh2g,linestyle=1,color=cgcolor('red'),thick=5
 oplot,nh1k,nh2k
 oplot,nh1r,nh2r,color=cgcolor('cyan')
+
 
 
 device, /close
@@ -112,6 +136,7 @@ oplot,nh1g[nh_tag]+2.0*nh2g[nh_tag],2.0*nh2g[nh_tag]/nh1g[nh_tag],linestyle=0,co
 oplot,nh1g+2.0*nh2g,2.0*nh2g/nh1g,linestyle=1,color=cgcolor('red'),thick=5
 oplot,nh1k+2.0*nh2k,2.0*nh2k/nh1k
 oplot,nh1r+2.0*nh2r,2.0*nh2r/nh1r,color=cgcolor('cyan')
+
 device, /close
 set_plot,'X'
 

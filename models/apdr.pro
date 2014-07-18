@@ -67,10 +67,12 @@ END
 PRO TEST_APDR
 
 apdr,nh2f,nh1f,niuv=30,geo='slab'
+apdr,nh2fz,nh1fz,niuv=30,geo='slab',z=0.2
 apdr,nh2c,nh1c,niuv=30,geo='complex'
 apdr,nh2s,nh1s,niuv=30,geo='spheric'
 plot,[1],[1],/xlog,/ylog,thick=5,yrange=[10.^13,10.^23],ystyle=1,xrange=[10.^19,10.^23]
 oplot,nh1f,nh2f,thick=5,color=cgcolor('blue')
+oplot,nh1fz,nh2fz,thick=5,color=cgcolor('blue'),linestyle=1
 oplot,nh1c,nh2c,thick=5,color=cgcolor('green')
 oplot,nh1s,nh2s,thick=5,color=cgcolor('red')
 END
