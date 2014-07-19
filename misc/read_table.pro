@@ -123,7 +123,7 @@ if  keyword_set(bkey) then begin
 endif
 
 if  keyword_set(srow) then begin
-    ind=srow[where(okay[srow] ne 0)]
+    ind=srow[where(okay[srow] ne 0,/null)]
 endif else begin
     ind=where(okay ne 0)
 endelse
