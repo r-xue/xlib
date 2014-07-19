@@ -22,6 +22,7 @@ nearby,/Volumes/Scratch/data_repo/projects/nearby/sting/,,co.line.cm.sgm.mom2,co
 nearby,/Volumes/Scratch/data_repo/projects/nearby/sting/,,co.line.cm.sgm.snrpk,cosnrpk,-1,,2d,STING,CARMA,neon,molecular,
 nearby,/Volumes/Scratch/data_repo/projects/nearby/sting/,,co.line.cm.sgm.rms,corms,-1,,2de,STING,CARMA,neon,molecular,
 nearby,/Volumes/Scratch/data_repo/projects/nearby/sting/,,co.line.err,coerr,-1,,3de,STING,CARMA,neon,molecular,
+,,,,,,,,,,,,
 nearby,/Volumes/Scratch/data_repo/projects/nearby/sting/,,hi.line.cm.sgm.mom0,hi,-1,,2d,STING,VLA,neon,atomic,nearby-r
 nearby,/Volumes/Scratch/data_repo/projects/nearby/sting/,,hi.line.cm.sgm.emom0,hie,-1,,2de,STING,VLA,neon,atomic,nearby-r
 nearby,/Volumes/Scratch/data_repo/projects/nearby/sting/,,hi.line.cm.sgm.mom1,himom1,-1,,2d,STING,VLA,neon,atomic,
@@ -92,7 +93,6 @@ magclouds,/Volumes/Scratch/data_repo/projects/magclouds/gasmap/,,.fl,ha_shassa,4
 ,/Users/Rui/Workspace/sting/gromom/,n,hi.sgm.emom0_hsen,hie_hsen,-1,,,junk,model,neon,,
 ,/Users/Rui/Workspace/sting/gromom/,n,hi.sgm.mom0_lsen,hi_lsen,-1,,,junk,model,neon,,
 ,/Users/Rui/Workspace/sting/gromom/,n,hi.sgm.emom0_lsen,hie_lsen,-1,,,junk,model,neon,,
-,/Volumes/Scratch/reduc/co10/msc/export/,n,co.line.err,coerr,-1,,,junk,model,neon,,
 ,/Users/Rui/Workspace/sting/himom_sim/,,him.sgm.mom0,him,-1,,,junk,model,neon,,
 ,/Users/Rui/Workspace/sting/himom_sim/,,himlow.sgm.mom0,himlow,-1,,,junk,model,neon,,
 ,/Users/Rui/Workspace/sting/himom_sim/,,himhigh.sgm.mom0,himhigh,-1,,,junk,model,neon,,
