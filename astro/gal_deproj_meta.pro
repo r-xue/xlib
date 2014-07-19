@@ -12,7 +12,7 @@ PRO GAL_DEPROJ_META, cat, g, gh, b, bh,$
 ;       
 ;   e.g. 
 ;   gal_deproj_meta,'nearby',g,gh,b,bh,$
-;       gkey=['Project','Project'],gval=['*SGP*','*TGP*'],$
+;       gkey=['Project'],gval=['*SGP*','*TGP*'],$
 ;       bkey=['tag'],bval=['*co*']
 ;
 ;-
@@ -26,3 +26,11 @@ g=read_table(gtab,header=gh,srow=gselect,skey=gkey,sval=gval,/scalar,bkey='Galax
 
 END
 
+PRO TEST_GAL_DEPROJ_META
+
+gal_deproj_meta,'nearby',s,h,types,gkey='Project',gval='*SGP*',$
+    bkey='tag',bval=[$
+    'hi','himom1','hisnrpk','irac4','dss',$
+    'co','cosnrpk','comom1','irac1','nuv'],/silent
+print,types.tag    
+END

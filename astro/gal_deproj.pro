@@ -22,9 +22,9 @@ PRO GAL_DEPROJ,$
 ;   /KPC        FWHM is given in kpc rather than arcsec
 ;   /UNMSK      do NOT use the available mask image
 ;   SZ_TEMP     template size in pixel default: 1024
-;   PS_TEMP     pixesize for the common frame
 ;               it could be a catalog header (e.g. 'HI sz_temp (")').
-;               then sz_temp value will be read from the matching column.
+;               then sz_temp value will be read from the matching column.   
+;   PS_TEMP     pixesize for the common frame
 ;   RADEC_TEMP  specify template center, default value from galaxy table
 ;   im_temp     choose a map type for the frame template. this will override ps/sz/radec_temp
 ;   gselect     select galaxies based on table index
@@ -75,6 +75,12 @@ PRO GAL_DEPROJ,$
 ;       plot,[1],[1],psym=3,/xlog,/ylog,xrange=[0.1,100],yrange=[0.1,1000],xstyle=1,ystyle=1
 ;       plot,calc_cn(all_ms.hi,'HI',/msppc2),calc_cn(all_ms.co,'CO1-0',/msppc2),psym=3,/xlog,/ylog,xrange=[0.1,100],yrange=[0.1,1000],xstyle=1,ystyle=1
 ;       oploterror,calc_cn(all_ms.hi,'HI',/msppc2),calc_cn(all_ms.co,'CO1-0',/msppc2),calc_cn(all_ms.hie,'HI',/msppc2),calc_cn(all_ms.coe,'CO1-0',/msppc2),psym=3
+;
+;   * FOV extracting for ATLAS plotting:
+;     CO FOV:
+;       gal_deproj,fwhm=0.0,/kpc,gkey='Project',gval='*SGP*',bkey='tag',bval=['co','comom1','coe','coerr','cosnrpk','irac1','nuv'],/unmsk,sz_temp=179,/nodp
+;     HI FOV:
+;       gal_deproj,fwhm=0.0,/kpc,gkey='Project',gval='*SGP*',bkey='tag',bval=['hi','himom1','hisnrpk','irac4','dss','sdssg','cont'],/unmsk,sz_temp='HI sz_temp (")',/nodp
 ;   
 ;            
 ;   examples belove are out-of-date...
@@ -128,12 +134,7 @@ PRO GAL_DEPROJ,$
 ;       gal_deproj,select=[0,1,2,3,4,5],ps_temp=30.0,gselect=[0],sz_temp=fix([8.0,7.8]*60.*60./30.),ref='MGP',/nodp,/common_res
 ;       gal_deproj,select=[0,1,2,3,4,5],ps_temp=15.0,gselect=[1],sz_temp=fix([6.0,4.5]*60.*60./15.),ref='MGP',/nodp,/common_res
 ;
-;   * FOV extracting:
-;     CO FOV: 
-;       gal_deproj,fwhm=0.0,/kpc, select=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,23,24,35,36]-2,sz_temp=179,/unmsk,ref='SGP'
-;     HI FOV: 
-;       gal_deproj,fwhm=0.0,/kpc, select=[2,3,4,5,12,13,14,16,36,37,18]-2,sz_temp='HI sz_temp (")',/unmsk,ref='SGP'
-;       
+
 ;       
 ;   * extracting a dataset with 1kpc resolution
 ;     gal_deproj,fwhm=1.0,/kpc 
