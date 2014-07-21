@@ -10,7 +10,14 @@ PRO PLOTHIST2D,x,y,xbin,ybin,$
   p_color=p_color,$
   c_color=c_color,$
   pl_cont=pl_cont,$
-  pl_pixel=pl_pixel
+  pl_pixel=pl_pixel,$
+  wtid=wtid
+;+
+;
+;   plot 2D histogram z(x,y) 
+;   
+;   
+;-
 
 if n_elements(xmin) eq 0 then xmin=min(x,/nan)
 if n_elements(xmax) eq 0 then xmax=max(x,/nan)
@@ -49,11 +56,32 @@ hist=hist_2d(hist_x, hist_y,$
   min2=hist_ymin,max2=hist_ymax,$
   bin1=xbin,$
   bin2=ybin )
+  
+if  keyword_set(wtid) then begin
+    hist=0.0
+    wtid_left=wtid[tag]
+    uq=wtid_left[uniq(wtid_left)]
+    foreach u,uq do begin
+        tmp=where(wtid_left eq u)
+        ttt=hist_2d(hist_x[tmp], hist_y[tmp],$
+            min1=hist_xmin,max1=hist_xmax,$
+            min2=hist_ymin,max2=hist_ymax,$
+            bin1=xbin,$
+            bin2=ybin )
+        hist=hist+ttt/float(total(ttt))
+    endforeach
+endif
+  
 
 histlin=hist
 
-if keyword_set(histlog) then hist=alog10(hist>1.0)
-
+if (not keyword_set(wtid)) and keyword_set(histlog) then hist=alog10(hist>1.0)
+if keyword_set(wtid) and keyword_set(histlog) then begin
+    tmp=where(hist ne 0.0)
+    nf=min(hist[tmp])
+    print,nf,max(hist/nf)
+    hist=alog10(hist/nf>1.)
+endif
 hist=hist*1.0/max(hist,/nan)*ncolor
 
 dim=size(hist,/d)
