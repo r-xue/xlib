@@ -91,7 +91,7 @@ ms = { $
   ohpt05:!values.d_nan $        ; emperical approach
   }
 all_ms=[]
-
+sub=[]
 ; attach more tags
 select=indgen(n_elements(types))
 subtypes=types[select]
@@ -107,8 +107,10 @@ foreach type, subtypes do begin
   if usetag eq 0 then continue
   print,'add tag: ',type.tag
   ms=create_struct(ms,type.tag,!values.d_nan)
+  sub=[sub,type]
 endforeach
 
+subtypes=sub
 
 
 foreach ind,gselect do begin
@@ -199,6 +201,9 @@ foreach ind,gselect do begin
       print,"reading:   ",file_search(fname)
       im=readfits(fname,hd,/silent)
       tagindex=where(TAG_NAMES(ms) eq strupcase(type.tag))
+      ; if image is not deporjected, we will measure brightness after deprojection.
+      if  dp ne '_dp' then im=im*abs(cos(inc/90.*0.5*!pi))
+      
       gal_ms.(tagindex)=im[pxout,pyout]
       print,"sample_points:", n_elements(pxout)
       ;print,type.tag,max(gal_ms.cont,/nan),max(im[pxout,pyout],/nan)
