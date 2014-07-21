@@ -11,9 +11,10 @@ return,s
 
 END
 
-PRO APDR,NH2,NH1,z=z,niuv=niuv,b=b,plot=plot,side1=side1,iso=iso,geo=geo
+PRO APDR,NH2,NH1,z=z,niuv=niuv,b=b,plot=plot,side1=side1,iso=iso,geo=geo,nh2int=nh2int
 !except=1
 ; 1D slab / beamed UV field from one side / DB97 H2 self shielding function
+;   nh2int: integrated to nh2int value
 
 if  not keyword_set(z) then z=1d            ; metallicity
 if  not keyword_set(niuv) then niuv=10d     ; n/iuv
@@ -27,6 +28,10 @@ if  keyword_set(side1) then scale=1.0 else scale=2.0
 dn=5.8d-11/niuv
 
 nh2=10d^(dindgen(2400)*0.01)
+if  keyword_set(nh2int) then begin
+    tagon=where(nh2 le nh2int)
+    nh2=nh2[tagon]
+endif
 tag=where(nh2 eq 10.^25)
 y=APDR_FUN(nh2,b=b,sigma=sigma)
 int=nh2*0.0

@@ -21,7 +21,7 @@ g=(dgr_mw^2.0+d_star^2.0)^0.5
 sig_r1=50./g*(0.01+u)^0.5/(1.+0.69*(0.01+u)^0.5)
 alpha=0.5+1.0/(1.0+sqrt(u*dgr_mw^2.0/600))
 
-sig_tt=findgen(100000)*0.1+0.0
+sig_tt=10.0^(findgen(1000)*0.01-2.)
 r_mol=(sig_tt/sig_r1)^alpha
 
 sig_h1=sig_tt*1./(1.+r_mol)
