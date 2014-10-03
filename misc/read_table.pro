@@ -83,7 +83,8 @@ FUNCTION READ_TABLE,file,header=header,$
 ;                   new features: filter table content
 ;                                 output structure array rather than a structure
 ;                                 replace the tagnames using header names
-;                                 
+;               RX  now it can read the .gsheet file from GoogleDrive!
+;                    
 ;                                 
 ;
 ;-
@@ -91,13 +92,30 @@ FUNCTION READ_TABLE,file,header=header,$
 
 rootname=cgrootname(file,dir=dir,ext=ext)
 csvfile=file
-if  ext ne 'csv' then begin
+if  ext ne 'csv' and ext ne 'gsheet' then begin
     csvfile=dir+rootname+'.csv'
-    if keyword_set(refresh) then begin
+    if  keyword_set(refresh) or not file_test(csvfile) then begin
         ;cmd='unoconv -f csv -o '+csvfile+' '+file
         cmd='unoconv -f csv '+file
         print,cmd
         spawn,cmd
+    endif
+endif
+if  ext eq 'gsheet' then begin
+    csvfile=dir+rootname+'.csv'
+    if  keyword_set(refresh) or not file_test(csvfile) then begin
+        openr,lun,file,/get_lun
+        id=strarr(1)
+        readf,lun,id
+        free_lun, lun
+        id=STRSPLIT(id,":",/EXTRACT)
+        id=repstr(id[-1],'"}')
+        ourl = obj_new('IDLnetURL')
+        oUrl->SetProperty, url_scheme='https'
+        oUrl->SetProperty, URL_HOST='docs.google.com'
+        oUrl->SetProperty, URL_PATH='/spreadsheets/d/'+id+'/export?format=csv'
+        tmp=oUrl->Get(filename=csvfile)
+        OBJ_DESTROY, oUrl
     endif
 endif
 
@@ -166,4 +184,13 @@ endif
 
 
 return,tab
+END
+
+
+PRO TEST_READ_TABLE
+file='/Users/Rui/Google Drive/bootes.gsheet'
+tb=read_table(file,header=hd)
+print,tb
+
+
 END
