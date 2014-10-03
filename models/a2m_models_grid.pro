@@ -26,6 +26,62 @@ save,filename=datfile,mk10_grid,mk10_zm
 
 END
 
+PRO A2M_MK10PH10_GRID
+
+x_model=10.0^(findgen(1000)*0.01-2.)
+zm=10.^(7.0+(9.5-7.0)*findgen(100)*0.01-8.69)
+mk10_grid=fltarr(n_elements(x_model),4,n_elements(zm))
+for i=0,99 do begin
+    f=km_model(x_model,zm[i],10.0)
+    f=f>1e-10
+    mk10_grid[*,0,i]=x_model          ;
+    mk10_grid[*,1,i]=x_model*f        ;h2
+    mk10_grid[*,2,i]=x_model*(1-f)    ;hi
+    mk10_grid[*,3,i]=f                ;h2 mass faraction
+endfor
+
+window,0,xsize=500,ysize=500
+plot,[1],[1],xrange=[0.1,100],yrang=[1e-7,1e3],/xlog,/ylog,xstyle=1,ystyle=1
+for i=0,99 do begin
+    oplot,mk10_grid[*,2,i],mk10_grid[*,1,i]
+endfor
+
+path=cgsourcedir()
+datfile=path+'/a2m_mk10ph10_grid.dat'
+mk10_zm=zm
+mk10ph10_grid=mk10_grid
+save,filename=datfile,mk10ph10_grid,mk10_zm
+    
+END
+
+PRO A2M_MK10PH1_GRID
+
+x_model=10.0^(findgen(1000)*0.01-2.)
+zm=10.^(7.0+(9.5-7.0)*findgen(100)*0.01-8.69)
+mk10_grid=fltarr(n_elements(x_model),4,n_elements(zm))
+for i=0,99 do begin
+    f=km_model(x_model,zm[i],1.0)
+    f=f>1e-10
+    mk10_grid[*,0,i]=x_model          ;
+    mk10_grid[*,1,i]=x_model*f        ;h2
+    mk10_grid[*,2,i]=x_model*(1-f)    ;hi
+    mk10_grid[*,3,i]=f                ;h2 mass faraction
+endfor
+
+window,0,xsize=500,ysize=500
+plot,[1],[1],xrange=[0.1,100],yrang=[1e-7,1e3],/xlog,/ylog,xstyle=1,ystyle=1
+for i=0,99 do begin
+    oplot,mk10_grid[*,2,i],mk10_grid[*,1,i]
+endfor
+
+path=cgsourcedir()
+datfile=path+'/a2m_mk10ph1_grid.dat'
+mk10_zm=zm
+mk10ph1_grid=mk10_grid
+save,filename=datfile,mk10ph1_grid,mk10_zm
+    
+END
+
 
 PRO A2M_S14_GRID
 
@@ -33,8 +89,8 @@ zm=10.^(7.0+(9.5-7.0)*findgen(100)*0.01-8.69)
 s14slab_grid=fltarr(2400,4,n_elements(zm))
 s14comp_grid=fltarr(2400,4,n_elements(zm))
 for i=0,99 do begin
-    apdr,nh2c,nh1c,niuv=23,z=zm[i],geo='complex'
-    apdr,nh2s,nh1s,niuv=23,z=zm[i],geo='slab'
+    apdr,nh2c,nh1c,niuv=31.*3.0/(1.+3.1*zm[i]^0.365),z=zm[i],geo='complex'
+    apdr,nh2s,nh1s,niuv=31.*3.0/(1.+3.1*zm[i]^0.365),z=zm[i],geo='slab'
     s14comp_grid[*,0,i]=(nh1c+nh2c*2.0)*8.00635e-21
     s14comp_grid[*,1,i]=(nh2c*2.0)*8.00635e-21
     s14comp_grid[*,2,i]=(nh1c)*8.00635e-21
@@ -61,6 +117,8 @@ s14_zm=zm
 save,filename=datfile,s14comp_grid,s14slab_grid,s14_zm
     
 END
+
+
 
 
 PRO A2M_BR06_GRID

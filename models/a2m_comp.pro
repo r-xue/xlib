@@ -87,8 +87,9 @@ device, filename='apdr_comp_h2vsh1.eps', $
 !x.thick = 1.7
 !y.thick = 1.7
 !z.thick = 1.7
-!p.charsize=1.0
+!p.charsize=1.2
 !p.charthick=1.7
+xyouts,'!6'   
 
 plot,[1],[1],/xlog,/ylog,thick=5,xstyle=1,ystyle=1,$
     yrange=[10.^13,10.^24],xrange=[10.^19,10.^22],$
@@ -106,18 +107,21 @@ xabssen=10.^21
 yabssen=10.^21
 ;polyfill,nh1u,nh2u,color=cgcolor('gray')
 xyouts,nh1u[0],nh2u[0]*5.0,$
-    'Expected H2-HI Relation!cbased on observed linear SFR-H2 relation !cAnd observed SFR-HI relation from (Bigiel et al. 2008,2010)',charsize=0.5
+    'Expected H2-HI Relation!cbased on a linear SFL !c(Bigiel et al. 2008,2010)',charsize=0.5
 xp=[10.,xabssen,xabssen,10.]
 yp=[10,10,yabssen,yabssen]
 oplot,xp,yp,noclip=0,color=cgcolor('grey'),thick=20
-xyouts,0.2,0.20,'Emission',/normal,charsize=1.0,charthick=5.0,color=cgcolor('black')
+xyouts,0.2,0.20,'!6Absorption Techniques',/normal,charsize=0.5,charthick=1.0,color=cgcolor('black')
 xemisen=10.^20
 yemisen=10.^20
 xp=[xemisen,xemisen,10.^25,10.^25]
 yp=[10.^25,yemisen,yemisen,10.^25]
 oplot,xp,yp,noclip=0,color=cgcolor('grey'),thick=20
-xyouts,0.75,0.85,'Absorption',/normal,charsize=1.0,charthick=5.0,color=cgcolor('black')
-
+xyouts,0.70,0.87,'!6Emission Techniques',/normal,charsize=0.5,charthick=1.0,color=cgcolor('black')
+cgarrow,10.^21.5,10.^21.5,10.^22,10.^21.5,/data,color=cgcolor('blue')
+xyouts,10.^21.5,10.^21.7,'higher G/nR',/data,charsize=0.5,charthick=1.0,color=cgcolor('black'),ali=0.5
+cgarrow,10.^20.5,10.^21.5,10.^20,10.^21.5,/data,color=cgcolor('blue')
+xyouts,10.^20.5,10.^21.7,'lower G/nR',/data,charsize=0.5,charthick=1.0,color=cgcolor('black'),ali=0.5
 
 nearby_UVHI_RD,shi,sfr,type,name
 tt=where(type eq 'Spirals ',/null) ;Spirals Dwarfs
