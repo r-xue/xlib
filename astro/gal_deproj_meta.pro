@@ -2,7 +2,7 @@ PRO GAL_DEPROJ_META, cat, g, gh, b, bh,$
     gselect=gselect,bselect=bselect,$   ; select galaxies and bands based on index in tables
     gkey=gkey,gval=gval,$               ; select galaxies based on label
     bkey=bkey,bval=bval,$               ; select bands based on label
-    silent=silent
+    silent=silent,refresh=refresh
 ;+
 ;
 ;   INPUT
@@ -18,11 +18,11 @@ PRO GAL_DEPROJ_META, cat, g, gh, b, bh,$
 ;-
 
 path=cgsourcedir()
-btab=path+'../data/'+cat+'_fileinfo.csv'
-gtab=path+'../data/'+cat+'.csv'
+btab=path+'../data/'+cat+'_fileinfo.xlsx'
+gtab=path+'../data/'+cat+'.xlsx'
 
-b=read_table(btab,header=bh,srow=bselect,skey=bkey,sval=bval,bkey='path',silent=silent)
-g=read_table(gtab,header=gh,srow=gselect,skey=gkey,sval=gval,/scalar,bkey='Galaxy',silent=silent)
+b=read_table(btab,header=bh,srow=bselect,skey=bkey,sval=bval,bkey='path',silent=silent,refresh=refresh)
+g=read_table(gtab,header=gh,srow=gselect,skey=gkey,sval=gval,/scalar,bkey='Galaxy',silent=silent,refresh=refresh)
 
 END
 

@@ -87,6 +87,8 @@ ms = { $
   res:!values.d_nan,$
   xoffset:!values.d_nan,$       ; ra offset from center for the sampling point
   yoffset:!values.d_nan,$       ; dec offset from center  for the sampling point
+  ra:!values.d_nan,$            ; ra of the sampling point
+  dec:!values.d_nan,$           ; dec of the sampling point
   ohkk04:!values.d_nan,$        ; theoretical approach 
   ohpt05:!values.d_nan $        ; emperical approach
   }
@@ -177,6 +179,9 @@ foreach ind,gselect do begin
   gal_ms=replicate(ms,n_elements(xout))
   gal_ms.xoffset=xout
   gal_ms.yoffset=yout
+  xyad,nh2hd,pxout,pyout,pra,pdec
+  gal_ms.ra=pra
+  gal_ms.dec=pdec
   gal_ms.rad=ell[pxout,pyout]
   
   if isz[0] ne -1  then begin
@@ -186,11 +191,11 @@ foreach ind,gselect do begin
   
   gal_ms.galno=galno
   gal_ms.as2pc=as2pc
-  gal_ms.res=0.5*ss.bmaj*as2pc
+  gal_ms.res=ss.bmaj*as2pc
   gal_ms.d25=d25
   gal_ms.inc=inc
 
-  
+  eff=0.0
   foreach type, subtypes do begin
     fname=fitsloc+type.prefix+galno+type.posfix+ores+dp+'.fits'
     fnamemsk=fitsloc+type.prefix+galno+type.posfix+'_mskd'+ores+dp+'.fits'
@@ -203,17 +208,19 @@ foreach ind,gselect do begin
       tagindex=where(TAG_NAMES(ms) eq strupcase(type.tag))
       ; if image is not deporjected, we will measure brightness after deprojection.
       if  dp ne '_dp' then im=im*abs(cos(inc/90.*0.5*!pi))
-      
       gal_ms.(tagindex)=im[pxout,pyout]
-      print,"sample_points:", n_elements(pxout)
+      effone=gal_ms.(tagindex) eq gal_ms.(tagindex)
+      print,"sample_points:", n_elements(pxout),'/',fix(total(effone))
+      eff=eff+effone
       ;print,type.tag,max(gal_ms.cont,/nan),max(im[pxout,pyout],/nan)
     endif
   endforeach
-  
-  all_ms=[all_ms,gal_ms]
+  ;keep sampling point with at least one type of effective measurements
+  left=where(eff ne 0.0)
+  all_ms=[all_ms,gal_ms[left]]
   
   im[*]=0.0
-  im[pxout,pyout]=1.0
+  im[pxout[left],pyout[left]]=1.0
   SXADDPAR, hd, 'DATAMAX', 0.0
   SXADDPAR, hd, 'DATAMIN', 1.0
   outfits=repstr(temp,'.fits','.sampling.fits')
