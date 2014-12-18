@@ -1,3 +1,30 @@
+PRO TEST_READ_TABLE
+
+;file='/Users/Rui/GDrive/docs/bootes.gsheet'
+file='bootes.gsheet'
+tb=read_table(file,header=hd,/refresh)
+;file='/Users/Rui/GDrive/docs/mcs_abs.gsheet'
+;tb=read_table(file,header=hd,/refresh,/keeptags,/scalar)
+
+set_plot,'ps'
+device,filename='TEST_READ_TABLE.eps',bits=8,xsize=5,ysize=5,$
+    /inches,/encapsulated,/color
+!p.thick=4.0
+!x.thick =4.0
+!y.thick =4.0
+!z.thick =4.0
+!p.charsize=0.0
+!p.charthick=4.0
+!p.symsize=0.0
+
+plot,tb.ra,tb.dec,xrange=[220,217],yrange=[32,35],xstyle=1,ystyle=1,psym=cgsymcat(16),$
+    xtitle='R.A.',ytitle='Dec.'
+device,/close
+set_plot,'x'
+
+END
+
+
 FUNCTION READ_TABLE,file,header=header,$
     scalar=scalar,$
     srow=srow,$
@@ -20,9 +47,11 @@ FUNCTION READ_TABLE,file,header=header,$
 ;
 ; INPUTS:
 ;   file        table file name 
-;               this could be any spreadsheet format, e.g. odt,xlsx, or csv 
+;               this could be any spreadsheet format, e.g. odt,xlsx,csv,gsheet 
 ;               note:   any format supported by libreoffice will be automatically 
-;                       converted to csv on demand, then read into IDL via read_csv()
+;                       converted to csv on demand, then be read into IDL via read_csv()
+;                       if the file is gsheet, the file id will be used for downloading 
+;                       spreadsheet in csv, then be read into IDL
 ;   srow        select rows to import (start with 0, the IDL way)
 ;   skey        colume names used to select content, together with sval     
 ;   sval        wildcard characeters used to select content, together with skey
@@ -89,7 +118,6 @@ FUNCTION READ_TABLE,file,header=header,$
 ;
 ;-
 
-
 rootname=cgrootname(file,dir=dir,ext=ext)
 csvfile=file
 if  ext ne 'csv' and ext ne 'gsheet' then begin
@@ -114,6 +142,8 @@ if  ext eq 'gsheet' then begin
         oUrl->SetProperty, url_scheme='https'
         oUrl->SetProperty, URL_HOST='docs.google.com'
         oUrl->SetProperty, URL_PATH='/spreadsheets/d/'+id+'/export?format=csv'
+        print,'fetch: docs.google.com/spreadsheets/d/'+id+'/export?format=csv'
+        print,csvfile
         tmp=oUrl->Get(filename=csvfile)
         OBJ_DESTROY, oUrl
     endif
@@ -169,7 +199,6 @@ if not keyword_set(silent) then begin
     print,""
 endif
 
-
 if  not keyword_set(scalar)  then begin
     tmpsts=[]
     for j=0,n_elements(tab.(0))-1 do begin
@@ -182,15 +211,10 @@ if  not keyword_set(scalar)  then begin
     tab=tmpsts
 endif
 
-
 return,tab
-END
-
-
-PRO TEST_READ_TABLE
-file='/Users/Rui/Google Drive/bootes.gsheet'
-tb=read_table(file,header=hd)
-print,tb
-
 
 END
+
+
+
+
