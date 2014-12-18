@@ -100,5 +100,30 @@ hex_grid,ctr_x=ctr[0],ctr_y=ctr[1],spacing=10.0,xout=xout,yout=yout,r_limit=40,/
 oplot,xout,yout,psym=symcat(9),symsize=2.0
 
 END
-  ;-
+
+PRO TEST2_SAMPLE_GRID
+
+
+xl=[219,215]
+yl=[32,36]
+ctr=[60,45]
+sample_grid,[mean(xl),mean(yl)],0.5*sqrt(3.),xout=xout,yout=yout,/hex,$
+    r_limit=40
+;x_limit=[-49,49],y_limit=[-49,49],
+window,1,xsize=600,ysize=600
+rotate_xy, xout, yout, 30, mean(xl), mean(yl), x2, y2
+plot,x2,y2,psym=3,$
+    xrange=xl,$
+    yrange=yl,$
+    xstyle=1,ystyle=1
+tvcircle,0.5,x2,y2,/data
+;oplot,[ctr[0]],[ctr[1]],psym=2
+;;oplot,[ctr[0],ctr[0]],[ctr[1]-160,ctr[1]+160],linestyle=2
+;;oplot,[ctr[1]-160,ctr[1]+160],[ctr[1],ctr[1]],linestyle=2
+;
+;hex_grid,ctr_x=ctr[0],ctr_y=ctr[1],spacing=10.0,xout=xout,yout=yout,r_limit=40,/radec
+;oplot,xout,yout,psym=symcat(9),symsize=2.0
+
+END
+
     

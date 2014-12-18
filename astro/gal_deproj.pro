@@ -82,16 +82,7 @@ PRO GAL_DEPROJ,$
 ;     HI FOV:
 ;       gal_deproj,fwhm=0.0,/kpc,gkey='Project',gval='*SGP*',bkey='tag',bval=['hi','himom1','hisnrpk','irac4','dss','sdssg','cont'],/unmsk,sz_temp='HI sz_temp (")',/nodp
 ;   
-;   * HI r500 prediction:
-;     CO map:
-;       nearby-mhi:
-;       gal_deproj,gkey='Galaxy',gval='ngc4254',fwhm=0.25,/kpc,bkey='tag',bval=['co','coe','co21','co21e'],/unmsk,sz_temp=251,/nodp
-;       gal_deproj_ms,gkey='Galaxy',gval='ngc4254',bkey='tag',bval=['co','coe','co21','co21e'],out='r0',/nodp    ; get oh map
-;       st_sim_mh1
-;       nearby-mhi-match:
-;       gal_deproj,gkey='Galaxy',gval='ngc4254',select_res='same',bkey='tag',bval=['co','coe','co21','co21e','hi','hie','mhico21','mhico21low','mhico21high','mhico','mhicohigh','mhicolow'],sz_temp=251
-;       gal_deproj_ms,gkey='Galaxy',gval='ngc4254',bkey='tag',bval=['co','coe','co21','co21e','hi','hie','mhico21','mhico21low','mhico21high','mhico','mhicohigh','mhicolow'],out='mhi'
-;   examples belove are out-of-date...
+
 ;   
 ;   * G/n mapping test (STING + MAGMA-LMC/SMC + THING/HERACLES: (in sting/gas-com)
 ;     extract a CO+HI dataset with smallest common resolution

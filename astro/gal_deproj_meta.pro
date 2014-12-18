@@ -31,6 +31,6 @@ PRO TEST_GAL_DEPROJ_META
 gal_deproj_meta,'nearby',s,h,types,gkey='Project',gval='*SGP*',$
     bkey='tag',bval=[$
     'hi','himom1','hisnrpk','irac4','dss',$
-    'co','cosnrpk','comom1','irac1','nuv'],/silent
+    'co','cosnrpk','comom1','irac1','nuv'],/silent,/refresh
 print,types.tag    
 END
