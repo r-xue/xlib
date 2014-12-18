@@ -11,7 +11,8 @@ PRO PLOTHIST2D,x,y,xbin,ybin,$
   c_color=c_color,$
   pl_cont=pl_cont,$
   pl_pixel=pl_pixel,$
-  wtid=wtid
+  wtid=wtid,$
+  wtsz=wtsz
 ;+
 ;
 ;   plot 2D histogram z(x,y) 
@@ -27,6 +28,7 @@ if n_elements(ncolor) eq 0 then ncolor=150
 if n_elements(histmin) eq 0 then histmin=0
 if n_elements(clip) eq 0 then clip=[xmin,ymin,xmax,ymax]
 if n_elements(pl_pixel) eq 0 then pl_pixel=1
+if n_elements(wtsz) eq 0 then wtsz=1
 
 tag=where(x eq x and y eq y $
           and x lt xmax and x gt xmin $
@@ -60,7 +62,8 @@ hist=hist_2d(hist_x, hist_y,$
 if  keyword_set(wtid) then begin
     hist=0.0
     wtid_left=wtid[tag]
-    uq=wtid_left[uniq(wtid_left)]
+    wtsz_left=wtsz[tag]
+    uq=wtid_left[rem_dup(wtid_left)]
     foreach u,uq do begin
         tmp=where(wtid_left eq u)
         ttt=hist_2d(hist_x[tmp], hist_y[tmp],$
@@ -68,7 +71,7 @@ if  keyword_set(wtid) then begin
             min2=hist_ymin,max2=hist_ymax,$
             bin1=xbin,$
             bin2=ybin )
-        hist=hist+ttt/float(total(ttt))
+        hist=hist+ttt/float(total(ttt*mean(wtsz_left[tmp])))
     endforeach
 endif
   
@@ -130,11 +133,10 @@ if n_elements(percent) ne 0 then begin
   tol=total(shist,/cumulative)*1.0/total(shist)
   levs=percent
   for k=0,n_elements(levs)-1 do begin
-    tag=where(abs(tol-percent[k]) eq min(abs(tol-percent[k])))
-    levs[k]=shist[tag]
+    levs[k]=interpol(shist,tol,percent[k])
   endfor
-  contour,histlin,xx,yy,/overplot,c_colors=cgcolor(p_color),$
-    levels=levs,clip=clip,noclip=0
+  cgcontour,histlin,xx,yy,/overplot,c_colors=p_color,$
+    levels=levs,clip=clip,noclip=0,c_lab=0
 endif
 
 

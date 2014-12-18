@@ -23,3 +23,4 @@ Here is a list of IDL libraries I borrow:
   MGlib                     https://github.com/mgalloy/mglib <github>
   SALVAGGIO                 https://www.cis.rit.edu/~cnspci/software.php
   windt                     http://www.rxollc.com/idl/windt.html
+  JHU/APL/S1R IDL library   http://fermi.jhuapl.edu/idl/
