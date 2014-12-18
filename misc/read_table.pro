@@ -57,15 +57,15 @@ FUNCTION READ_TABLE,file,header=header,$
 ;   sval        wildcard characeters used to select content, together with skey
 ;               e.g. skey=['project','galaxy'], sval=['msc','lmc']
 ;   slog        the logical opertion on treating different value-based selection (not implemented)
-;   bkey        remove row with a blank value in the specifiled colume 
+;   bkey        remove rows with blank values in specifiled columns
 ;   
 ; OUTPUTS:
 ;   table       table content
 ;   header      table header
 ;               
 ; KEYWORDS:
-;   /SILENT     no verbose log
-;   /REFRESH    if the input file is not csv, the program will look for a csv file with the same name first.
+;   /silent     no verbose log
+;   /refresh    if the input file is not csv, the program will look for a csv file with the same name first.
 ;               if that file exists, the program will read that file without converting the non-csv file into csv.
 ;               if that file doesn't exist, the program will do the conversion, and read the fresh csv.
 ;               /refresh do the refresh even .csv cach file exits.
@@ -103,7 +103,9 @@ FUNCTION READ_TABLE,file,header=header,$
 ;   >unoconv -f html *.odt
 ;   >kill -15 %-
 ;   
-;   A csv file with the same root name will be created in your spreasheet directory 
+;   A csv file with the same root name will be created in your spreasheet directory
+;   
+;   the google spreadsheet must be "shared" ("anyone with the link can view" option) in the online interface 
 ;
 ; HISTORY:
 ;

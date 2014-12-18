@@ -18,8 +18,8 @@ PRO GAL_DEPROJ_META, cat, g, gh, b, bh,$
 ;-
 
 path=cgsourcedir()
-btab=path+'../data/'+cat+'_fileinfo.xlsx'
-gtab=path+'../data/'+cat+'.xlsx'
+btab=path+'../data/'+cat+'_fileinfo.gsheet'
+gtab=path+'../data/'+cat+'.gsheet'
 
 b=read_table(btab,header=bh,srow=bselect,skey=bkey,sval=bval,bkey='path',silent=silent,refresh=refresh)
 g=read_table(gtab,header=gh,srow=gselect,skey=gkey,sval=gval,/scalar,bkey='Galaxy',silent=silent,refresh=refresh)
@@ -28,9 +28,10 @@ END
 
 PRO TEST_GAL_DEPROJ_META
 
-gal_deproj_meta,'nearby',s,h,types,gkey='Project',gval='*SGP*',$
-    bkey='tag',bval=[$
-    'hi','himom1','hisnrpk','irac4','dss',$
-    'co','cosnrpk','comom1','irac1','nuv'],/silent,/refresh
-print,types.tag    
+;gal_deproj_meta,'nearby',s,h,types,gkey='Project',gval='*SGP*',$
+;    bkey='tag',bval=[$
+;    'hi','himom1','hisnrpk','irac4','dss',$
+;    'co','cosnrpk','comom1','irac1','nuv'],/silent,/refresh
+;print,types.tag    
+g=read_table('/Users/Rui/GDrive/docs/nearby.gsheet',header=gh)
 END
