@@ -1,7 +1,9 @@
 !PATH=  !PATH +':'+$
-        Expand_Path('+~/Dropbox/Worklib/idl/resource')+':'+$        ; core libs
-        Expand_Path('+~/Dropbox/Worklib/projects')+':'+$            ; projects
-        Expand_Path('+~/Dropbox/Worklib/idl/packages')              ; packages
+        Expand_Path('+~/GDrive/Worklib/idl/resource/misc')+':'+$        ; core libs
+        Expand_Path('+~/GDrive/Worklib/idl/resource')+':'+$        ; core libs
+        Expand_Path('+~/GDrive/Worklib/projects')+':'+$            ; projects
+        Expand_Path('+~/GDrive/Worklib/idl/packages')              ; packages
+!PATH=  Expand_Path('+~/GDrive/Worklib/projects/xlib')+':'+!PATH
 ;xyouts,'!6'
 ;Device, RETAIN=2
 !p.thick=1.0

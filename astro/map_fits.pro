@@ -92,7 +92,7 @@ endif
 END
 
 
-PRO TEST_MAP_FITS_LMC_PATCH
+PRO MAP_FITS_TEST_LMC_PATCH
     
 im=readfits('/Users/Rui/Workspace/magclouds/magmap/lmc_v9.co.vbin.sgm.mom0_roi14.fits',hd)
 ra=85.61
@@ -100,8 +100,9 @@ dec=-71.34
 ;ra=0.0
 ;dec=0.0
 
+fig=strlowcase(cgWhoAmI())
 set_plot, 'ps'
-device, filename='test.eps', $
+device, filename=fig+'.eps', $
     bits_per_pixel=8,/encapsulated,$
     xsize=10,ysize=7,/inches,/col,xoffset=0,yoffset=0,/cmyk
 !p.thick=2.0
@@ -114,12 +115,14 @@ device, filename='test.eps', $
 pos=[0.2,0.2,0.8,0.8]
 
 cgloadct,0
-plot,[0],[0],xrange=[300,-300]/60.0,yrange=[-400,400]/60.0,xstyle=1,ystyle=1,/nodata,pos=pos
+plot,[0],[0],xrange=[300,-300]/60.0,yrange=[-400,400]/60.0,xstyle=1,ystyle=1,/nodata,pos=pos,$
+    xtitle=textoidl('\delta R.A'),$
+    ytitle=textoidl('\delta Dec.')
 
 cgloadct,3,/rev
 map_fits,im,hd=hd,radec=[ra,dec],stretch=5,/arcmin,xc=xc,yc=yc,zc=zc,minvalue=-1
 map_boundary,(im eq im),hd=hd,color=cgcolor('gray'),thick=5,outline=1,edge=1,$
-    radec=[ra,dec],/arcmin,linestyle=0,noclip=1
+    radec=[ra,dec],/arcmin,linestyle=0,noclip=0
 map_ad,hd,xc,yc,radec=[ra,dec],/arcmin
 cgcontour,im,xc,yc,/overplot,/IRREGULAR,label=0,fill=0,cell=0,resolution=[50,50],outline=1
 cgcontour,im,xc,yc,lev=[-10.],/irreg,/over
@@ -129,7 +132,7 @@ plot,[0],[0],xrange=[300,-300]/60.0,yrange=[-400,400]/60.0,xstyle=1,ystyle=1,/no
 
 device, /close
 set_plot,'X'
-cgps2pdf,'test.eps', delete_ps=0,unix_convert_cmd='epstopdf'
+cgps2pdf,fig+'.eps', delete_ps=1,unix_convert_cmd='epstopdf'
 
 ;    oROI=OBJ_NEW('IDLanROI', TYPE=2)
 ;    oROI->AppendData,bxs,bys
@@ -145,12 +148,13 @@ cgps2pdf,'test.eps', delete_ps=0,unix_convert_cmd='epstopdf'
 
 END
 
-PRO TEST_MAP_FITS_SMALL
+PRO MAP_FITS_TEST_BOOTES_PATCH
 
+fig=strlowcase(cgWhoAmI())
 set_plot, 'ps'
-device, filename='test.eps', $
+device, filename=fig+'.eps', $
     bits_per_pixel=8,/encapsulated,$
-    xsize=2,ysize=2,/inches,/col,xoffset=0,yoffset=0
+    xsize=4,ysize=4,/inches,/col,xoffset=0,yoffset=0
 !p.thick=2.0
 !x.thick = 2.0
 !y.thick = 2.0
@@ -159,11 +163,11 @@ device, filename='test.eps', $
 !p.charthick=2.0
 
 plot,[0],[0],/nodata,xstyle=1,ystyle=1,$
-    pos=[0.1,0.1,0.9,0.9],$
-    xrange=[5,-5],yrange=[-5.,5.],/noe
+    pos=[0.2,0.2,0.9,0.9],$
+    xrange=[5,-5],yrange=[-5.,5.],/noe,$
+    xtitle=textoidl('\delta R.A'),$
+    ytitle=textoidl('\delta Dec.')
 
-;plot,[218,217],[32,33],/nodata,xstyle=1,ystyle=1,$
-;    pos=[0.1,0.1,0.9,0.9]    
 im=readfits('/Users/Rui/Workspace/highz/products/mosaic/stack_I_all.fits',hd)
 x=tenv('14:31:06.041')*15.
 y=tenv('32:30:11.12')
@@ -171,21 +175,25 @@ hextractx,im,hd,subim,subhd,[5.,-5.],[-5.,5.],radec=[x,y]
 map_fits,subim,hd=subhd,stretch=5,radec=[x,y]
 
 plot,[0],[0],/nodata,xstyle=1,ystyle=1,$
-    pos=[0.1,0.1,0.9,0.9],$
-    xrange=[5,-5],yrange=[-5.,5.],/noe
+    pos=[0.2,0.2,0.9,0.9],$
+    xrange=[5,-5],yrange=[-5.,5.],/noe,$
+    xtitle=textoidl('\delta R.A'),$
+    ytitle=textoidl('\delta Dec.')
     
 device, /close
 set_plot,'X'
-cgps2pdf,'test.eps', delete_ps=0,unix_convert_cmd='epstopdf'
+cgps2pdf,fig+'.eps', delete_ps=1,unix_convert_cmd='epstopdf'
 
 END
 
-PRO TEST_MAP_FITS_LMC
+PRO MAP_FITS_TEST_LMC
 
 im=readfits('/Users/Rui/Workspace/magclouds/gasmap/lmc.co_magma_hiref.cm.sm.mom0.fits',hd)
+fig=strlowcase(cgWhoAmI())
+
 
 set_plot, 'ps'
-device, filename='test.eps', $
+device, filename=fig+'.eps', $
     bits_per_pixel=8,/encapsulated,$
     xsize=10,ysize=7,/inches,/col,xoffset=0,yoffset=0,/cmyk
 !p.thick=2.0
@@ -196,65 +204,40 @@ device, filename='test.eps', $
 !p.charthick=2.0
 
 
-pos=[0.2,0.2,0.8,0.8]
+pos=[0.1,0.1,0.9,0.9]
 xrange=[91,65]
 yrange=[-72,-64]
-cgloadct,0
-plot,[0],[0],xrange=xrange,yrange=yrange,xstyle=1,ystyle=1,/nodata,pos=pos,/noe
-cgloadct,3,/rev
 hextractx,im,hd,subim,subhd,xrange,yrange
+
+cgloadct,0
+;plot,[0],[0],xrange=xrange,yrange=yrange,xstyle=1,ystyle=1,/nodata,pos=pos,/noe
+cgMap_Set,-69,80, /Azimuthal, /NoErase, NoBorder=0, /Reverse, $
+    Scale=5e6,Position=pos;,/grid
+    
+cgloadct,3,/rev
 map_fits,subim,hd=subhd,stretch=5,minvalue=-1,/largemap
 cgloadct,0
-plot,[0],[0],xrange=xrange,yrange=yrange,xstyle=1,ystyle=1,/nodata,pos=pos,/noe
+
+cgMAP_GRIDX,LABEL=1,box=1
+cgMap_Set,-69,80, /Azimuthal, /NoErase, NoBorder=0, /Reverse, $
+    Scale=5e6,Position=pos;,/grid
+plot,[0],[0],xrange=[0,1],yrange=[0,1],$
+    xtitle='R.A. (J2000) [degree]',ytitle='Dec. (J2000) [degree]',pos=pos,/noe,$
+    xstyle=1,ystyle=1,$
+    xticks=1,yticks=1,$
+    XTICKFORMAT="(A1)",yTICKFORMAT="(A1)"
+    
 device, /close
 set_plot,'X'
 
-cgps2pdf,'test.eps', /delete_ps,unix_convert_cmd='epstopdf'
-
-END
-
-PRO TEST_MAP_FITS_LMC2
-
-im=readfits('/Users/Rui/Workspace/magclouds/gasmap/lmc.co_magma_hiref.cm.sm.mom0.fits',hd)
-
-set_plot, 'ps'
-device, filename='test.eps', $
-    bits_per_pixel=8,/encapsulated,$
-    xsize=4,ysize=8,/inches,/col,xoffset=0,yoffset=0,/cmyk
-!p.thick=2.0
-!x.thick = 2.0
-!y.thick = 2.0
-!z.thick = 2.0
-!p.charsize=1.0
-!p.charthick=2.0
-
-subim=im
-subhd=hd
-
-xrange=[91,65]
-yrange=[-72,-64]
-
-xrange=[70,90]
-yrange=[-80,-60]
-position = [0.1, 0.52, 0.9, 0.9]
-
-cgMap_Set,-69,80, /Azimuthal, /NoErase, NoBorder=0, /Reverse, $
-    Scale=8e6,Position=position;,/grid
-cgloadct,0
-cgloadct,3,/rev
-map_fits,subim,hd=subhd,stretch=5,minvalue=-1
-cgloadct,0
-cgMAP_GRIDX,LABEL=1,box=1
-cgMap_Set,-69,80, /Azimuthal, /NoErase, NoBorder=0, /Reverse, $
-    Scale=8e6,Position=position;,/grid
-
+cgps2pdf,fig+'.eps', /delete_ps,unix_convert_cmd='epstopdf'
 
 ;latmin = Min(yrange, MAX=latmax)
 ;lonmin = Min(xrange, MAX=lonmax)
 ;centerLat = (latmax - latmin) / 2.0 + latmin
 ;centerLon = (lonmax - lonmin) / 2.0 + lonmin
 ;limit = [latmin, lonmin, latmax, lonmax]
-;    
+;
 ;position = [0.1, 0.02, 0.9, 0.50]
 ;map=obj_new('cgMap','Hammer',CENTER_LATITUDE=-70, CENTER_LONGITUDE=75,grid=1,label=1)
 ;bx=[xrange[0],xrange[1],xrange[0],xrange[1]]
@@ -272,10 +255,7 @@ cgMap_Set,-69,80, /Azimuthal, /NoErase, NoBorder=0, /Reverse, $
 ;cgplots,75,-70,map=map,psym=symcat(16)
 ;cgmap_gridx,label=1,color=0,box=0,map=map
 
-device, /close
-set_plot,'X'
-
-
 END
+
 
 

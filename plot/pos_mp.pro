@@ -47,10 +47,11 @@ poset=[sx+dx*px+mg_lrbt[0], sy-dy*(py+1)+mg_lrbt[1]  , sx+dx*(px+1)-mg_lrbt[2]  
 xb=0
 yb=0
 
-if px eq 0 then xb=1          ; left edge
-if px eq nxy[0]-1 then xb=2   ; right edge
-if py eq 0 then yb=2          ; top edge
-if py eq nxy[1]-1 then yb=1   ; bottom edge
+if px eq nxy[0]-1 then xb=xb+2   ; right edge
+if px eq 0 then xb=xb+1          ; left edge
+if py eq nxy[1]-1 then yb=yb+1   ; bottom edge
+if py eq 0 then yb=yb+2          ; top edge
+
 
 return,{position:poset,xb:xb,yb:yb,px:px,py:py}
 
