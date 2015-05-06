@@ -12,7 +12,7 @@ pYC = R_CORRELATE(yVec, cVec)
 pyc=pyc[0]
 
 result = ((pXC ne 1) and (pYC ne 1)) ? $
-    (pxY - pXC*pYC)/SQRT((1 - pXC^2)*(1 - pYC^2)) : 0d
+    (pxY - pXC*pYC)/SQRT((1. - pXC^2)*(1. - pYC^2)) : 0d
 
 return,result
 
