@@ -1,7 +1,7 @@
 PRO TEST_READ_TABLE
 
 ;file='/Users/Rui/GDrive/docs/bootes.gsheet'
-file='bootes.gsheet'
+file='/Users/Rui/GDrive/Worklib/docs/bootes.gsheet'
 tb=read_table(file,header=hd,/refresh)
 ;file='/Users/Rui/GDrive/docs/mcs_abs.gsheet'
 ;tb=read_table(file,header=hd,/refresh,/keeptags,/scalar)
@@ -139,7 +139,8 @@ if  ext eq 'gsheet' then begin
         readf,lun,id
         free_lun, lun
         id=STRSPLIT(id,":",/EXTRACT)
-        id=repstr(id[-1],'"}')
+        print,id[-1]
+        id=repstr(id[-1],'"}','')
         ourl = obj_new('IDLnetURL')
         oUrl->SetProperty, url_scheme='https'
         oUrl->SetProperty, URL_HOST='docs.google.com'
