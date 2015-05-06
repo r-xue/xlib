@@ -1,7 +1,6 @@
 PRO MAP_FITS,IM,$
     HD=HD,radec=radec,arcmin=arcmin,$
     largemap=largemap,$
-    xc=xc,yc=yc,zc=zc,$
     noplot=noplot,$
     _extra=extra
     
@@ -20,11 +19,6 @@ PRO MAP_FITS,IM,$
 ;   ARCMIN      units for dx-dy mapping 
 ;   NOPLOT position   plott position
 ;   _EXTRA      any keywords for cgimgscl
-;
-; OUTPUTS:
-;   xc          pixel center position
-;   xc          pixel center position
-;   zc          pixel values
 ;   
 ; KEYWORD:
 ;   largemap    if the map is large enough, we use cgcolorfill to reduce the file size
@@ -77,10 +71,12 @@ if  tag[0] ne -1 then begin
         if  keyword_set(noplot) then continue
         tempx=[(bx[i,*])[*],bx[i,0]]
         tempy=[(by[i,*])[*],by[i,0]]
+        tempx=[(bx[i,*])[*]]
+        tempy=[(by[i,*])[*]]
         if  keyword_set(largemap) then begin
             cgcolorfill,tempx,tempy,color=sim[i],noclip=0
         endif else begin
-            cgpolygon,tempx,tempy,color=sim[i],noclip=0,/fill
+            cgpolygon,tempx,tempy,color=sim[i],fcolor=sim[i],noclip=0,/fill,thick=0.2
         endelse
     endfor
     print,replicate('-',25)
@@ -92,13 +88,12 @@ endif
 END
 
 
+
 PRO MAP_FITS_TEST_LMC_PATCH
     
 im=readfits('/Users/Rui/Workspace/magclouds/magmap/lmc_v9.co.vbin.sgm.mom0_roi14.fits',hd)
 ra=85.61
 dec=-71.34
-;ra=0.0
-;dec=0.0
 
 fig=strlowcase(cgWhoAmI())
 set_plot, 'ps'
@@ -145,6 +140,47 @@ cgps2pdf,fig+'.eps', delete_ps=1,unix_convert_cmd='epstopdf'
 ;        obj_roi->containspoints(bx[*,3],by[*,3])
 ;obj_destroy,obj_roi
 ;tag_roi=where(tag_roi ne 0)
+
+END
+
+PRO MAP_FITS_TEST_LMC_PATCH_REGRID
+;+
+;   this is for a comparison with MAP_FITS_TEST_LMC_PATCH
+;   file size may be larger
+;-
+im=readfits('/Users/Rui/Workspace/magclouds/magmap/lmc_v9.co.vbin.sgm.mom0_roi14.fits',hd)
+
+radec=[85.61,-71.34]
+fig=strlowcase(cgWhoAmI())
+set_plot, 'ps'
+device, filename=fig+'.eps', $
+    bits_per_pixel=8,/encapsulated,$
+    xsize=10,ysize=7,/inches,/col,xoffset=0,yoffset=0,/cmyk
+!p.thick=2.0
+!x.thick = 2.0
+!y.thick = 2.0
+!z.thick = 2.0
+!p.charsize=1.0
+!p.charthick=2.0
+
+xysize=[600,800]        ; in data units
+pos=[0.2,0.2,0.8,0.8]
+
+psize=dpxy([600.,800.],ibox=[10.0,7.0],dpi=150)
+psize=min(1.0/psize)
+print,'choose 0.20 here'
+refhd=mk_hd(radec,[600,800]/0.20+1.0,0.20)
+hastrom_nan,im,hd,subim,subhd,refhd,interp=0
+
+cgloadct,3,/rev
+cgimage,subim,pos=pos,minvalue=-1,keep=0
+imcontour,1.0*float(subim eq subim),subhd,/over,pos=pos,/noe,lev=[0.5],$
+    label=0
+cgloadct,0
+
+device, /close
+set_plot,'X'
+cgps2pdf,fig+'.eps', delete_ps=1,unix_convert_cmd='epstopdf'
 
 END
 

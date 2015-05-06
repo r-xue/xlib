@@ -1,6 +1,7 @@
 PRO HEXTRACTX,IM,HD,subim,subhd,xrange,yrange,$
-    radec=radec,$
-    arcmin=arcmin
+    radec=radec,arcmin=arcmin,pxbox=pxbox,$
+    silent=silent
+    
 ;+
 ; NAME:
 ;   HEXTRACT_BOX
@@ -14,6 +15,9 @@ PRO HEXTRACTX,IM,HD,subim,subhd,xrange,yrange,$
 ; INPUTS:
 ;   IM          data image
 ;   HD          data hd
+;   XRANGE      RA range [or Delta(RA) range] 
+;   YRANGE      DEC range [or Delta(DEC) range]
+;   [RADEC      for calculating Delta(RA)/Delta(DEC)]       
 ;   REFHD       header specifying the region to be plotted
 ;               note: refhd pixel size doesn't really matter here.
 ;   position   plott position
@@ -23,6 +27,8 @@ PRO HEXTRACTX,IM,HD,subim,subhd,xrange,yrange,$
 ;   noplot      don't plot, just for testing, or deriving subrange/subim
 ;
 ; OUTPUTS:
+;   SUBIM
+;   SUBHD
 ;   SUBRANGE    [xmin,xmax,ymin,ymax]
 ;               index range (defined in IM) of the smallest rectangle covering
 ;               the plotted region
@@ -39,9 +45,14 @@ PRO HEXTRACTX,IM,HD,subim,subhd,xrange,yrange,$
 ;
 ;-
 
-xbox=[min(xrange),max(xrange)]
+if  n_elements(xrange) eq 1 $
+    then xbox=[-1.,1.]*abs(xrange) $
+    else xbox=[min(xrange),max(xrange)]
+if  n_elements(yrange) eq 1 $
+    then ybox=[-1.,1.]*abs(yrange) $
+    else ybox=[min(yrange),max(yrange)]
+
 xbox=[xbox[0],xbox[1],xbox[1],xbox[0]]
-ybox=[min(yrange),max(yrange)]
 ybox=[ybox[0],ybox[0],ybox[1],xbox[1]]
 
 if  n_elements(radec) eq 2 then begin
@@ -59,7 +70,7 @@ ymin=floor(min(yy)-2)>0
 ymax=ceil(max(yy)+2)<nxy[1]-1
 
 if  xmin le nxy[0]-1 and xmax ge 0 and ymin le nxy[1]-1 and ymax ge 0 then begin
-    hextract,im,hd,subim,subhd,xmin,xmax,ymin,ymax   
+    hextract,im,hd,subim,subhd,xmin,xmax,ymin,ymax,silent=silent   
 endif
 
 END
