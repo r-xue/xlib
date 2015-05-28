@@ -139,14 +139,15 @@ if  ext eq 'gsheet' then begin
         readf,lun,id
         free_lun, lun
         id=STRSPLIT(id,":",/EXTRACT)
-        print,id[-1]
         id=repstr(id[-1],'"}','')
         ourl = obj_new('IDLnetURL')
         oUrl->SetProperty, url_scheme='https'
         oUrl->SetProperty, URL_HOST='docs.google.com'
         oUrl->SetProperty, URL_PATH='/spreadsheets/d/'+id+'/export?format=csv'
-        print,'fetch: docs.google.com/spreadsheets/d/'+id+'/export?format=csv'
-        print,csvfile
+        if  ~keyword_set(silent) then begin
+            print,'fetch: docs.google.com/spreadsheets/d/'+id+'/export?format=csv'
+            print,csvfile
+        endif
         tmp=oUrl->Get(filename=csvfile)
         OBJ_DESTROY, oUrl
     endif

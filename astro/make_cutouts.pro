@@ -17,9 +17,12 @@ PRO MAKE_CUTOUTS,objs,proj=proj,$
 ;   str.band        band name
 ;   str.imfile      fits image name
 ;   str.imext       fits image extension
+;   str.proc        fits image processing tag
 ;   str.cutouts     0:  imfile<-orginal data
 ;                   1:  imfile<-cutout from hextract (subregion covers cutout box)
-;                   2:  imfile<-cutout from hastrom (resampling);                   
+;                   2:  imfile<-cutout from hastrom (resampling); 
+;   str.bunits      counts/s; Jy/beam
+;                   default: what ever in bunit                  
 ;   mode    1 hextractx
 ;   mode    2 hastrom
 ;   mode    3 hextract
@@ -34,8 +37,9 @@ if  ~keyword_set(mode) then mode=1
 ;   FIND OUT A LIST OF UNIQ FITS/EXTENSION COMBINATIONS
 
 imlist=strtrim(objs.imfile,2)+strtrim(round(objs.imext),2)
+proclist=objs.proc
 temp1=rem_dup(imlist)
-temp2=where((objs.imfile)[temp1] ne '',/null)
+temp2=where((objs.imfile)[temp1] ne '' and (objs.proc)[temp1] ne 0,/null)
 ulist=imlist[temp1[temp2]]
 print,imlist[*,1]
 ;   LOOP THROUGH EACH FILE 
@@ -52,6 +56,8 @@ foreach filename,ulist do begin
     
     im=readfits(objs[otag[0]].imfile[btag[0]],hd,$
         ext=objs[otag[0]].imext[btag[0]],/silent)
+    getrot,hd,rotang,cdelt
+    opsize=abs(cdelt[0]*60.*60.)
     
     for i=0,n_elements(otag)-1 do begin
         io=otag[i]
@@ -61,12 +67,14 @@ foreach filename,ulist do begin
             adstring(objs[io].ra,objs[io].dec,2),$
             ' band: ',objs[io].band[ib]
         
+        bscale=1.0
         if  mode eq 1 then begin
             hextractx,im,hd,$
                 radec=[objs[io].ra,objs[io].dec],subim,subhd,$
                 (objs[io].bxsz)[ib]*[0.5,-0.5],$
-                (objs[io].bxsz)[ib]*[-0.5,0.5],/silent
+                (objs[io].bxsz)[ib]*[-0.5,0.5]
             outname=objs[io].source+'_'+(objs[io].band)[ib]+'.fits'
+            subim=subim*bscale
             sxaddpar, subhd, 'DATAMAX', max(subim,/nan),before='HISTORY'
             sxaddpar, subhd, 'DATAMIN', min(subim,/nan),before='HISTORY'
             writefits,outname,subim,subhd
@@ -81,6 +89,15 @@ foreach filename,ulist do begin
             hastrom_nan,im,hd,subim,subhd,temphd,missing=!VALUES.F_NAN,/silent,$
                 interp=0
             outname=objs[io].source+'_'+(objs[io].band)[ib]+'.fits'
+            if  strlowcase((objs[io].imunit)[ib]) eq 'counts/s' then begin
+                bscale=psize^2.0/opsize^2.0
+                sxaddpar,subhd,'BUNIT','counts/s'
+            endif
+            if  strlowcase((objs[io].imunit)[ib]) eq 'adu' then begin
+                bscale=psize^2.0/opsize^2.0
+                sxaddpar,subhd,'BUNIT','adu'
+            endif
+            subim=subim*bscale
             sxaddpar, subhd, 'DATAMAX', max(subim,/nan),before='HISTORY'
             sxaddpar, subhd, 'DATAMIN', min(subim,/nan),before='HISTORY'
             writefits,outname,subim,subhd
@@ -107,13 +124,13 @@ foreach filename,ulist do begin
             objs[io].imfile[ib]=outname
             objs[io].imext[ib]=0
         endif
-        
+        print,'bscale:',bscale
         print,'>>>>>',outname        
     endfor
     
 endforeach
 print,''
 
-save,objs,filename=proj+'.dat'
+save,objs,filename=proj+'_make_cutouts.xdr'
 
 END
