@@ -24,6 +24,4 @@ T = SYSTIME(1)
 base2.add,x
 PRINT, '>> total time:   ',strtrim(string(round(SYSTIME(1)-T)),2), 'S'
 
-
-
 END
