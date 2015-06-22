@@ -212,3 +212,29 @@ toc
 
 
 END
+
+PRO TEST_SPEED_DIMEXPAND1
+
+ecube=randomu(seed,100,100)
+tic
+ecube1=rebin(ecube,[100,100,1000])
+toc
+print,size(ecube1)
+
+tic
+ecube2=cmreplicate(ecube,1000)
+toc
+print,size(ecube2)
+
+tic
+ecube3=make_array(100,100,1000)
+for i=0,9 do begin
+    ecube3[0,0,i]=ecube
+endfor
+toc
+print,size(ecube3)
+
+print,total(long(ecube1 eq ecube2 and ecube1 eq ecube3))
+print,n_elements(ecube1)
+
+END
