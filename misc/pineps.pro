@@ -100,3 +100,14 @@ list=file_search("*.eps")
 list=repstr(list,'.eps','')
 pineps,'hello',list,/latex
 END
+
+PRO TEST3_PINEPS
+
+list=['xhs_stack_radprofile_gal_WRC4_pcf_lae_cluster_median.eps',$
+    'xhs_stack_radprofile_gal_WRC4_pcf_lae_field_median.eps',$
+    'xhs_stack_radprofile_gal_R_pcf_lae_cluster_median.eps',$
+    'xhs_stack_radprofile_gal_R_pcf_lae_field_median.eps']
+list=repstr(list,'.eps','')
+pineps,'hello',list,/latex,width=0.48,nx=2,papersize='top=0.1in, bottom=0.1in, left=0.1in, right=0.01in,paperheight=6.0in,paperwidth=7.5in'
+
+END
