@@ -5,7 +5,9 @@
         Expand_Path('+~/GDrive/Worklib/idl/packages')              ; packages
 !PATH=  Expand_Path('+~/GDrive/Worklib/projects/xlib')+':'+!PATH
 !PATH=  Expand_Path('+~/GDrive/Worklib/idl/resource/astron/pro/')+':'+!PATH
-
+!PATH=  Expand_Path('+~/GDrive/Worklib/idl/resource/impro')+':'+!PATH
+;!PATH=  Expand_Path('+~/GDrive/Worklib/idl/packages/astron-contrib/varosi/')+':'+!PATH
+;@~/GDrive/Worklib/idl/packages/astron-contrib/varosi/vlib/idl_startup.pro  
 ;xyouts,'!6'
 ;Device, RETAIN=2
 !p.thick=1.0

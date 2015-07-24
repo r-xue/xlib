@@ -62,7 +62,7 @@ foreach filename,ulist do begin
     for i=0,n_elements(otag)-1 do begin
         io=otag[i]
         ib=btag[i]
-        print,'<<<<<',string(i+1,format='(i3)')+'/'+strtrim(n_elements(otag),2),$
+        print,'<<<<<',string(i+1,format='(i4)')+'/'+strtrim(n_elements(otag),2),$
             ' obj: ', objs[io].source,$
             adstring(objs[io].ra,objs[io].dec,2),$
             ' band: ',objs[io].band[ib]
