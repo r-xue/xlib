@@ -7,6 +7,9 @@ PRO PINEPS, pdfname, epslist, clean=clean, print=print,$
 ;
 ; PURPOSE:
 ;   combine eps files into a multi-page pdf
+;   two options are available:
+;       * gs: eps figures are put into individual pages of the output PDF file 
+;       * latex: you can set up your preferred layouts using several latex-related keywords
 ;
 ; INPUTS:
 ;   PDFNAME   -- name of the output pdf file
