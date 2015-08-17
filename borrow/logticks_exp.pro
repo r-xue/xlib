@@ -37,5 +37,6 @@ FUNCTION logticks_exp, axis, index, value
    ; Construct the tickmark string based on the exponent
    tickmark = '10!E' + STRTRIM( STRING( exponent ), 2 ) + '!N'
    ; Return the formatted tickmark string
+   if   tickmark eq '10!E' + STRTRIM( STRING(0), 2 ) + '!N' then tickmark='1'
    RETURN, tickmark
 END

@@ -1,20 +1,60 @@
-PRO MAKE_CHARTS,OBJ,outname=outname,cross=cross,layout=layout,$
-    mode=mode
+PRO MAKE_CHARTS,OBJ,mode=mode,$
+    outname=outname,$
+    cross=cross,layout=layout
+    
+;+
+; NAME:
+;   make_charts
+;
+; PURPOSE:
+;   make finding charts
+;
+; INPUTS:
+;   obj:    object structure vector
+;           .source     source name
+;           .objname    object name
+;           .label      object label
+;           .ra         RA
+;           .dec        DEC
+;           .bxsz       box size (in arcsec)
+;           .cell       cell size (in arcsec)
+;           .band       band name
+;           .imfile     fits image full path
+;           .imext      fits image extension
+;           .ptile_min  min percentile for color scaling
+;           .ptile_max  max percentile for color scaling
+;   mode:   =0  images has been reprocessed to the desired size
+;           =1  images will be plotted as polygon
+;           =2  images will be plotted after resampling 
+;
+; OUTOUTS:
+;   outname     outout eps file name list
+;   
+; KEYWORDS:
+;   cross:      plot cross at center rather than bars to the left and top
+;   layout:     see below (hold the input for pos_mp.pro)
+; 
+; EXAMPLE:
+;   see TEST_MAKE_CHARTS
+;
+; HISTORY:
+;   20150812    R.Xue   add comments
+;-
 
-; MODE 0:    images has been reprocessed to the desired size
-; MODE 1:    images will be plotted as polygon
-; MODE 2:    images will be plotted after OTF resampling 
+
+if  n_elements(mode) eq 0 then mode=2
+
+
+;   LOAD ALL LARGE IMAGES TOGETHER INTO MEMORY 
 
 nobj=n_elements(obj.source)
-
 imlist=[]
 for i=0,nobj-1 do begin
     imlist=[imlist,obj[i].imfile]
 endfor
 imlist=imlist[rem_dup(imlist)]
 imlist=imlist[where(imlist ne '',/null)]
-print,imlist
-
+print,'load fits images into memory:',imlist
 imfits=[]
 for i=0,n_elements(imlist)-1 do begin
     rdfits_struct,imlist[i],tmp
@@ -22,17 +62,19 @@ for i=0,n_elements(imlist)-1 do begin
     imfits=[imfits,tmp]
 endfor
 
+;   SETUP LAYOUTS
+
 if  not keyword_set(layout) then begin    
 layout={xsize:8,$
         ysize:1.5,$
-        nxy:[7,1],$
+        nxy:[n_elements((obj[0].imfile)),1],$
         margin:[0.01,0.01],$
         omargin:[0.06,0.02,0.01,0.02],$
         type:0}
 endif
 
+;   PLOT INDIVIDUAL OBJECTS
 outname=[]
-
 for nc=0,nobj-1 do begin
     
     print,replicate('>',20) 
@@ -45,8 +87,8 @@ for nc=0,nobj-1 do begin
     cell=obj[nc].cell
     imfile=obj[nc].imfile
     band=obj[nc].band
-    oname=obj[nc].objname
-    ptile=obj[nc].ptile
+    oname=obj[nc].label
+    ptile=obj[nc].ptile_max
     ext=obj[nc].imext
     
     psfile=strtrim(obj[nc].source,2)
@@ -63,8 +105,7 @@ for nc=0,nobj-1 do begin
     !x.gridstyle = 0
     !y.gridstyle = 0
     xyouts,'!6'
-        
-    
+
     for i=0,n_elements(imfile)-1 do begin
         
         tag=(where(imlist eq imfile[i]))[0]
@@ -84,19 +125,12 @@ for nc=0,nobj-1 do begin
             ytitle=textoidl("!6\delta(Dec.) ['']")
         endif
         if  i eq fix((layout.nxy)[0]/2.0) and (layout.nxy)[0] ne 1 then xtitle=oname
-        ;if i eq 0 then subtitle='!8Bw!6='+string(str[nc].bmag,format='(f5.2)')
-        ;if i eq 1 then subtitle='!8R!6='+string(str[nc].rmag,format='(f5.2)')
-        ;if i eq 2 then subtitle='!8I!6='+string(str[nc].kmag,format='(f5.2)')
-        ;if i eq 3 then subtitle='!6IRAC1'
-        ;if i eq 4 then subtitle='!6IRAC2'
-        ;if i eq 5 then subtitle='!6IRAC4'
         subim=fltarr(10,10)
         cgimage,subim,pos=posp,/keep,/noe
         subtitle='!6'+band[i]
 
         if  mode eq 2 or mode eq 0 then begin
-            
-            
+
             psize=dpxy(20.,ibox=[2.0,2.0],dpi=150)
             psize=min(1.0/psize)
 
@@ -152,7 +186,7 @@ for nc=0,nobj-1 do begin
             if  ext[i] eq 1 then $
                 hextractx,(*imfits[tag]).im1,(*imfits[tag]).hdr1,$
                     radec=[mra,mdec],subim,subhd,bxsz[i]*[0.5,-0.5],bxsz[i]*[-0.5,0.5]
-            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[0.50,0.98])
+            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[0.50,ptile[i]])
             cgLoadCT,0,/rev,CLIP=[30,256]
             map_fits,subim,hd=subhd,radec=[mra,mdec],$
                 minvalue=percent[0],maxvalue=percent[1],stretch=1
@@ -164,9 +198,7 @@ for nc=0,nobj-1 do begin
                 charsize=!p.charsize
         
         endif
-        
-        
-        
+
         if  keyword_set(cross) then begin
             PLOTS, posp[0]+(posp[2]-posp[0])*[0.0,1.0],(posp[1]+posp[3])/2,/normal,$
                 color=cgcolor('red'),thick=2
@@ -186,22 +218,133 @@ for nc=0,nobj-1 do begin
         al_legend,subtitle+' ',pos=[tx,ty],background_color='white',$
             textc='red',box=0,/norm,charsize=0.7
 
-        
-        ;oplot,[-10,10],[0,0]
-        
-        ;xyouts,nxy[0]/2.,nxy[1],band[i],/data,ali=0.5
-;        resolve_routine,'xhs_select_cosmos'
-;        er=EXECUTE('xhs_select_cosmos,hd=temphd')
-        ;XHS_SELECT_COSMOS,hd=temphd
-;        endif else begin
-;            print,str[nc].source,allimages[j,0]
-;        endelse
-        ;xyouts,0.5,0.1,str[nc].source+'/'+str[nc].field+'/'+strtrim(str[nc].index,2),/normal,ali=0.5
     endfor
     
     device,/close
     set_plot,'x'
     
 endfor
+
+END
+
+
+PRO TEST_MAKE_CHARTS,project
+;+
+; NAME:
+;   test_make_charts
+;
+; PURPOSE:
+;   make finding charts for different projects:
+;
+; INPUTS:
+;   project:    project name
+;
+; EXAMPLE:
+;   test_make_charts,'specz'
+;
+; HISTORY:
+;   201508127   R.Xue   revised from make_charts_all.pro
+;-
+
+
+;   PROJECT SELECTION
+
+if  project eq 'specz' then begin
+    path='/Users/Rui/Workspace/highz/products/mosaic/laecore_vs_lbgcore/lbg_specz.dat'
+    readcol,path,ra,dec,objname,specz,mag,format='f,f,a,f,f'
+    label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)+' '+objname+' '+strtrim(specz,2)+' '+strtrim(mag,2)
+endif
+
+if  project eq 'lae' then begin
+    path=cgsourceDir()+'/metadata/newfirm/'
+    readcol,path+'lyaemitter_all_clean.2d',ra,dec,tmp
+    label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)
+endif
+
+if  project eq 'lbg' then begin
+    path=cgsourceDir()+'/metadata/newfirm/'
+    readcol,path+'pcf_lbg_specz.2d',ra,dec
+    label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)
+endif
+
+if  project eq 'alma' then begin
+    path=cgsourceDir()+'/metadata/newfirm/'
+    readcol,path+'alma.2d',ra,dec
+    label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)
+endif
+
+if  strmatch(project,'DVPC*',/f) then begin
+    path='/Users/Rui/GDrive/Worklib/projects/highz/metadata/deimos/'+project+'.mask.txt'
+    readcol,path,objname,ra,dec,epoch,mag,band,tmp1,tmp2,tmp3,format='a,a,a,f,f,a,f,f,f'
+    label=strtrim(indgen(n_elements(ra))+1,2)+' '+ra+' '+dec+' '+objname
+endif
+
+if  project eq 'oden' then begin
+    path='/Users/Rui/Workspace/highz/products/mosaic/laecore_vs_lbgcore/lbg_overdensity.dat'
+    readcol,path,ra,dec,tmp1,tmp2,tmp3,format='f,f,a,f,f'
+    label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)+' LBG CORE '
+endif
+
+;   SETUP OBJECTS STRUCTURE
+
+print,'number of objs:',n_elements(ra)
+str={source:'',$                        ; source name
+    objname:'',$                        ; object name
+    label:'',$                          ; label for this object
+    ra:!values.f_nan,$                  ; ra (in degree)
+    dec:!values.f_nan,$                 ; dec (in degree)
+    bxsz:replicate(!values.f_nan,7),$   ; box size (in arcsec)
+    cell:replicate(!values.f_nan,7),$   ; cell size (in arcsec)
+    band:replicate('',7),$              ; BAND TAG
+    imfile:replicate('',7),$            ; fits file full path
+    ptile_min:replicate(0.5,7),$        ; percentile color scaling
+    ptile_max:replicate(0.95,7),$       ; percentile color scaling
+    imext:replicate(0,7)}               ; fits file extension
+str=replicate(str,n_elements(ra))
+
+;   LOAD OBJECTS INFO
+
+str.source=strtrim(indgen(n_elements(ra)),2)
+str.objname=objname
+str.label=label
+
+if  strmatch(project,'DVPC*',/f) then begin
+    str.ra=tenv(ra)*15.
+    str.dec=tenv(dec)
+endif else begin
+    str.ra=ra
+    str.dec=dec
+endelse
+
+str.bxsz=15.0
+str.cell=[0.26,0.26,0.3,0.3,0.4,0.4,0.90]
+str.band=['WRC4','Bw','R','I','H','Ks','IRAC1']
+str.imfile[1,*]='/Users/Rui/Workspace/highz/products/mosaic/stack_Bw_all.fits'
+str.imfile[3,*]='/Users/Rui/Workspace/highz/products/mosaic/stack_I_all.fits'
+str.imfile[2,*]='/Users/Rui/Workspace/highz/products/mosaic/stack_R_all.fits'
+str.imfile[0,*]='/Users/Rui/Workspace/highz/products/mosaic/stack_wrc4_all.fits'
+
+m='/Users/Rui/Workspace/highz/products/newfirm/stack_v5/pcf_h.fits'
+hd=headfits(m)
+inout=check_point(hd,str.ra,str.dec)
+str[where(inout eq 1,/null)].imfile[4,*]=m
+
+m='/Users/Rui/Workspace/highz/products/newfirm/stack_v5/pcf_k.fits'
+hd=headfits(m)
+inout=check_point(hd,str.ra,str.dec)
+str[where(inout eq 1,/null)].imfile[5,*]=m
+
+m='/Users/Rui/Workspace/highz/products/newfirm/imref/irac1.fits'
+hd=headfits(m)
+inout=check_point(hd,str.ra,str.dec)
+str[where(inout eq 1,/null)].imfile[6,*]=m
+
+make_charts,str,outname=outname
+
+if  strmatch(project,'DVPC*',/f) then begin
+    pineps,/latex,'xhs_fcs_deimos_'+project,outname,/clean
+endif else begin
+    pineps,/latex,'xhs_fcs_newfirm_'+project,outname,/clean
+endelse
 
 END

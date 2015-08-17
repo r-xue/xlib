@@ -2,13 +2,15 @@
 # basic parameters for psfex
 #############################
 
-VIGNET(63,63)
+VIGNET(121,121)
 ALPHAWIN_J2000
 DELTAWIN_J2000
 XWIN_IMAGE
 YWIN_IMAGE
-X_IMAGE
-Y_IMAGE
+X_IMAGE         
+Y_IMAGE         
+X_WORLD
+Y_WORLD
 FLUX_APER(12)
 FLUXERR_APER(12)
 FLUX_MAX

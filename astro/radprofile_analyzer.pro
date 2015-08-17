@@ -6,9 +6,9 @@ FUNCTION RADPROFILE_ANALYZER,file,outname=outname,$
 ;   
 ;-
 
-if  ~keyword_set(skyrad) then skyrad=[10.,15.]
-if  ~keyword_set(modrad) then modrad=5.
-if  ~keyword_set(extrad)  then extrad=3.
+if  ~keyword_set(skyrad)    then skyrad=[5.,8.]
+if  ~keyword_set(modrad)    then modrad=5.
+if  ~keyword_set(extrad)    then extrad=10.   ;   extract the radius profile to <extrad>
 
 ;   GET IMAGES SPECIFICATION
 im=readfits(file,hd)
@@ -19,7 +19,6 @@ sz=size(im)
 ;   BLANKING (BOTH SAT AND MISSING DATA)
 im[where(im eq 50000.0,/null)]=!values.f_nan
 im[where(im eq 0.0,/null)]=!values.f_nan
-
 
 ;   FIND XCEN YCEN
 xg=sz[1]/2.
@@ -73,7 +72,7 @@ xcen=round(xcen)
 ycen=round(ycen)
 dist_ellipse,temp,sz[[1,2]],xcen,ycen,1.0,0.
 temp=temp*psize
-writefits,'test.fits',temp
+
 ;   MEASURING RADIAL PROFILE
 ri=(findgen(extrad/psize))*psize
 rmedian=[]
