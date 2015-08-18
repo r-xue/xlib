@@ -39,6 +39,10 @@ FUNCTION match_astro,image,flag=flag,$
 ; HISTORY:
 ;   20150812    R.Xue   add comments
 ;   20150814    R.Xue   change from procedure to function and rename it to MATCH_ASTRO
+; 
+; NOTE:
+;   plan to add an option using gcntrd for star image centroid rather than using sextractor catalog
+;
 ;-
 
 if  n_elements(dis) eq 0 then dis=3.0

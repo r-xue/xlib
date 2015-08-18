@@ -4,7 +4,8 @@ xlib
 Here is a list of IDL libraries I borrow:
 
   IDL Astronomy Libarary:   http://idlastro.gsfc.nasa.gov/ftp/astron.dir.tar.gz  <web>
-  
+                            https://github.com/wlandsman/IDLAstro <web>
+
   Markwardt IDL Programs:   http://cow.physics.wisc.edu/~craigm/idl <web>
   
   idl-low-sky:              https://github.com/low-sky/idl-low-sky  <github>
@@ -45,8 +46,10 @@ Here is a list of IDL libraries I borrow:
   
   MGlib                     https://github.com/mgalloy/mglib <github>
   
-  SALVAGGIO                 https://www.cis.rit.edu/~cnspci/software.php
+  SALVAGGIO                 https://www.cis.rit.edu/~cnspci/software.php <web>
   
-  windt                     http://www.rxollc.com/idl/windt.html
+  windt                     http://www.rxollc.com/idl/windt.html <web>
   
-  JHU/APL/S1R IDL library   http://fermi.jhuapl.edu/idl/
+  JHU/APL/S1R IDL library   http://fermi.jhuapl.edu/idl/ <web>
+  
+  Kcorrect                  http://howdy.physics.nyu.edu/index.php/Kcorrect <web>
