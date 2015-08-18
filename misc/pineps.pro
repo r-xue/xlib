@@ -12,10 +12,15 @@ PRO PINEPS, pdfname, epslist, clean=clean, print=print,$
 ;       * latex: you can set up your preferred layouts using several latex-related keywords
 ;
 ; INPUTS:
-;   PDFNAME   -- name of the output pdf file
-;   EPSLIST   -- eps file name list
-;   papersize: top=0.1in, bottom=0.1in, left=0.1in, right=0.1in,paperheight=7.5in,paperwidth=7in
+;   PDFNAME     -- name of the output pdf file
+;   EPSLIST     -- eps file name list
+;   papersize   -- top=0.1in, bottom=0.1in, left=0.1in, right=0.1in,paperheight=7.5in,paperwidth=7in
+;   width       -- for /latex   width of each panel
+;   nx          -- for /latex   number of panels in each row
 ;
+; KEYWORDS:
+;   latex       use pdflatex to combine eps
+;   
 ; HISTORY:
 ;
 ;   20110217  RX  introduced
@@ -42,15 +47,15 @@ if  not keyword_set(latex) then begin
 
 endif else begin
     
-    psfiles=strjoin(fulllist,' ')
+    
     if  keyword_set(width) then width=string(width,format='(f4.2)') else width='0.99'
     if  not keyword_set(nx) then nx=1
-    openw, lun, pdfname+'.tex', /get_lun, width=400
-
+    openw, lun, 'tmp_pineps.tex', /get_lun, width=400
 
 
     printf,lun,'\documentclass[12pt]{article}'
     printf,lun,'\usepackage{graphicx}'
+    printf,lun,'\usepackage{epstopdf}'
     if  not keyword_set(papersize) then begin
         if  not keyword_set(landscape) $
             then printf,lun,'\usepackage[top=0.5in, bottom=0.5in, left=0.5in, right=0.5in,paper=letterpaper]{geometry}' $
@@ -64,10 +69,9 @@ endif else begin
     printf,lun,'\begin{document}'
     printf,lun,'\pagenumbering{gobble}'
     for i=0,n_elements(fulllist)-1 do begin
-        if  i mod nx eq nx-1 then begin
+        if  i mod nx eq nx-1 and i ne n_elements(fulllist)-1  then begin
             printf,lun,'\noindent\includegraphics[width='+width+'\linewidth]{'+fulllist[i]+'}\\'
         endif else begin
-            
             printf,lun,'\noindent\includegraphics[width='+width+'\linewidth]{'+fulllist[i]+'}'
         endelse
     endfor
@@ -75,12 +79,32 @@ endif else begin
     close, lun
     free_lun, lun
     
-    spawn,'latex '+pdfname+'.tex'
-    ;spawn,'dvips '+pdfname+'.dvi -o'
-    spawn,'dvipdfm '+pdfname+'.dvi'
-    if keyword_set(clean) then spawn,'rm '+pdfname+'.dvi '+pdfname+'.aux '+pdfname+'.log '+pdfname+'.tex '
+    ;spawn,'latex tmp_pineps.tex'
+    ;spawn,'dvipdfm '+pdfname+'.dvi' ;spawn,'dvips '+pdfname+'.dvi -o'
+    spawn,'pdflatex -shell-escape tmp_pineps.tex'
+    
+    ;   RENAME LATEX TMP FILES
+    spawn,'mv tmp_pineps.pdf '+pdfname+'.pdf'
+    extlist=['.dvi','.aux','.log','.tex']
+    for k=0,n_elements(extlist)-1 do begin
+        
+        if  file_test('tmp_pineps'+extlist[k]) then $
+            spawn,'mv tmp_pineps'+extlist[k]+' '+pdfname+extlist[k]
+        if  keyword_set(clean) then spawn,'rm '+pdfname+extlist[k]
+    endfor
+    
+    ;   REMOVE INDIVIDUAL EPS FILES
+    if  keyword_set(clean) then begin
+        psfiles=strjoin(fulllist,' ')
+        cmd="rm -rf "+psfiles
+        spawn,cmd
+    endif
+    
+    ;   CLEAN UP PDFLATEX EPS STRACH
+    psfiles=repstr(fulllist,'.eps','-eps-converted-to.pdf')
+    psfiles=strjoin(psfiles,' ')
     cmd="rm -rf "+psfiles
-    if keyword_set(clean) then spawn,cmd
+    spawn,cmd
     
 endelse
 
