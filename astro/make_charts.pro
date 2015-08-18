@@ -243,7 +243,7 @@ PRO TEST_MAKE_CHARTS,project
 ;   test_make_charts,'specz'
 ;
 ; HISTORY:
-;   201508127   R.Xue   revised from make_charts_all.pro
+;   20150812    R.Xue   revised from make_charts_all.pro
 ;-
 
 
@@ -339,6 +339,7 @@ hd=headfits(m)
 inout=check_point(hd,str.ra,str.dec)
 str[where(inout eq 1,/null)].imfile[6,*]=m
 
+;   RUN MAKE_CHARTS / OUPUT EPS FILE LIST
 make_charts,str,outname=outname
 
 if  strmatch(project,'DVPC*',/f) then begin
