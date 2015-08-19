@@ -41,9 +41,7 @@ PRO MAKE_CHARTS,OBJ,mode=mode,$
 ;   20150812    R.Xue   add comments
 ;-
 
-
 if  n_elements(mode) eq 0 then mode=2
-
 
 ;   LOAD ALL LARGE IMAGES TOGETHER INTO MEMORY 
 
@@ -245,7 +243,6 @@ PRO TEST_MAKE_CHARTS,project
 ; HISTORY:
 ;   20150812    R.Xue   revised from make_charts_all.pro
 ;-
-
 
 ;   PROJECT SELECTION
 
