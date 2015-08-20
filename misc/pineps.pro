@@ -88,9 +88,11 @@ endif else begin
     extlist=['.dvi','.aux','.log','.tex']
     for k=0,n_elements(extlist)-1 do begin
         
-        if  file_test('tmp_pineps'+extlist[k]) then $
+        if  file_test('tmp_pineps'+extlist[k]) then begin
             spawn,'mv tmp_pineps'+extlist[k]+' '+pdfname+extlist[k]
-        if  keyword_set(clean) then spawn,'rm '+pdfname+extlist[k]
+            if  keyword_set(clean) then spawn,'rm '+pdfname+extlist[k]
+        endif
+        
     endfor
     
     ;   REMOVE INDIVIDUAL EPS FILES

@@ -39,6 +39,7 @@ PRO MAKE_CHARTS,OBJ,mode=mode,$
 ;
 ; HISTORY:
 ;   20150812    R.Xue   add comments
+;   20150820    R.Xue   add comments
 ;-
 
 if  n_elements(mode) eq 0 then mode=2
@@ -52,9 +53,10 @@ for i=0,nobj-1 do begin
 endfor
 imlist=imlist[rem_dup(imlist)]
 imlist=imlist[where(imlist ne '',/null)]
-print,'load fits images into memory:',imlist
+print,'load fits images into memory:'
 imfits=[]
 for i=0,n_elements(imlist)-1 do begin
+    print,imlist[i]
     rdfits_struct,imlist[i],tmp
     tmp=ptr_new(tmp,/no_copy)
     imfits=[imfits,tmp]
@@ -76,7 +78,7 @@ outname=[]
 for nc=0,nobj-1 do begin
     
     print,replicate('>',20) 
-    print,strtrim(nc,2)+'/'+strtrim(nobj,2)
+    print,strtrim(nc+1,2)+'/'+strtrim(nobj,2)
     print,replicate('<',20)
     
     mra=obj[nc].ra
@@ -109,7 +111,7 @@ for nc=0,nobj-1 do begin
         tag=(where(imlist eq imfile[i]))[0]
         if  tag eq -1 then continue
         
-        print,band[i],imfile[i]
+        print,band[i],' ',imfile[i]
         pos=pos_mp(i,layout.nxy,layout.margin,layout.omargin)
         posp=pos.position
         xtickname=replicate(' ',60)
@@ -129,7 +131,7 @@ for nc=0,nobj-1 do begin
 
         if  mode eq 2 or mode eq 0 then begin
 
-            psize=dpxy(20.,ibox=[2.0,2.0],dpi=150)
+            psize=dpxy(20.,ibox=[2.0,2.0],dpi=150,/silent)
             psize=min(1.0/psize)
 
             if  mode eq 2 then begin

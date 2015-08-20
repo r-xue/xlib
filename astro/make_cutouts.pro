@@ -1,37 +1,44 @@
-PRO MAKE_CUTOUTS,objs,proj=proj,$
-    mode=mode
+PRO MAKE_CUTOUTS,objs,$
+    mode=mode,objsout=objsout
 ;+
+; NAME:
+;   make_cutouts
 ;
-;   objs:    OBJ META DATA
+; PURPOSE: 
+;   make cutouts for mutiple objects
 ;   
-;-
-;+
-;general:
-;   
-;   str.source      source name
-;   str.objname     objname
-;   str.ra          source ra
-;   str.dec         source dec
-;   str.bxsz        cutout box size     (in arcsec)
-;   str.cell        cutout cell size    (in arcsec)
-;   str.band        band name
-;   str.imfile      fits image name
-;   str.imext       fits image extension
-;   str.proc        fits image processing tag
-;   str.cutouts     0:  imfile<-orginal data
-;                   1:  imfile<-cutout from hextract (subregion covers cutout box)
-;                   2:  imfile<-cutout from hastrom (resampling); 
-;   str.bunits      counts/s; Jy/beam
-;                   default: what ever in bunit                  
-;   mode    1 hextractx
-;   mode    2 hastrom
-;   mode    3 hextract
-;plotting:   
-;   str.ptile       percentile for color scaling
+; INPUTS:
+;   objs        objects information
+;   objs.source      source name
+;   objs.objname     obj name
+;   objs.ra          source ra
+;   objs.dec         source dec
+;   objs.bxsz        cutout box size     (in arcsec)
+;   objs.cell        cutout cell size    (in arcsec)
+;   objs.band        band tag
+;   objs.pointing    pointing tag
+;   objs.imfile      fits image name
+;   objs.imext       fits image extension
+;   objs.proc        processing tag (=1 work on it; =0 ignore it)
+;   objs.cutouts     0:  imfile<-orginal data
+;                    1:  imfile<-cutout from hextract (subregion covers cutout box)
+;                    2:  imfile<-cutout from hastrom (resampling); 
+;   objs.bunits      counts/s; Jy/beam, default: bunit in fits image                  
+;   objs.ptile       percentile for color scaling
+;
+;   mode        =1 hextractx
+;               =2 hastrom
+;               =3 hextract
+; 
+; OUPUTS:
+;   objsout     updated objs
+; 
+; HISTORY:
+;   20140602    R.Xue   introduced
+;   20150812    R.Xue   cleanup 
 ;
 ;-
 
-if  ~keyword_set(proj) then proj='make_cutouts_temp'
 if  ~keyword_set(mode) then mode=1
 
 ;   FIND OUT A LIST OF UNIQ FITS/EXTENSION COMBINATIONS
@@ -41,7 +48,7 @@ proclist=objs.proc
 temp1=rem_dup(imlist)
 temp2=where((objs.imfile)[temp1] ne '' and (objs.proc)[temp1] ne 0,/null)
 ulist=imlist[temp1[temp2]]
-print,imlist[*,1]
+
 ;   LOOP THROUGH EACH FILE 
 
 foreach filename,ulist do begin
@@ -53,6 +60,10 @@ foreach filename,ulist do begin
     tag=array_indices(imlist,where(imlist eq filename))
     otag=transpose(tag[1,*])
     btag=transpose(tag[0,*])
+    if  (size(imlist))[0] ne 2 then begin
+        otag=tag
+        btag=replicate(0,n_elements(tag))
+    endif
     
     im=readfits(objs[otag[0]].imfile[btag[0]],hd,$
         ext=objs[otag[0]].imext[btag[0]],/silent)
@@ -66,17 +77,19 @@ foreach filename,ulist do begin
             ' obj: ', objs[io].source,$
             adstring(objs[io].ra,objs[io].dec,2),$
             ' band: ',objs[io].band[ib]
-        
+
         bscale=1.0
         if  mode eq 1 then begin
             hextractx,im,hd,$
                 radec=[objs[io].ra,objs[io].dec],subim,subhd,$
                 (objs[io].bxsz)[ib]*[0.5,-0.5],$
                 (objs[io].bxsz)[ib]*[-0.5,0.5]
-            outname=objs[io].source+'_'+(objs[io].band)[ib]+'.fits'
+            outname=objs[io].outname+'.fits'
             subim=subim*bscale
             sxaddpar, subhd, 'DATAMAX', max(subim,/nan),before='HISTORY'
             sxaddpar, subhd, 'DATAMIN', min(subim,/nan),before='HISTORY'
+            dir=file_dirname(outname,/m)
+            file_mkdir,dir
             writefits,outname,subim,subhd
             objs[io].imfile[ib]=outname
             objs[io].imext[ib]=0
@@ -88,7 +101,7 @@ foreach filename,ulist do begin
                 fix(((objs[io].bxsz)[ib]/psize)/2.0)*2.0+1.0,psize)
             hastrom_nan,im,hd,subim,subhd,temphd,missing=!VALUES.F_NAN,/silent,$
                 interp=0
-            outname=objs[io].source+'_'+(objs[io].band)[ib]+'.fits'
+            outname=objs[io].outname+'.fits'
             if  strlowcase((objs[io].imunit)[ib]) eq 'counts/s' then begin
                 bscale=psize^2.0/opsize^2.0
                 sxaddpar,subhd,'BUNIT','counts/s'
@@ -100,6 +113,8 @@ foreach filename,ulist do begin
             subim=subim*bscale
             sxaddpar, subhd, 'DATAMAX', max(subim,/nan),before='HISTORY'
             sxaddpar, subhd, 'DATAMIN', min(subim,/nan),before='HISTORY'
+            dir=file_dirname(outname,/m)
+            file_mkdir,dir
             writefits,outname,subim,subhd
             objs[io].imfile[ib]=outname
             objs[io].imext[ib]=0
@@ -117,9 +132,11 @@ foreach filename,ulist do begin
             ymax=fix(y)+hbx
             if  not (xmin ge 0 and xmax lt sz[0] and ymin ge 0 and ymax lt sz[1]) then continue
             hextract,im,hd,subim,subhd,xmin,xmax,ymin,ymax
-            outname=objs[io].source+'_'+(objs[io].band)[ib]+'.fits'
+            outname=objs[io].outname+'.fits'
             sxaddpar, subhd, 'DATAMAX', max(subim,/nan),before='HISTORY'
             sxaddpar, subhd, 'DATAMIN', min(subim,/nan),before='HISTORY'
+            dir=file_dirname(outname,/m)
+            file_mkdir,dir
             writefits,outname,subim,subhd
             objs[io].imfile[ib]=outname
             objs[io].imext[ib]=0
@@ -131,6 +148,7 @@ foreach filename,ulist do begin
 endforeach
 print,''
 
-save,objs,filename=proj+'_make_cutouts.xdr'
+objsout=objs
+
 
 END

@@ -1,7 +1,7 @@
 FUNCTION DPXY, XYBOX,$
     IBOX=IBOX,DPI=DPI,$
     PBOX=PBOX,DPP=DPP,$
-    CURRENT=CURRENT
+    CURRENT=CURRENT,silent=silent
 ;+
 ;   Calculate the resolution (dot density in the DATA coordinates) offered by the output device
 ;   using the below options:
@@ -35,18 +35,24 @@ endelse
 if  keyword_set(current) then begin
     IF !D.name EQ 'PS' THEN BEGIN
         ndot=[!D.x_size,!D.y_size]/[2.54*!D.x_px_cm,2.54*!D.x_px_cm]*dpi
-        print,'device: ps'
-        print,'size (inch): '+string(ndot[0]/dpi)+string(ndot[1]/dpi)
+        if  ~keyword_set(silent) then begin
+            print,'device: ps'
+            print,'size (inch): '+string(ndot[0]/dpi)+string(ndot[1]/dpi)
+        endif
     ENDIF ELSE BEGIN
         ndot=[!D.x_size,!D.y_size]*dpp
-        print,'device: x'
-        print,'size (pix):  '+string(ndot[0]/dpp)+string(ndot[1]/dpp)
+        if  ~keyword_set(silent) then begin
+            print,'device: x'
+            print,'size (pix):  '+string(ndot[0]/dpp)+string(ndot[1]/dpp)
+        endif
     ENDELSE
 endif
 
 dpxy=ndot/xysize
-print,'dpxy: ',dpxy
-print,'psxy: ',1.0/dpxy
+if  ~keyword_set(silent) then begin
+    print,'dpxy: ',dpxy
+    print,'psxy: ',1.0/dpxy
+endif
 
 return,dpxy
 
