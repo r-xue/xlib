@@ -53,7 +53,9 @@ for i=0,nobj-1 do begin
 endfor
 imlist=imlist[rem_dup(imlist)]
 imlist=imlist[where(imlist ne '',/null)]
+print,'+++'
 print,'load fits images into memory:'
+print,'+++'
 imfits=[]
 for i=0,n_elements(imlist)-1 do begin
     print,imlist[i]
@@ -125,7 +127,8 @@ for nc=0,nobj-1 do begin
             ytitle=textoidl("!6\delta(Dec.) ['']")
         endif
         if  i eq fix((layout.nxy)[0]/2.0) and (layout.nxy)[0] ne 1 then xtitle=oname
-        subim=fltarr(10,10)
+        cgloadct,0
+        subim=fltarr(10,10)+255
         cgimage,subim,pos=posp,/keep,/noe
         subtitle='!6'+band[i]
 
@@ -137,7 +140,7 @@ for nc=0,nobj-1 do begin
             if  mode eq 2 then begin
                 hdr0=(*imfits[tag]).hdr0
                 temphd=mk_hd([mra,mdec],fix((bxsz[i]/psize)/2.0)*2+1,psize)
-                sxaddpar,hdr0,'EQUINOX',2000.0
+                ;sxaddpar,hdr0,'EQUINOX',2000.0
                 if  ext[i] eq 0 then $
                     hastrom_nan,(*imfits[tag]).im0,hdr0,subim,subhd,temphd,missing=!VALUES.F_NAN,/silent,$
                         interp=0   
@@ -155,7 +158,6 @@ for nc=0,nobj-1 do begin
             cgLoadCT,0,/rev,CLIP=[30,256]
             
             percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[0.50,ptile[i]])
-            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[0.50,0.98])
             cgimage,subim,pos=posp,/noe, stretch=1,$
                 minvalue=percent[0],$
                 maxvalue=percent[1]
@@ -175,17 +177,20 @@ for nc=0,nobj-1 do begin
 
         if  mode eq 1 then begin
             
-            plot,[0],[0],xrange=bxsz[i]*[0.5,-0.5],yrange=bxsz[i]*[-0.5,0.5],xstyle=1,ystyle=1,/noe,pos=posp,$
-                xtitle=xtitle,ytitle=ytitle,xtickname=xtickname,ytickname=ytickname,$
-                xcharsize=!p.charsize,ycharsize=!p.charsize,xminor=1,yminor=1,$
-                charsize=!p.charsize
-            
             if  ext[i] eq 0 then $     
                 hextractx,(*imfits[tag]).im0,(*imfits[tag]).hdr0,$
                     radec=[mra,mdec],subim,subhd,bxsz[i]*[0.5,-0.5],bxsz[i]*[-0.5,0.5]
             if  ext[i] eq 1 then $
                 hextractx,(*imfits[tag]).im1,(*imfits[tag]).hdr1,$
                     radec=[mra,mdec],subim,subhd,bxsz[i]*[0.5,-0.5],bxsz[i]*[-0.5,0.5]
+
+            if  not ( min(subim,/nan) ne max(subim,/nan) and total(subim eq subim) gt 0 ) then continue
+            
+            plot,[0],[0],xrange=bxsz[i]*[0.5,-0.5],yrange=bxsz[i]*[-0.5,0.5],xstyle=1,ystyle=1,/noe,pos=posp,$
+                xtitle=xtitle,ytitle=ytitle,xtickname=xtickname,ytickname=ytickname,$
+                xcharsize=!p.charsize,ycharsize=!p.charsize,xminor=1,yminor=1,$
+                charsize=!p.charsize
+
             percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[0.50,ptile[i]])
             cgLoadCT,0,/rev,CLIP=[30,256]
             map_fits,subim,hd=subhd,radec=[mra,mdec],$
