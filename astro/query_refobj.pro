@@ -37,6 +37,7 @@ FUNCTION QUERY_REFOBJ,image,flag=flag,$
 ; 
 ; HISTORY:
 ;   20150812    R.Xue   add comments
+;   20150821    R.Xue   catch exceptions
 ;-
 
 
@@ -56,65 +57,75 @@ yc=fix(sz[2]/2.)
 xyad,hd,xc,yc,ac,dc
 xs=psize*sz[1]/60.
 ys=psize*sz[2]/60.
+
 cat = queryvizier(catalog,[ac,dc],max([xs,ys]),/all,cons=constraint)
 
-print,replicate('--',30)
-print,'query '+catalog+' using image :'+image
-print,'catalogue header:'
-print,tag_names(cat)
-print,replicate('--',30)
-;   FIND OBJECTS ON THE IMAGE
-cat=cat[where(check_point(hd,cat.RAJ2000,cat.DEJ2000) eq 1,/null)]
-print,'n_objs:          ',n_elements(cat)
 
-;   FIND OBJECTS ISOLATED (no nearby objects within 10 sec)
-if  n_elements(iso) then begin
-    result=matchall_sph(cat.RAJ2000,cat.DEJ2000,cat.RAJ2000,cat.DEJ2000,1.0/60./60.*iso,nwithin)
-    cat=cat[where(nwithin eq 1,/null)]
-    print,'n_objs(isolated):  ',n_elements(cat)
-endif
+if  size(cat,/tn) eq size({tmp:''},/tn) then begin 
 
-;   FIND OBJECTS AWAY FROM BAD PIXELS
-txc=cat.RAJ2000
-tyc=cat.DEJ2000
-adxy,hd,txc,tyc,xc,yc
-fg=xc*0.0
+    print,replicate('--',30)
+    print,'query '+catalog+' using image :'+image
+    print,'catalogue header:'
+    print,tag_names(cat)
+    print,replicate('--',30)
+    ;   FIND OBJECTS ON THE IMAGE
+    cat=cat[where(check_point(hd,cat.RAJ2000,cat.DEJ2000) eq 1,/null)]
+    print,'n_objs:          ',n_elements(cat)
+    
+    ;   FIND OBJECTS ISOLATED (no nearby objects within 10 sec)
+    if  n_elements(iso) then begin
+        result=matchall_sph(cat.RAJ2000,cat.DEJ2000,cat.RAJ2000,cat.DEJ2000,1.0/60./60.*iso,nwithin)
+        cat=cat[where(nwithin eq 1,/null)]
+        print,'n_objs(isolated):  ',n_elements(cat)
+    endif
+    
+    ;   FIND OBJECTS AWAY FROM BAD PIXELS
+    txc=cat.RAJ2000
+    tyc=cat.DEJ2000
+    adxy,hd,txc,tyc,xc,yc
+    fg=xc*0.0
+    
+    if  keyword_set(nan) then fg=fg+float(im[xc,yc] ne im[xc,yc])
+    if  n_elements(sat) then fg=fg+float(im[xc,yc] eq sat)
+    if  flag ne '' then begin
+        adxy,mkhd,txc,tyc,xc,yc
+        fg=fg+float(mk[xc,yc] ne 0)
+    endif
+    cat=cat[where(fg eq 0,/null)]
+    print,'n_objs(output):',n_elements(cat)
+    
+    temp = {ds9reg, $
+        shape:'circle', $         ;- shape of the region
+        x:0., $             ;- center x position
+        y:0., $             ;- center y position
+        radius:10., $        ;- radius (if circle). Assumed to be arcsec
+        angle:0., $         ;- angle, if relevant. Degrees.
+        text:'', $          ;- text label
+        color:'red', $         ;- region color
+        width:10., $         ;- width (if relevant)
+        height:10., $        ;- height (if relevant)
+        font:'', $          ;- font for label
+        select:1B, $        ;- is selected?
+        fixed:0B, $         ;- is fixed?
+        edit:1B, $          ;- is editable?
+        move:1B, $          ;- is moveable?
+        rotate:0B, $        ;- can be rotated?
+        delete:1B}          ;- can be deleted?
+    
+    st=replicate(temp,n_elements(cat))
+    st.x=cat.RAJ2000
+    st.y=cat.DEJ2000
+    
+    if  n_elements(outname) ne 0 then begin
+        write_ds9reg,outname+'.reg',st,'FK5'
+        write_csv,outname+'.csv',double((cat.RAJ2000)),double((cat.DEJ2000))
+    endif
 
-if  keyword_set(nan) then fg=fg+float(im[xc,yc] ne im[xc,yc])
-if  n_elements(sat) then fg=fg+float(im[xc,yc] eq sat)
-if  flag ne '' then begin
-    adxy,mkhd,txc,tyc,xc,yc
-    fg=fg+float(mk[xc,yc] ne 0)
-endif
-cat=cat[where(fg eq 0,/null)]
-print,'n_objs(output):',n_elements(cat)
+endif else begin
+    
+    cat=-1
 
-temp = {ds9reg, $
-    shape:'circle', $         ;- shape of the region
-    x:0., $             ;- center x position
-    y:0., $             ;- center y position
-    radius:10., $        ;- radius (if circle). Assumed to be arcsec
-    angle:0., $         ;- angle, if relevant. Degrees.
-    text:'', $          ;- text label
-    color:'red', $         ;- region color
-    width:10., $         ;- width (if relevant)
-    height:10., $        ;- height (if relevant)
-    font:'', $          ;- font for label
-    select:1B, $        ;- is selected?
-    fixed:0B, $         ;- is fixed?
-    edit:1B, $          ;- is editable?
-    move:1B, $          ;- is moveable?
-    rotate:0B, $        ;- can be rotated?
-    delete:1B}          ;- can be deleted?
-
-st=replicate(temp,n_elements(cat))
-st.x=cat.RAJ2000
-st.y=cat.DEJ2000
-
-if  n_elements(outname) ne 0 then begin
-    write_ds9reg,outname+'.reg',st,'FK5'
-    write_csv,outname+'.csv',double((cat.RAJ2000)),double((cat.DEJ2000))
-endif
+endelse
 
 return,cat
 END
