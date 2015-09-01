@@ -1,9 +1,10 @@
 FUNCTION RADPROFILE_ANALYZER,file,outname=outname,$
     skyrad=skyrad,nosub=nosub,$
-    modrad=modrad,msrad=msrad
+    modrad=modrad,msrad=msrad,$
+    psize=psize
 ;+
 ;   analyzing the center object radial profile in the FITS image
-;   
+;   psize could be specified if no header is available.
 ;-
 
 if  ~keyword_set(skyrad)    then skyrad=[5.,8.]
@@ -12,8 +13,11 @@ if  ~keyword_set(extrad)    then extrad=10.   ;   extract the radius profile to 
 
 ;   GET IMAGES SPECIFICATION
 im=readfits(file,hd)
-getrot,hd,rotang,cdelt
-psize=abs(cdelt[0]*60.*60.)
+if  n_elements(psize) eq 0 then begin
+    getrot,hd,rotang,cdelt
+    psize=abs(cdelt[0]*60.*60.)
+endif
+
 sz=size(im)
 
 ;   BLANKING (BOTH SAT AND MISSING DATA)
@@ -23,7 +27,7 @@ im[where(im eq 0.0,/null)]=!values.f_nan
 ;   FIND XCEN YCEN
 xg=sz[1]/2.
 yg=sz[2]/2.
-gcntrd,im,xg,yg,xcen,ycen,5.0,/silent
+gcntrd,im,xg,yg,xcen,ycen,5.0/psize,/silent,maxgood=50000.0
 dist_ellipse,temp,sz[[1,2]],xcen,ycen,1.0,0.,/double
 temp=temp*psize
 
