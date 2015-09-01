@@ -1,7 +1,7 @@
 FUNCTION RADPROFILE_ANALYZER,file,outname=outname,$
     skyrad=skyrad,nosub=nosub,$
     modrad=modrad,msrad=msrad,$
-    psize=psize
+    psize=psize,skysub=skysub
 ;+
 ;   analyzing the center object radial profile in the FITS image
 ;   psize could be specified if no header is available.
@@ -50,9 +50,17 @@ print,'1st sky:',sky
 
 ;   SKYSUB
 if  ~keyword_set(nosub) then begin
-    im=im-sky
+    if  n_elements(skysub) ne 0 then begin
+      im=im-skysub
+    endif else begin
+      im=im-sky
+      skysub=sky
+    endelse
     print,'sky background subtracted'
-endif
+endif else begin
+    skysub=0.0
+    print,'no sky background subtracted'
+endelse
 
 ;   PROFILE MODELLING
 modradp=fix(modrad/psize)
@@ -139,6 +147,8 @@ rp={center:ri,$
     psigma:rms,$
     fwhmm:fwhmm,$
     fwhmd:fwhmd,$
+    sky:sky,$
+    skysub:skysub,$
     center_model:ri_model,$
     mean_model:rmean_model}
 
