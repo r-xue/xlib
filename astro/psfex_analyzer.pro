@@ -7,6 +7,8 @@ PRO PSFEX_ANALYZER,name,im,flag=flag,plot=plot,$
 ;   im:     image file name
 ;   
 ;-
+
+
 ;   HEADER
 imk=readfits(im,imkhd)
 getrot,imkhd,ang,cdelt
@@ -36,7 +38,7 @@ if  ~keyword_set(plot) then begin
     sexconfig.catalog_name='tmp.cat'
     sexconfig.CATALOG_TYPE='FITS_LDAC'
     sexconfig.DEBLEND_NTHRESH=64
-    sexconfig.DEBLEND_MINCONT=0.001
+    sexconfig.DEBLEND_MINCONT=0.0001
     sexconfig.mag_zeropoint=magzero
     sexconfig.DETECT_THRESH=1.25
     sexconfig.ANALYSIS_THRESH=1.25
@@ -83,15 +85,19 @@ cube=psf.(0)
 hd=mk_hd([0.,0.],[101,101],psize)
 
 writefits,name+'_psfex.fits',cube[*,*,0],hd
-
-;   DO PLOTTING
-tb=mrdfits(name+'.cat',1)
 tb=mrdfits(name+'.cat',2)
 writefits,name+'_vignet.fits',tb.VIGNET
 
-tag=where(tb.flags le 1.0 )
+
+;   DO PLOTTING
+tb=mrdfits(name+'_all.cat',1)
+psize=sxpar(tb.field_header_card,'SEXPXSCL')
+print,tb.field_header_card
+tb=mrdfits(name+'_all.cat',2)
+tag1=where(tb.flags le 0.0 and tb.SNR_WIN gt 15 and tb.elongation le 1.12)
+tag2=where(tb.flags le 0.0 and tb.SNR_WIN gt 30 and tb.elongation le 1.12)
 print,'Good Objs:',n_elements(tb.flags)
-print,'Bad  Objs:',n_elements(tag)
+print,'Bad  Objs:',n_elements(tag2)
 
 ;   PLOT PSFEX SNAPSHOT
 set_plot,'ps'
@@ -108,9 +114,17 @@ device,filename=name+'_psfex_check.eps',bits=8,$
 !y.gridstyle = 0
 xyouts,'!6'
 
-plot,tb[tag].flux_radius*psize,tb[tag].mag_auto,psym=3,xrange=[-0.25,2.5],$
-    yrange=[28,15],xstyle=1,ystyle=1,$
-    xtitle='FLUX_RADIUS ["]',ytitle='MAG_AUTO'
+plot,tb.flux_radius*psize,tb.mag_auto,psym=3,xrange=[-0.25,2.5],$
+    yrange=[28,12],xstyle=1,ystyle=1,$
+    xtitle='FLUX_RADIUS ["]',ytitle='MAG_AUTO',/nodata
+
+oplot,tb.flux_radius*psize,tb.mag_auto,psym=symcat(16),symsize=0.1,$
+    color=cgcolor('slate gray')
+oplot,tb[tag1].flux_radius*psize,tb[tag1].mag_auto,psym=symcat(16),symsize=0.1,$
+    color=cgcolor('blue')
+oplot,tb[tag2].flux_radius*psize,tb[tag2].mag_auto,psym=symcat(16),symsize=0.3,$
+    color=cgcolor('red')
+
 al_legend,name,/right,/bottom,box=0
 
 device,/close
