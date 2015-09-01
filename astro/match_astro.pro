@@ -125,7 +125,8 @@ for i=0,n_elements(catalogs)-1 do begin
         
     if  constraints[i] ne 'user' then begin 
     st=query_refobj(image,flag=flag,catalog=catalogs[i],$
-        constraint=constraints[i],sat=50000.0,/nan,iso=4.0)
+        constraint=constraints[i],sat=50000.0,/nan,iso=4.0,$
+        outname=outname+tags[i]+'_match_astro_radec')
     if  size(st,/tn) ne size({tmp:''},/tn) then continue
         rlist=st.RAJ2000
         dlist=st.DEJ2000
@@ -184,6 +185,7 @@ for i=0,n_elements(catalogs)-1 do begin
     astr_new=solve_astro(rlist[tag_gsc],dlist[tag_gsc],ximg+1.0,yimg+1.0,$
         naxis1=sxpar(hd,'NAXIS1'),naxis2=sxpar(hd,'NAXIS2'),$
         CRVAL=[sxpar(hd,'CRVAL1'),sxpar(hd,'CRVAL2')],$
+        distort='tnx',$
         xirms=xrms,etarms=yrms,xiresid=xiresid,etaresid=etaresid,success=success,wfit=wfit)
 
     extast,hd,astr
@@ -281,40 +283,40 @@ for i=0,n_elements(catalogs)-1 do begin
     device,/close
     set_plot,'x'
     
-    ;   WRITE OUT DS9 REGION FILE IN IMAGE COORDS
-    ;    temp = {ds9reg, $
-    ;        shape:'circle', $         ;- shape of the region
-    ;        x:0., $             ;- center x position
-    ;        y:0., $             ;- center y position
-    ;        radius:0.2, $       ;- radius (if circle). Assumed to be arcsec
-    ;        angle:0., $         ;- angle, if relevant. Degrees.
-    ;        text:'', $          ;- text label
-    ;        color:'red', $      ;- region color
-    ;        width:10., $        ;- width (if relevant)
-    ;        height:10., $       ;- height (if relevant)
-    ;        font:'', $          ;- font for label
-    ;        select:1B, $        ;- is selected?
-    ;        fixed:0B, $         ;- is fixed?
-    ;        edit:1B, $          ;- is editable?
-    ;        move:1B, $          ;- is moveable?
-    ;        rotate:0B, $        ;- can be rotated?
-    ;        delete:1B}          ;- can be deleted?
-    ;
-    ;    cxy=replicate(temp,n_elements(xlist[ind]))
-    ;    cxy.color='blue'
-    ;    cxy.x=xlist[ind]
-    ;    cxy.y=ylist[ind]
-    ;
-    ;    print,'catalogue xy ds9 region file: ',outname+tags[i]+'_cxy.reg'
-    ;    write_ds9reg,outname+tags[i]+'_match_astro_cxy.reg',cxy,'IMAGE'
-    ;
-    ;    sxy=replicate(temp,n_elements(tag_gsc))
-    ;    sxy.color='red'
-    ;    sxy.x=xi[ind]
-    ;    sxy.y=yi[ind]
-    ;
-    ;    print,'sextractor xy ds9 region file: ',outname+tags[i]+'_sxy.reg'
-    ;    write_ds9reg,outname+tags[i]+'_match_astro_sxy.reg',sxy,'IMAGE'
+    ;WRITE OUT DS9 REGION FILE IN IMAGE COORDS
+;    temp = {ds9reg, $
+;        shape:'circle', $         ;- shape of the region
+;        x:0., $             ;- center x position
+;        y:0., $             ;- center y position
+;        radius:0.2, $       ;- radius (if circle). Assumed to be arcsec
+;        angle:0., $         ;- angle, if relevant. Degrees.
+;        text:'', $          ;- text label
+;        color:'red', $      ;- region color
+;        width:10., $        ;- width (if relevant)
+;        height:10., $       ;- height (if relevant)
+;        font:'', $          ;- font for label
+;        select:1B, $        ;- is selected?
+;        fixed:0B, $         ;- is fixed?
+;        edit:1B, $          ;- is editable?
+;        move:1B, $          ;- is moveable?
+;        rotate:0B, $        ;- can be rotated?
+;        delete:1B}          ;- can be deleted?
+;
+;    cxy=replicate(temp,n_elements(xlist[ind]))
+;    cxy.color='blue'
+;    cxy.x=xlist[ind]
+;    cxy.y=ylist[ind]
+;
+;    print,'catalogue xy ds9 region file: ',outname+tags[i]+'_cxy.reg'
+;    write_ds9reg,outname+tags[i]+'_match_astro_cxy.reg',cxy,'IMAGE'
+;
+;    sxy=replicate(temp,n_elements(tag_gsc))
+;    sxy.color='red'
+;    sxy.x=xi[ind]
+;    sxy.y=yi[ind]
+;
+;    print,'sextractor xy ds9 region file: ',outname+tags[i]+'_sxy.reg'
+;    write_ds9reg,outname+tags[i]+'_match_astro_sxy.reg',sxy,'IMAGE'
 
 endfor
 
