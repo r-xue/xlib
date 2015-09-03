@@ -116,6 +116,11 @@ if  size(cat,/tn) eq size({tmp:''},/tn) then begin
     st.x=cat.RAJ2000
     st.y=cat.DEJ2000
     
+    st1=st
+    st2=st
+    st2.radius=1.0
+    st=[st1,st2]
+    
     if  n_elements(outname) ne 0 then begin
         write_ds9reg,outname+'.reg',st,'FK5'
         write_csv,outname+'.csv',double((cat.RAJ2000)),double((cat.DEJ2000))
