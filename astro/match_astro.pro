@@ -100,8 +100,8 @@ FUNCTION match_astro,image,flag=flag,$
 
 if  n_elements(dis) eq 0 then dis=3.0
 if  n_elements(outname) eq 0 then outname='match_astro'
-if  n_elements(minsnr) eq 0 then minsnr=20.0
-if  n_elements(maxelong) eq 0 then maxelong=1.12 ;ell=0.1
+if  n_elements(minsnr) eq 0 then minsnr=15.0
+if  n_elements(maxelong) eq 0 then maxelong=1.2 ;ell=0.1
 if  n_elements(fwhm) eq 0 then fwhm=4.0
 if  n_elements(flag) eq 0 then flag=''
 
@@ -125,7 +125,7 @@ for i=0,n_elements(catalogs)-1 do begin
         
     if  constraints[i] ne 'user' then begin 
     st=query_refobj(image,flag=flag,catalog=catalogs[i],$
-        constraint=constraints[i],sat=50000.0,/nan,iso=4.0,$
+        constraint=constraints[i],sat=50000.0,/nan,iso=3.0,$
         outname=outname+tags[i]+'_match_astro_radec')
     if  size(st,/tn) ne size({tmp:''},/tn) then continue
         rlist=st.RAJ2000
@@ -147,9 +147,9 @@ for i=0,n_elements(catalogs)-1 do begin
 
     if  n_elements(catfile) ne 0 then begin
         tb=mrdfits(catfile,2)
-        tb=tb[where(tb.snr_win gt minsnr and tb.ELONGATION le maxelong)]
-        xi=tb.x_image-1 ; pixel number -> IDL index
-        yi=tb.y_image-1 ; pixel number -> IDL index
+        tb=tb[where(tb.snr_win gt minsnr and tb.ELONGATION le maxelong and tb.flags eq 0)]
+        xi=tb.x_image-1. ; pixel number -> IDL index
+        yi=tb.y_image-1. ; pixel number -> IDL index
     endif
     if  n_elements(ra) ne 0 then begin
         adxy,hd,ra,dec,xi,yi
@@ -160,7 +160,7 @@ for i=0,n_elements(catalogs)-1 do begin
     endif
     if  keyword_set(gcntrd) then begin
         im=readfits(image,hd)
-        gcntrd,im,xlist,ylist,xi,yi,fwhm/psize,/silent
+        gcntrd,im,xlist,ylist,xi,yi,fwhm/psize,/silent,MAXGOOD=25000
     endif
     if  keyword_set(cntrd) then begin
         im=readfits(image,hd)
@@ -185,7 +185,7 @@ for i=0,n_elements(catalogs)-1 do begin
     astr_new=solve_astro(rlist[tag_gsc],dlist[tag_gsc],ximg+1.0,yimg+1.0,$
         naxis1=sxpar(hd,'NAXIS1'),naxis2=sxpar(hd,'NAXIS2'),$
         CRVAL=[sxpar(hd,'CRVAL1'),sxpar(hd,'CRVAL2')],$
-        distort='tnx',$
+        distort='tnx',xterms=2,etaorder=6,xiorder=6,niter=3,$
         xirms=xrms,etarms=yrms,xiresid=xiresid,etaresid=etaresid,success=success,wfit=wfit)
 
     extast,hd,astr
@@ -206,7 +206,8 @@ for i=0,n_elements(catalogs)-1 do begin
     ;   OPTIONAL: PRODUCE CHECK CUBE
 
     if  keyword_set(check_image) then begin
-        xyad,hd,xcat,ycat,xra,xdec
+        xra=rlist[tag_gsc]
+        xdec=dlist[tag_gsc]
         cube1=make_array(51,51,n_elements(xra),/f,/no,value=!values.f_nan)
         cube2=make_array(51,51,n_elements(xra),/f,/no,value=!values.f_nan)
         im=readfits(image,hd)
@@ -217,8 +218,8 @@ for i=0,n_elements(catalogs)-1 do begin
             hastrom_nan,im,hd_new,imk,imkhd,temphd,missing=!VALUES.F_NAN,/silent,interp=0
             cube2[*,*,k]=imk
         endfor
-        writefits,repstr(image,'.fits',tags[i]+'-check-old.fits'),cube1
-        writefits,repstr(image,'.fits',tags[i]+'-check-new.fits'),cube2
+        writefits,outname+tags[i]+'_match_astro_check-old.fits',cube1
+        writefits,outname+tags[i]+'_match_astro_check-new.fits',cube2
     endif
 
     tmp={   refsys:catalogs[i],$
@@ -230,7 +231,7 @@ for i=0,n_elements(catalogs)-1 do begin
     
     set_plot,'ps'
     device,filename=outname+tags[i]+'_match_astro_check.eps',bits=8,$
-        xsize=8,ysize=4.0,$
+        xsize=8,ysize=8.0,$
         /inches,/encapsulated,/color
     !p.thick=2.0
     !x.thick = 2.0
@@ -241,12 +242,16 @@ for i=0,n_elements(catalogs)-1 do begin
     !x.gridstyle = 0
     !y.gridstyle = 0
     xyouts,'!6'
+
+    ;+++++++
+    ; BEFORE
+    ;+++++++
     
     plot,xd*(-psize),yd*psize,psym=symcat(3),xrange=[1.5,-1.5],$
         yrange=[-1.5,1.5],xstyle=1,ystyle=1,$
-        xtitle=textoidl('\delta xi ["]'),ytitle=textoidl('\delta eta ["]'),$
+        xtitle='',ytitle=textoidl('\delta eta ["]'),$
         title='Offsets: Measured-Expected('+catalogs[i]+')',$
-        pos=[0.1,0.1,0.5,(0.5-0.1)*2.0+0.1]
+        pos=[0.1,0.5,0.5,0.9],/noe,xtickformat='(A1)'
     
     ;oplot,xd[wfit]*psize,yd[wfit]*psize,psym=symcat(9),color=cgcolor('red')
     
@@ -256,27 +261,80 @@ for i=0,n_elements(catalogs)-1 do begin
     al_legend,outname,box=0,/left,/bottom
     
     al_legend,$
-        ['matching rate:',$
-        string(n_elements(ximg),format='(i4)')+'/'+$
-        string(n_elements(xlist),format='(i4)'),$
-        'xrms='+string(sigdx,format='(f6.3)')+'"',$
-        'xrms='+string(sigdy,format='(f6.3)')+'"',$
-        'xoffset='+string(xm*(-psize),format='(f6.3)')+'"',$
-        'yoffset='+string(ym*psize,format='(f6.3)')+'"'],$
-        box=0,$
-        /right,/top
-    al_legend,'pix='+strtrim(string(psize,format='(f6.3)'),2)+'"',box=0,/bottom,/right
+      ['matching rate:',$
+      string(n_elements(ximg),format='(i4)')+'/'+$
+      string(n_elements(xlist),format='(i4)'),$
+      'xrms='+string(sigdx,format='(f6.3)')+'"',$
+      'xrms='+string(sigdy,format='(f6.3)')+'"',$
+      'xoffset='+string(xm*(-psize),format='(f6.3)')+'"',$
+      'yoffset='+string(ym*psize,format='(f6.3)')+'"',$
+      'pix='+strtrim(string(psize,format='(f6.3)'),2)+'"'],$
+      box=0,$
+      /right,/top
     
     oplot,xm*psize*[-1,-1],[-10,10],color=cgcolor('red'),thick=4
     oplot,[-10,10],ym*psize*[1,1],color=cgcolor('red'),thick=4
     
-    plot,xcat,yd*psize,yrange=[-1.7,1.7],psym=symcat(3),xrange=[0,sxpar(hd,'NAXIS1')],xstyle=1,/noe,pos=[0.6,0.55,0.99,0.9],$
+    plot,xcat,yd*psize,yrange=[-1.7,1.7],psym=symcat(3),xrange=[0,sxpar(hd,'NAXIS1')],xstyle=1,/noe,$
+        pos=[0.6,0.75,0.99,0.9],$
         xtitle='px',ytitle=textoidl('\delta ETA ["]'),ystyle=1,symsize=0.5
 
     oplot,[0,100000],ym*psize*[1,1],color=cgcolor('red'),thick=4
 
-    plot,ycat,xd*(-psize),yrange=[-1.7,1.7],psym=symcat(3),xrange=[0,sxpar(hd,'NAXIS2')],xstyle=1,/noe,pos=[0.6,0.1,0.99,0.45],$
+    plot,ycat,xd*(-psize),yrange=[-1.7,1.7],psym=symcat(3),xrange=[0,sxpar(hd,'NAXIS2')],xstyle=1,/noe,$
+        pos=[0.6,0.55,0.99,0.70],$
         xtitle='py',ytitle=textoidl('\delta XI ["]'),ystyle=1,symsize=0.5
+
+    oplot,[0,100000],xm*psize*[-1,-1],color=cgcolor('red'),thick=4
+    
+    ;+++++++
+    ; AFTER
+    ;+++++++
+    
+    adxy,hd_new,rlist,dlist,xlist,ylist
+
+    xcat=xlist[tag_gsc]
+    ycat=ylist[tag_gsc]
+    xd=ximg-xcat
+    yd=yimg-ycat
+    
+    
+    plot,xd*(-psize),yd*psize,psym=symcat(3),xrange=[1.5,-1.5],$
+      yrange=[-1.5,1.5],xstyle=1,ystyle=1,$
+      xtitle=textoidl('\delta xi ["]'),ytitle=textoidl('\delta eta ["]'),$
+      pos=[0.1,0.1-0.01,0.5,0.5-0.01],/noe
+
+    ;oplot,xd[wfit]*psize,yd[wfit]*psize,psym=symcat(9),color=cgcolor('red')
+
+    RESISTANT_Mean, xd, 2, xm, sigdx
+    RESISTANT_Mean, yd, 2, ym, sigdy
+
+    al_legend,outname,box=0,/left,/bottom
+
+    al_legend,$
+      ['matching rate:',$
+      string(n_elements(ximg),format='(i4)')+'/'+$
+      string(n_elements(xlist),format='(i4)'),$
+      'xrms='+string(sigdx,format='(f6.3)')+'"',$
+      'xrms='+string(sigdy,format='(f6.3)')+'"',$
+      'xoffset='+string(xm*(-psize),format='(f6.3)')+'"',$
+      'yoffset='+string(ym*psize,format='(f6.3)')+'"',$
+      'pix='+strtrim(string(psize,format='(f6.3)'),2)+'"'],$
+      box=0,$
+      /right,/top
+
+    oplot,xm*psize*[-1,-1],[-10,10],color=cgcolor('red'),thick=4
+    oplot,[-10,10],ym*psize*[1,1],color=cgcolor('red'),thick=4
+
+    plot,xcat,yd*psize,yrange=[-1.7,1.7],psym=symcat(3),xrange=[0,sxpar(hd,'NAXIS1')],xstyle=1,/noe,$
+      pos=[0.6,0.5-0.01-0.15,0.99,0.5-0.01],$
+      xtitle='px',ytitle=textoidl('\delta ETA ["]'),ystyle=1,symsize=0.5
+
+    oplot,[0,100000],ym*psize*[1,1],color=cgcolor('red'),thick=4
+
+    plot,ycat,xd*(-psize),yrange=[-1.7,1.7],psym=symcat(3),xrange=[0,sxpar(hd,'NAXIS2')],xstyle=1,/noe,$
+      pos=[0.6,0.5-0.01-0.15-0.05-0.15,0.99,0.5-0.01-0.15-0.05],$
+      xtitle='py',ytitle=textoidl('\delta XI ["]'),ystyle=1,symsize=0.5
 
     oplot,[0,100000],xm*psize*[-1,-1],color=cgcolor('red'),thick=4
     
