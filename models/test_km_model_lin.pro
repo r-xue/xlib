@@ -41,7 +41,7 @@ fh2_jump[tag,i]=(x_model[tag]-sat[i])/x_model[tag]
 endfor
 
 set_plot, 'ps'
-device, filename=loc+'test_lin.eps', $
+device, filename='test_lin.eps', $
 bits_per_pixel=8,/encapsulated,$
 xsize=8,ysize=8,/inches,/col,xoffset=0,yoffset=0,/cmyk
 
@@ -65,10 +65,10 @@ oplot,x_model,x_model*(1-fh2_mckee[*,i]),color=cgcolor(z_color[i]),linestyle=0
 oplot,x_model,x_model*(1-fh2_mckee10[*,i]),color=cgcolor(z_color[i]),linestyle=1
 oplot,x_model,x_model*(1-fh2_jump[*,i]),color=cgcolor(z_color[i]),linestyle=2
 endfor
-legend,['Z=0.2Z!d!9n!3!n','Z=1Z!d!9n!3!n'],$
+al_legend,['Z=0.2Z!d!9n!3!n','Z=1Z!d!9n!3!n'],$
   textcolors=cgcolor(z_color),$
   pos=[0.12,0.80],/norm,box=0
-legend,['MK10 '+textoidl('\phi_{CNM}=3'),$
+al_legend,['MK10 '+textoidl('\phi_{CNM}=3'),$
         'MK10M '+textoidl('\phi_{CNM}=3'),$
         'MK10 '+textoidl('\phi_{CNM}=8')],$
         linestyle=[0,2,1],$
