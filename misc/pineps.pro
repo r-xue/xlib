@@ -1,5 +1,5 @@
 PRO PINEPS, pdfname, epslist, clean=clean, print=print,$
-    latex=latex,width=width,landscape=landscape,$
+    latex=latex,pdflatex=pdflatex,width=width,landscape=landscape,$
     nx=nx,papersize=papersize
 ;+
 ; NAME:
@@ -19,7 +19,8 @@ PRO PINEPS, pdfname, epslist, clean=clean, print=print,$
 ;   nx          -- for /latex   number of panels in each row
 ;
 ; KEYWORDS:
-;   latex       use pdflatex to combine eps
+;   latex         use latex (or pdflatex) to combine eps
+;   pdflatex      optionally use pdflatex
 ;   
 ; HISTORY:
 ;
@@ -28,6 +29,7 @@ PRO PINEPS, pdfname, epslist, clean=clean, print=print,$
 ;-
 
 fulllist=epslist+'.eps'
+
 if  not keyword_set(latex) then begin
 
     psfiles=strjoin(fulllist,' ')
@@ -46,8 +48,7 @@ if  not keyword_set(latex) then begin
     if keyword_set(clean) then spawn,cmd
 
 endif else begin
-    
-    
+
     if  keyword_set(width) then width=string(width,format='(f4.2)') else width='0.99'
     if  not keyword_set(nx) then nx=1
     openw, lun, 'tmp_pineps.tex', /get_lun, width=400
@@ -79,20 +80,21 @@ endif else begin
     close, lun
     free_lun, lun
     
-    ;spawn,'latex tmp_pineps.tex'
-    ;spawn,'dvipdfm '+pdfname+'.dvi' ;spawn,'dvips '+pdfname+'.dvi -o'
-    spawn,'pdflatex -shell-escape tmp_pineps.tex'
+    if  keyword_set(pdflatex) then begin
+        spawn,'pdflatex -shell-escape tmp_pineps.tex'
+    endif else begin
+        spawn,'latex tmp_pineps.tex'
+        spawn,'dvipdfm tmp_pineps.dvi';spawn,'dvips '+pdfname+'.dvi -o'
+    endelse
     
     ;   RENAME LATEX TMP FILES
     spawn,'mv tmp_pineps.pdf '+pdfname+'.pdf'
     extlist=['.dvi','.aux','.log','.tex']
     for k=0,n_elements(extlist)-1 do begin
-        
         if  file_test('tmp_pineps'+extlist[k]) then begin
             spawn,'mv tmp_pineps'+extlist[k]+' '+pdfname+extlist[k]
             if  keyword_set(clean) then spawn,'rm '+pdfname+extlist[k]
         endif
-        
     endfor
     
     ;   REMOVE INDIVIDUAL EPS FILES
@@ -103,10 +105,12 @@ endif else begin
     endif
     
     ;   CLEAN UP PDFLATEX EPS STRACH
-    psfiles=repstr(fulllist,'.eps','-eps-converted-to.pdf')
-    psfiles=strjoin(psfiles,' ')
-    cmd="rm -rf "+psfiles
-    spawn,cmd
+    if  keyword_set(pdflatex) then begin
+        psfiles=repstr(fulllist,'.eps','-eps-converted-to.pdf')
+        psfiles=strjoin(psfiles,' ')
+        cmd="rm -rf "+psfiles
+        spawn,cmd
+    endif
     
 endelse
 
