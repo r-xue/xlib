@@ -39,6 +39,8 @@ PRO MAKE_CUTOUTS,objs,$
 ;
 ;-
 
+objsinp=objs
+
 if  ~keyword_set(mode) then mode=1
 
 ;   FIND OUT A LIST OF UNIQ FITS/EXTENSION COMBINATIONS
@@ -149,6 +151,7 @@ endforeach
 print,''
 
 objsout=objs
+objs=objsinp
 
 
 END

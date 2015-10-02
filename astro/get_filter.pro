@@ -184,13 +184,14 @@ if  select eq 'irac-ch4' then begin
     vega2ab=4.40
 endif
 
-filter={name:name,$         ; shortname    
-        namef:namef,$       ; formated name (for IDL plots)
-        ew:ew,$             ; ew in AA
-        effwave:effwave,$   ; effective wavelength
-        vega2ab:vega2ab,$   ; AB=Vega+vega2ab
-        wave:wave,$         ; wave vector
-        tran:tran}          ; transmision function vector
+filter={name:name,$                   ; shortname    
+        namef:namef,$                 ; formated name (for IDL plots)
+        ew:ew,$                       ; ew in AA
+        effwave:effwave,$             ; effective wavelength
+        ewf:3e10*1e8/effwave^2.0*ew,$ ; ew in hz
+        vega2ab:vega2ab,$             ; AB=Vega+vega2ab
+        wave:wave,$                   ; wave vector
+        tran:tran}                    ; transmision function vector
 
 return,filter
 

@@ -9,7 +9,7 @@ PRO RADPROFILE_PLOT,rp,name,extrafun=extrafun
 
 set_plot,'ps'
 device,filename=name+'_radprofile.eps',bits=8,$
-    xsize=4.5,ysize=3.5,$
+    xsize=5.0,ysize=5.0,$
     /inches,/encapsulated,/color
 !p.thick=2.0
 !x.thick = 2.0
@@ -32,8 +32,7 @@ plot,[1],[1],psym=cgsymcat(1),$
     xtitle='Radius ["]',$
     ytitle='Normalized Radial Profile',$
     ;title=csv+'_'+band+'_'+gtag+'_'+stag+'.dat'$
-    /nodata,pos=[0.1,0.1,0.9,0.95]
-
+    /nodata,pos=[0.1,0.55,0.9,0.95]
 
 ns=max(rp.median,/nan)
 ns1=max(rp.mean,/nan)
@@ -41,11 +40,11 @@ ns1=max(rp.mean,/nan)
 c2f=1.0
 
 axis,YAxis=1, YLog=1, YRange=yrange*ns*c2f,$
-    ytitle='10!u-20!n erg s!u-1!n cm!u-2!n arcsec!u-2!n '+cgSymbol('angstrom')+'!u-1!n',$
+    ytitle='image units',$
     ytickformat='logticks_exp'
 for i=0,n_elements(rp.center)-1 do begin    
     cgplots,[rp.center[i],rp.center[i]],([rp.quarlow[i],rp.quarup[i]]/ns)>(min(yrange)*0.1),thick=5,color=cgcolor('red'),noclip=0
-    print,rp.center[i],rp.quarlow[i],rp.quarup[i],rp.mean[i]
+    ;print,rp.center[i],rp.quarlow[i],rp.quarup[i],rp.mean[i]
     cgplots,rp.center[i],rp.median[i]/ns,psym=symcat(16),noclip=0,color=cgcolor('red')
     ;cgplots,rp.center[i],rp.mean[i]/ns1,psym=symcat(6),noclip=0,color=cgcolor('black')
 endfor
@@ -71,7 +70,6 @@ note=name
 note=[note,'skysub='+string(rp.skysub,format='(f8.5)'),'sky='+string(rp.sky,format='(f8.5)')]
 al_legend,[note,'!6FWHM!dOBJ!n='+string(rp.fwhmd,format='(f4.2)')+'"'],box=0,/top,/right
 
-
 oplot,rp.center_model,rp.mean_model/ns,linestyle=0,color=cgcolor('red')
 
 
@@ -79,7 +77,15 @@ if  n_elements(extrafun) ne 0 then begin
     CALL_PROCEDURE,extrafun
 endif
 
-
+ftag=where(rp.center gt xrange[0] and rp.center le xrange[1])
+plot,[1],[1],psym=cgsymcat(1),$
+  xrange=xrange,xstyle=1,$
+  yrange=[0,max((rp.cflux)[ftag],/nan)*1.1],ystyle=1,$
+  xtitle='Radius ["]',$
+  ytitle='Cumulative Flux',$
+  ;title=csv+'_'+band+'_'+gtag+'_'+stag+'.dat'$
+  /nodata,pos=[0.1,0.1,0.9,0.50],/noe
+oploterror,rp.center,rp.cflux,rp.cflux_sig
 ;; FOR PSF
 ;
 ;
