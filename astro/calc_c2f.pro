@@ -17,12 +17,12 @@ FUNCTION CALC_C2F,cps,$
 ;   band
 ;   vega2ab AB=Vega+vega2ab
 ;   zpt
-;   psize   erg s^-1 cm^-2 arcsec^-2
+;   psize   
 
 ;   BAND will overwrite vega2ab/zpt/psize
 ;
 ; OUTOUTS:
-;   flux
+;   flux 
 ;
 ; KEYWORDS:
 ;
@@ -41,13 +41,15 @@ FUNCTION CALC_C2F,cps,$
 
 if  n_elements(vega2ab) eq 0 then vega2ab=0.0
 if  n_elements(zpt) eq 0 then zpt=21.0
-if  n_elements(effwave) eq 0 then effwave=6513.54
 
 mab=-2.5*alog10(cps)+zpt+vega2ab
 
-fl=10.^(-(mab+48.6)*2./5.)              ; in erg s^-1 cm^-2 hz^-1
-fl=fl*1e23                              ; in Jy
-fl=fl/3.34e4/(effwave)^2.0                  ; in erg cm^-2 s^-1 A^-1
+fl=10.^(-(mab+48.6)*2./5.)                      ; in erg s^-1 cm^-2 hz^-1
+
+if  n_elements(effwave) ne 0 then begin
+    fl=fl*1e23                                  ; in Jy
+    fl=fl/3.34e4/(effwave)^2.0                  ; in erg cm^-2 s^-1 A^-1
+endif
 
 ;print,'+'
 ;print,mag2flux(mab,abwave=effwave)
