@@ -38,6 +38,12 @@ im[where(im eq 50000.0,/null)]=!values.f_nan
 xg=(sz[1]-1)/2.
 yg=(sz[2]-1)/2.
 gcntrd,im,xg,yg,xcen,ycen,5.0/psize,/silent,maxgood=50000.0
+
+if  keyword_set(center) then begin
+    xcen=xg*1.0
+    ycen=yg*1.0
+endif
+
 dist_ellipse,temp,sz[[1,2]],xcen,ycen,1.0,0.,/double
 temp=temp*psize
 
@@ -59,42 +65,40 @@ print,'1st cntrd: ',xcen,ycen
 print,'1st sky:',sky
 
 ;+++
-name=repstr(file,'.fits','')
-sexconfig=INIT_SEX_CONFIG()
-sexconfig.detect_thresh=1.00
-sexconfig.analysis_thresh=1.00
-sexconfig.pixel_scale=psize
-sexconfig.DETECT_MINAREA=(5.0+4.0)*9.0
-sexconfig.seeing_fwhm=1.25
-sexconfig.CLEAN_PARAM=1.0 ; 2.0
-sexconfig.PARAMETERS_NAME='/Users/Rui/GDrive/Worklib/projects/xlib/etc/xlib.sex.param'
-sexconfig.BACK_SIZE=round(skysize/psize)    ; in pixels
-sexconfig.BACK_FILTERSIZE=5.0
-sexconfig.catalog_name=name+'.cat'
-sexconfig.FILTER_NAME='/Users/Rui/GDrive/Worklib/projects/xlib/etc/gauss_3.0_5x5.conv'
-sexconfig.CATALOG_TYPE='FITS_LDAC'
-sexconfig.checkimage_type='SEGMENTATION,BACKGROUND'
-sexconfig.checkimage_name=name+'_seg.fits'+','+name+'_sbg.fits'
-sexconfig.DEBLEND_NTHRESH=64
-sexconfig.DEBLEND_MINCONT=0.0001    ; better use a small value for debelending
-sexconfig.PSFDISPLAY_TYPE=''
-im_sex,name+'.fits',sexconfig
+;name=repstr(file,'.fits','')
+;sexconfig=INIT_SEX_CONFIG()
+;sexconfig.detect_thresh=1.00
+;sexconfig.analysis_thresh=1.00
+;sexconfig.pixel_scale=psize
+;sexconfig.DETECT_MINAREA=(5.0+4.0)*9.0
+;sexconfig.seeing_fwhm=1.25
+;sexconfig.CLEAN_PARAM=1.0 ; 2.0
+;sexconfig.PARAMETERS_NAME='/Users/Rui/GDrive/Worklib/projects/xlib/etc/xlib.sex.param'
+;sexconfig.BACK_SIZE=round(skysize/psize)    ; in pixels
+;sexconfig.BACK_FILTERSIZE=5.0
+;sexconfig.catalog_name=name+'.cat'
+;sexconfig.FILTER_NAME='/Users/Rui/GDrive/Worklib/projects/xlib/etc/gauss_3.0_5x5.conv'
+;sexconfig.CATALOG_TYPE='FITS_LDAC'
+;sexconfig.checkimage_type='SEGMENTATION,BACKGROUND'
+;sexconfig.checkimage_name=name+'_seg.fits'+','+name+'_sbg.fits'
+;sexconfig.DEBLEND_NTHRESH=64
+;sexconfig.DEBLEND_MINCONT=0.0001    ; better use a small value for debelending
+;sexconfig.PSFDISPLAY_TYPE=''
+;im_sex,name+'.fits',sexconfig
 ;++++
 
 
 ;   SKYSUB
 if  ~keyword_set(nosub) then begin
     if  n_elements(skysub) ne 0 then begin
-      im=im-skysub
+        im=im-skysub
     endif else begin
-      
-      im=im-sky
-      skysub=sky
-      
-;      sbg=readfits(name+'_sbg.fits',sbghd)
-;      print,'read background:',name+'_sbg.fits'
-;      im=im-sbg
-;      skysub=median(sbg)
+        im=im-sky
+        skysub=sky
+;       sbg=readfits(name+'_sbg.fits',sbghd)
+;       print,'read background:',name+'_sbg.fits'
+;       im=im-sbg
+;       skysub=median(sbg)
     endelse
     print,'sky background subtracted'
 endif else begin
@@ -156,14 +160,16 @@ for i=0,n_elements(ri)-1 do begin
     xp=ri[i]
     tagring=where(temp le ri[i]+rbin/2.0 and temp ge ri[i]-rbin/2.0 and im eq im)
     tagcflux=where(temp le ri[i] and im eq im)
-    ;if  tagring[0] eq -1 then continue
+    if  tagring[0] eq -1 then continue
     yp=im[tagring]
+    
     dy=cgPercentiles(yp, Percentiles=[0.25, 0.5, 0.75])
-    rmedian=[rmedian,median(yp)]
+    rmedian=[rmedian,dy[1]]
     rrms=[rrms,medabsdev(yp)]
     
-    rcflux=[rcflux,total(im[tagcflux])]
-    rcflux_sig=[rcflux_sig,skysig*(n_elements(tagcflux)*(1.50/psize))^0.5]
+    if  tagcflux[0] eq -1 then rcflux=[rcflux,0.0] else rcflux=[rcflux,total(im[tagcflux])]
+    
+    rcflux_sig=[rcflux_sig,skysig*(n_elements(tagcflux)*1.0)^0.5*(1.00/psize)]
     
     ;rquarlow=[rquarlow,dy[0]]
     ringspace=!dpi*((ri[i]+rbin/2.0)^2.0-(ri[i]-rbin/2.0>0.0)^2.0)
@@ -198,10 +204,10 @@ print,'fwhm_m',fwhmm,'"'
 fwhmd=2.0*interpol(ri,rmedian,0.5*max(rmedian,/nan))
 print,'fwhm_d',fwhmd,'"'
 
-rms=rms0
+rms=skysig
 ringspace=!dpi*((ri+rbin/2.0)^2.0-(ri-rbin/2.0>0.0)^2.0)
 ringnpix=ringspace/(rbin)^2.0
-rsigma=3.0*rms/sqrt(ringnpix)
+rsigma=rms/sqrt(ringnpix/3./3.)
 
 
 rp={center:ri,$

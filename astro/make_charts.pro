@@ -18,6 +18,7 @@ PRO MAKE_CHARTS,OBJ,mode=mode,$
 ;           .dec        DEC
 ;           .bxsz       box size (in arcsec)
 ;           .cell       cell size (in arcsec)
+;                       actually the cell size was determined by device dpi
 ;           .band       band name
 ;           .imfile     fits image full path
 ;           .imext      fits image extension
@@ -126,7 +127,7 @@ for nc=0,nobj-1 do begin
             xtitle=textoidl("!6\delta(R.A.) ['']")
             ytitle=textoidl("!6\delta(Dec.) ['']")
         endif
-        if  i eq fix((layout.nxy)[0]/2.0) and (layout.nxy)[0] ne 1 then xtitle=oname
+        if  i eq floor((layout.nxy)[0]/2.0)-1 and (layout.nxy)[0] ne 1 then xtitle=oname
         cgloadct,0
         subim=fltarr(10,10)+255
         cgimage,subim,pos=posp,/keep,/noe
@@ -218,10 +219,10 @@ for nc=0,nobj-1 do begin
         if  (layout.nxy)[0] eq 1 then begin
             xyouts,posp[2]+(posp[2]-posp[0])*0.1,(posp[1]+posp[3])*0.5,'!6'+band[i],ori=-90,/norm,ali=0.5
         endif
-        tx=posp[0]+(posp[2]-posp[0])*0.07
-        ty=posp[1]+(posp[3]-posp[1])*0.93
+        tx=posp[0]+(posp[2]-posp[0])*0.05
+        ty=posp[1]+(posp[3]-posp[1])*0.95
         al_legend,subtitle+' ',pos=[tx,ty],background_color='white',$
-            textc='red',box=0,/norm,charsize=0.7
+            textc='red',box=0,/norm,charsize=0.6
 
     endfor
     
@@ -289,6 +290,26 @@ if  project eq 'oden' then begin
     label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)+' LBG CORE '
 endif
 
+if  project eq 'keck' then begin
+  path='pcf_dropouts_Ideep_pcfo_clean.dat'
+  restore,'pcf_dropouts_Ideep_pcfo_clean.template'
+  ttt=read_ascii(path,tem=template)
+  ra=ttt.field02
+  dec=ttt.field03
+  label=strtrim(ttt.field01,2)+'   '+strtrim(ttt.field06,2)+'   '+strtrim(ttt.field14,2)
+  objname=strtrim(ttt.field01,2)
+endif
+
+if  project eq 'keck2' then begin
+  path='pcf_dropouts_Ideep_pcfo_v2_clean.dat'
+  restore,'pcf_dropouts_Ideep_pcfo_clean.template'
+  ttt=read_ascii(path,tem=template)
+  ra=ttt.field02
+  dec=ttt.field03
+  label=strtrim(ttt.field01,2)+'   '+strtrim(ttt.field06,2)+'   '+strtrim(ttt.field14,2)
+  objname=strtrim(ttt.field01,2)
+endif
+
 ;   SETUP OBJECTS STRUCTURE
 
 print,'number of objs:',n_elements(ra)
@@ -297,13 +318,13 @@ str={source:'',$                        ; source name
     label:'',$                          ; label for this object
     ra:!values.f_nan,$                  ; ra (in degree)
     dec:!values.f_nan,$                 ; dec (in degree)
-    bxsz:replicate(!values.f_nan,7),$   ; box size (in arcsec)
-    cell:replicate(!values.f_nan,7),$   ; cell size (in arcsec)
-    band:replicate('',7),$              ; BAND TAG
-    imfile:replicate('',7),$            ; fits file full path
-    ptile_min:replicate(0.5,7),$        ; percentile color scaling
-    ptile_max:replicate(0.95,7),$       ; percentile color scaling
-    imext:replicate(0,7)}               ; fits file extension
+    bxsz:replicate(!values.f_nan,6),$   ; box size (in arcsec)
+    cell:replicate(!values.f_nan,6),$   ; cell size (in arcsec)
+    band:replicate('',6),$              ; BAND TAG
+    imfile:replicate('',6),$            ; fits file full path
+    ptile_min:replicate(0.5,6),$        ; percentile color scaling
+    ptile_max:replicate(0.95,6),$       ; percentile color scaling
+    imext:replicate(0,6)}               ; fits file extension
 str=replicate(str,n_elements(ra))
 
 ;   LOAD OBJECTS INFO
@@ -321,30 +342,37 @@ endif else begin
 endelse
 
 str.bxsz=15.0
-str.cell=[0.26,0.26,0.3,0.3,0.4,0.4,0.90]
-str.band=['WRC4','Bw','R','I','H','Ks','IRAC1']
-str.imfile[1,*]='/Users/Rui/Workspace/highz/products/mosaic/stack_Bw_all.fits'
-str.imfile[3,*]='/Users/Rui/Workspace/highz/products/mosaic/stack_I_all.fits'
-str.imfile[2,*]='/Users/Rui/Workspace/highz/products/mosaic/stack_R_all.fits'
-str.imfile[0,*]='/Users/Rui/Workspace/highz/products/mosaic/stack_wrc4_all.fits'
+str.cell=[0.26,0.26,0.3,0.3,0.4,0.4]
+str.band=['WRC4','Bw','R','I','H','Ks']
+str.imfile[1,*]='stack_Bw_pcfo.fits'
+str.imfile[3,*]='stack_I_pcfo.fits'
+str.imfile[2,*]='stack_R_pcfo.fits'
+str.imfile[0,*]='stack_wrc4_pcfo.fits'
 
-m='/Users/Rui/Workspace/highz/products/newfirm/stack_v5/pcf_h.fits'
+m='stack_H.fits'
 hd=headfits(m)
 inout=check_point(hd,str.ra,str.dec)
 str[where(inout eq 1,/null)].imfile[4,*]=m
 
-m='/Users/Rui/Workspace/highz/products/newfirm/stack_v5/pcf_k.fits'
+m='stack_Ks.fits'
 hd=headfits(m)
 inout=check_point(hd,str.ra,str.dec)
 str[where(inout eq 1,/null)].imfile[5,*]=m
 
-m='/Users/Rui/Workspace/highz/products/newfirm/imref/irac1.fits'
-hd=headfits(m)
-inout=check_point(hd,str.ra,str.dec)
-str[where(inout eq 1,/null)].imfile[6,*]=m
+;m='/Users/Rui/Workspace/highz/products/newfirm/imref/irac1.fits'
+;hd=headfits(m)
+;inout=check_point(hd,str.ra,str.dec)
+;str[where(inout eq 1,/null)].imfile[6,*]=m
+
+layout={xsize:8,$
+  ysize:1.7,$
+  nxy:[6,1],$
+  margin:[0.005,0.005],$
+  omargin:[0.06,0.15,0.01,0.01],$
+  type:0}
 
 ;   RUN MAKE_CHARTS / OUPUT EPS FILE LIST
-make_charts,str,outname=outname
+make_charts,str,outname=outname,layout=layout
 
 if  strmatch(project,'DVPC*',/f) then begin
     pineps,/latex,'xhs_fcs_deimos_'+project,outname,/clean
@@ -353,3 +381,6 @@ endif else begin
 endelse
 
 END
+
+
+
