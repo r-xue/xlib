@@ -1,4 +1,6 @@
-PRO CASA_MOSSEN,prefix,postfix,pattern=pattern,$
+PRO CASA_MOSSEN,prefix,postfix,$
+    pattern=pattern,$
+    wtlog=wtlog,$
     pbstat=pbstat,pbkeep=pbkeep,$
     mask0=mask0,_EXTRA=extra
 
@@ -86,14 +88,17 @@ pattern=1.0/flux
 cn=findgen(nchan)
 
 ncol=0
-if  file_test(prefix+'.src.ms.sumwt.log') then begin
-    ncol=count_columns(prefix+'.src.ms.sumwt.log')
+
+sumwtlog=prefix+'.src.ms.sumwt.log'
+if  keyword_set(wtlog)  then sumwtlog=wtlog
+if  file_test(sumwtlog) then begin
+    ncol=count_columns(sumwtlog)
     if  ncol eq 1 then begin
-        readcol,prefix+'.src.ms.sumwt.log',vs
+        readcol,sumwtlog,vs
         print,'oldstyle sumwt.log'
     endif
     if  ncol eq 3 then begin
-        readcol,prefix+'.src.ms.sumwt.log',ich,iv,vs
+        readcol,sumwtlog,ich,iv,vs
         print,'newstyle sumwt.log'
     endif
 endif else begin
@@ -124,7 +129,7 @@ endfor
 pattern=pattern/min(pattern,/nan)
 
 mask=float(flux gt pbstat)
-sen=ERR_CUBE(im/flux, hd, pattern=pattern,mask=mask,_extra=extra)
+sen=ERR_CUBE(im/flux, pattern=pattern,mask=mask,_extra=extra)
 
 if  keyword_set(mask0) then begin
     fov=total(float(flux gt pbkeep),3)
