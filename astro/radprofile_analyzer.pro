@@ -52,10 +52,12 @@ skytag=where(temp gt skyrad[0] and temp le skyrad[1] and im ne 0 and im eq im)
 print,'sky pixels:',strtrim(n_elements(skytag),2),'/',strtrim(n_elements(temp),2)
 stat=im[skytag]
 msky=median(stat)
-rmsa=robust_sigma(stat,goodvec=goodvec)
 rms0=robust_sigma(stat,goodvec=goodvec,/zero)
+rmsa=robust_sigma(stat,goodvec=goodvec)
+
 print,'sky median:',strtrim(msky,2)
 print,'sky robrms:',strtrim(rmsa,2),'/',strtrim(rms0,2)
+print,'sky robave:',median(stat[goodvec])
 mmm,stat,sky,skysig,temp2
 print,'sky mmmsky:',sky
 print,'sky mmmrms:',skysig

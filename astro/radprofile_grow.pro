@@ -1,4 +1,4 @@
-FUNCTION RADPROFILE_GROW,IM,XCEN,YCEN,RBIN,RRANGE=RRANGE,FAST=FAST
+FUNCTION RADPROFILE_GROW,IM,XCEN,YCEN,RBIN,RRANGE=RRANGE,FAST=FAST,addnoise=addnoise
 ;+
 ;   use the median of the pixel at a similar galactocentric distance to
 ;   replace masked pixels
@@ -39,10 +39,13 @@ if  tag[0] ne -1 and keyword_set(fast) then begin
     for i=0,max(temp) do begin
         tag0=where(temp eq i)
         tag1=where(temp eq i and checknan ne checknan)
-        if  n_elements(tag0) le (ceil(rbin)>2) then continue
+        ;if  n_elements(tag0) le (ceil(rbin)>2) then continue
         if  tag1[0] eq -1 then continue
-        fill=median(im[tag0])
+        fill=median(im[tag0],/even)
         imfull[tag1]=fill
+        if  n_elements(addnoise) ne 0 then imfull[tag1]=imfull[tag1]+addnoise*randomn(seed,n_elements(tag1))
+;        mmm,im[tag0],tmpsky,tmpsig,tmpskew
+;        imfull[tag1]=tmpsky+randomn(seed,n_elements(tag1))*tmpsig
     endfor
 endif
 

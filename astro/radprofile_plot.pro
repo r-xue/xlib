@@ -9,7 +9,7 @@ PRO RADPROFILE_PLOT,rp,name,extrafun=extrafun
 
 set_plot,'ps'
 device,filename=name+'_radprofile.eps',bits=8,$
-    xsize=5.0,ysize=5.0,$
+    xsize=5.0,ysize=7.0,$
     /inches,/encapsulated,/color
 !p.thick=2.0
 !x.thick = 2.0
@@ -29,10 +29,11 @@ plot,[1],[1],psym=cgsymcat(1),$
     xrange=xrange,xstyle=1,$
     ytickformat='logticks_exp',$
     yrange=yrange,ystyle=8,/ylog,$
-    xtitle='Radius ["]',$
+    xtitle='',$
+    xtickformat='(a1)',$
     ytitle='Normalized Radial Profile',$
     ;title=csv+'_'+band+'_'+gtag+'_'+stag+'.dat'$
-    /nodata,pos=[0.1,0.55,0.9,0.95]
+    /nodata,pos=[0.1,0.50,0.9,0.95]
 
 ns=max(rp.median,/nan)
 ns1=max(rp.mean,/nan)
@@ -42,12 +43,57 @@ c2f=1.0
 axis,YAxis=1, YLog=1, YRange=yrange*ns*c2f,$
     ytitle='image units',$
     ytickformat='logticks_exp'
+
+
+
+ty1=[]
+ty2=[]
+tx=[]    
 for i=0,n_elements(rp.center)-1 do begin    
-    cgplots,[rp.center[i],rp.center[i]],([rp.quarlow[i],rp.quarup[i]]/ns)>(min(yrange)*0.1),thick=5,color=cgcolor('red'),noclip=0
+    ;cgplots,[rp.center[i],rp.center[i]],([rp.quarlow[i],rp.quarup[i]]/ns)>(min(yrange)*0.1),thick=5,color=cgcolor('dark gray'),noclip=0
+    ;cgplots,[rp.center[i],rp.center[i]],(rp.median[i]/ns+[-rp.rms[i],+rp.rms[i]]/ns)>(min(yrange)*0.1),thick=5,color=cgcolor('dark gray'),noclip=0
     ;print,rp.center[i],rp.quarlow[i],rp.quarup[i],rp.mean[i]
-    cgplots,rp.center[i],rp.median[i]/ns,psym=symcat(16),noclip=0,color=cgcolor('red')
+    cgplots,rp.center[i],rp.median[i]/ns,psym=symcat(16),noclip=0,color=cgcolor('dark gray')
+    cgplots,rp.center[i],rp.mean[i]/ns,psym=symcat(16),noclip=0,color=cgcolor('red')
     ;cgplots,rp.center[i],rp.mean[i]/ns1,psym=symcat(6),noclip=0,color=cgcolor('black')
+    tx=[tx,rp.center[i]]
+    ty1=[ty1,(rp.median[i]/ns+[-rp.sigma[i]]/ns)>(min(yrange)*0.1)]
+    ty2=[ty2,(rp.median[i]/ns+[+rp.sigma[i]]/ns)>(min(rp.sigma[i])/ns)]
 endfor
+oplot,xrange,rp.psigma*[1.,1.]/ns,color=cgcolor('black')
+oplot,rp.center,2.0*rp.sigma/ns,color=cgcolor('gray')
+
+polyfill,[tx,reverse(tx)],[ty2,reverse(ty1)],color=cgcolor('gray'),noclip=0
+
+plot,[1],[1],psym=cgsymcat(1),$
+    xrange=xrange,xstyle=1,$
+    ytickformat='logticks_exp',$
+    yrange=yrange,ystyle=8,/ylog,$
+    xtitle='',$
+    xtickformat='(a1)',$
+    ytitle='Normalized Radial Profile',$
+    ;title=csv+'_'+band+'_'+gtag+'_'+stag+'.dat'$
+    /nodata,pos=[0.1,0.50,0.9,0.95],/noe
+    axis,YAxis=1, YLog=1, YRange=yrange*ns*c2f,$
+        ytitle='image units',$
+        ytickformat='logticks_exp'    
+
+    if  n_elements(extrafun) ne 0 then begin
+        CALL_PROCEDURE,extrafun
+    endif
+
+    for i=0,n_elements(rp.center)-1 do begin
+        ;cgplots,[rp.center[i],rp.center[i]],([rp.quarlow[i],rp.quarup[i]]/ns)>(min(yrange)*0.1),thick=5,color=cgcolor('dark gray'),noclip=0
+        ;cgplots,[rp.center[i],rp.center[i]],(rp.median[i]/ns+[-rp.rms[i],+rp.rms[i]]/ns)>(min(yrange)*0.1),thick=5,color=cgcolor('dark gray'),noclip=0
+        cgplots,[rp.center[i],rp.center[i]],(rp.median[i]/ns+[-rp.sigma[i],+rp.sigma[i]]/ns)>(min(yrange)*0.1),thick=5,color=cgcolor('dark gray'),noclip=0
+        
+        ;print,rp.center[i],rp.quarlow[i],rp.quarup[i],rp.mean[i]
+        cgplots,rp.center[i],rp.median[i]/ns,psym=symcat(16),noclip=0,color=cgcolor('dark gray')
+        cgplots,rp.center[i],rp.mean[i]/ns,psym=symcat(16),noclip=0,color=cgcolor('red')
+        ;cgplots,rp.center[i],rp.mean[i]/ns1,psym=symcat(6),noclip=0,color=cgcolor('black')
+
+    endfor
+
 tag=where(rp.center gt 1.75 and rp.center le 4.0)
 start_params=[2.0,3.0]
 xx=rp.center[tag]
@@ -73,9 +119,7 @@ al_legend,[note,'!6FWHM!dOBJ!n='+string(rp.fwhmd,format='(f4.2)')+'"'],box=0,/to
 oplot,rp.center_model,rp.mean_model/ns,linestyle=0,color=cgcolor('red')
 
 
-if  n_elements(extrafun) ne 0 then begin
-    CALL_PROCEDURE,extrafun
-endif
+
 
 ftag=where(rp.center gt xrange[0] and rp.center le xrange[1])
 plot,[1],[1],psym=cgsymcat(1),$
@@ -84,7 +128,7 @@ plot,[1],[1],psym=cgsymcat(1),$
   xtitle='Radius ["]',$
   ytitle='Cumulative Flux',$
   ;title=csv+'_'+band+'_'+gtag+'_'+stag+'.dat'$
-  /nodata,pos=[0.1,0.1,0.9,0.50],/noe
+  /nodata,pos=[0.1,0.1,0.9,0.48],/noe
 oploterror,rp.center,rp.cflux,rp.cflux_sig
 ;; FOR PSF
 ;
