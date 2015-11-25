@@ -60,6 +60,7 @@ if  ~keyword_set(plot) then begin
     sexconfig.seeing_fwhm=1.00
     sexconfig.PARAMETERS_NAME=cgSourceDir()+'../etc/xlib.sex.param_psfex'
     sexconfig.FILTER_NAME=cgSourceDir()+'../etc/default.conv'
+    sexconfig.STARNNW_NAME=cgSourceDir()+'../etc/default.nnw'
     sexconfig.BACK_SIZE=round(64)    ; in pixels
     sexconfig.catalog_name='tmp.cat'
     sexconfig.CATALOG_TYPE='FITS_LDAC'
