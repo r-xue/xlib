@@ -17,17 +17,17 @@ PRO PSFEX_ANALYZER,name,im,$
 ;   
 ;   ouput:
 ;       name=test_psfex
-;       test_psfex_seg.fits
+;       test_psfex_seg.fits < check the sextractor cookbook
 ;       test_psfex.cat
 ;       test_psfex_all.cat
-;       test_psfex_snap.fits
-;       test_psfex_samp.fits
-;       test_psfex_resi.fits
-;       test_psfex_psfex.fits
-;       test_psfex_proto.fits
-;       test_psfex_chi.fits
-;       test_psfex.psf
-;       test_psfex_vignet.fits
+;       test_psfex_snap.fits < check the psfex cookbook
+;       test_psfex_samp.fits < check the psfex cookbook
+;       test_psfex_resi.fits < check the psfex cookbook
+;       test_psfex_psfex.fits < psf images
+;       test_psfex_proto.fits < check the psfex cookbook
+;       test_psfex_chi.fits < check the psfex cookbook
+;       test_psfex.psf < check the psfex cookbook
+;       test_psfex_vignet.fits < check the psfex cookbook
 ;       test_psfex_psfex_check.eps
 ;       
 ;-
