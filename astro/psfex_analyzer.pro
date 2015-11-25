@@ -4,31 +4,42 @@ PRO PSFEX_ANALYZER,name,im,$
     ELONGATION=elongation,$
     SNR_WIN=SNR_WIN
 ;+
-;   use PSFEX analyze the image PSF
-;   requires:   impro (J.M.)/astrolib(GSFC)
-;               theli
+; NAME:
+;   psfex_analyzer
+; 
+; PURPOSE:
+;   perform <psfex> analysis on a single-pointing image
 ;   
-;   name:   prefix for the output files  
-;   im:     image file name (...)
-;   flag:   flag image (...)
-;   rms:    not implemented yet
+; REQUIREMENTS:
+;   impro (J.M.)/astrolib(GSFC)
+;   theli (https://www.astro.uni-bonn.de/theli/gui/)
+; 
+; INPUTS:
+;   name:       prefix for the output files  
+;   im:         image file name (...)
+;   flag:       flag image (...)
+;   rms:        not implemented yet
 ;   magzero:    specify magzero value if the header value is wrong
-;   /plot:  just plot psfex_check using psfex results from last run
+;   /plot:      just plot psfex_check using psfex results from last run
 ;   
-;   ouput:
-;       name=test_psfex
-;       test_psfex_seg.fits < check the sextractor cookbook
-;       test_psfex.cat
-;       test_psfex_all.cat
-;       test_psfex_snap.fits < check the psfex cookbook
-;       test_psfex_samp.fits < check the psfex cookbook
-;       test_psfex_resi.fits < check the psfex cookbook
-;       test_psfex_psfex.fits < psf images
-;       test_psfex_proto.fits < check the psfex cookbook
-;       test_psfex_chi.fits < check the psfex cookbook
-;       test_psfex.psf < check the psfex cookbook
-;       test_psfex_vignet.fits < check the psfex cookbook
-;       test_psfex_psfex_check.eps
+; OUTPUTS:  if name='test_psfex'
+;   test_psfex_seg.fits < check the sextractor cookbook
+;   test_psfex.cat
+;   test_psfex_all.cat
+;   test_psfex_snap.fits < check the psfex cookbook
+;   test_psfex_samp.fits < check the psfex cookbook
+;   test_psfex_resi.fits < check the psfex cookbook
+;   test_psfex_psfex.fits < psf images
+;   test_psfex_proto.fits < check the psfex cookbook
+;   test_psfex_chi.fits < check the psfex cookbook
+;   test_psfex.psf < check the psfex cookbook
+;   test_psfex_vignet.fits < check the psfex cookbook
+;   test_psfex_psfex_check.eps
+;   
+; HISTORY:
+;
+;   20150401  RX  introduced
+;   20151125  RX  add more comments
 ;       
 ;-
 

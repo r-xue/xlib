@@ -3,7 +3,9 @@ FUNCTION RADPROFILE_ANALYZER,file,outname=outname,$
     modrad=modrad,msrad=msrad,$
     psize=psize,skysub=skysub,$
     rbin=rbin,skysize=skysize,$
-    center=center,extrad=extrad
+    center=center,extrad=extrad,$
+    refxy=refxy,$
+    silent=silent
 ;+
 ;   analyzing the center object radial profile in the FITS image
 ;   psize could be specified if no header is available.
@@ -24,6 +26,7 @@ im=readfits(file,hd)
 if  n_elements(psize) eq 0 then begin
     getrot,hd,rotang,cdelt
     psize=abs(cdelt[0]*60.*60.)
+    if  ~keyword_set(silent) then print,'image psize:',psize
 endif
 
 if  n_elements(rbin) eq 0 then rbin=psize
@@ -37,6 +40,10 @@ im[where(im eq 50000.0,/null)]=!values.f_nan
 ;   FIND XCEN YCEN
 xg=(sz[1]-1)/2.
 yg=(sz[2]-1)/2.
+if  n_elements(refxy) eq 2 then begin
+    xg=refxy[0]
+    yg=refxy[1]
+endif
 gcntrd,im,xg,yg,xcen,ycen,5.0/psize,/silent,maxgood=50000.0
 
 if  keyword_set(center) then begin
@@ -45,26 +52,27 @@ if  keyword_set(center) then begin
 endif
 
 dist_ellipse,temp,sz[[1,2]],xcen,ycen,1.0,0.,/double
+if  ~keyword_set(silent) then print,'used reference center: ',xcen,ycen
 temp=temp*psize
 
 ;   FIND SKY PIXELS
 skytag=where(temp gt skyrad[0] and temp le skyrad[1] and im ne 0 and im eq im)
-print,'sky pixels:',strtrim(n_elements(skytag),2),'/',strtrim(n_elements(temp),2)
+if  ~keyword_set(silent) then print,'sky pixels:',strtrim(n_elements(skytag),2),'/',strtrim(n_elements(temp),2)
 stat=im[skytag]
 msky=median(stat)
 rms0=robust_sigma(stat,goodvec=goodvec,/zero)
 rmsa=robust_sigma(stat,goodvec=goodvec)
 
-print,'sky median:',strtrim(msky,2)
-print,'sky robrms:',strtrim(rmsa,2),'/',strtrim(rms0,2)
-print,'sky robave:',median(stat[goodvec])
+if  ~keyword_set(silent) then print,'sky median:',strtrim(msky,2)
+if  ~keyword_set(silent) then print,'sky robrms:',strtrim(rmsa,2),'/',strtrim(rms0,2)
+if  ~keyword_set(silent) then print,'sky robave:',median(stat[goodvec])
 mmm,stat,sky,skysig,temp2
-print,'sky mmmsky:',sky
-print,'sky mmmrms:',skysig
+if  ~keyword_set(silent) then print,'sky mmmsky:',sky
+if  ~keyword_set(silent) then print,'sky mmmrms:',skysig
 
 ;   PRINT BASICS
-print,'1st cntrd: ',xcen,ycen
-print,'1st sky:',sky
+if  ~keyword_set(silent) then print,'1st cntrd: ',xcen,ycen
+if  ~keyword_set(silent) then print,'1st sky:',sky
 
 ;+++
 ;name=repstr(file,'.fits','')
@@ -102,10 +110,10 @@ if  ~keyword_set(nosub) then begin
 ;       im=im-sbg
 ;       skysub=median(sbg)
     endelse
-    print,'sky background subtracted'
+    if  ~keyword_set(silent) then print,'sky background subtracted'
 endif else begin
     skysub=0.0
-    print,'no sky background subtracted'
+    if  ~keyword_set(silent) then print,'no sky background subtracted'
 endelse
 
 ;   PROFILE MODELLING
@@ -124,8 +132,8 @@ es[0]=0.0
 g2sol=mpfit2dpeak(tim,a,/moffat,weight=weight,ESTIMATE=es,parinfo=parinfo)
 xcen=a[4]+fix(xcen)-modradp
 ycen=a[5]+fix(ycen)-modradp
-print,'2nd cntrd: ',xcen,ycen
-print,'2nd sky:',a[0]
+if  ~keyword_set(silent) then print,'2nd cntrd: ',xcen,ycen
+if  ~keyword_set(silent) then print,'2nd sky:',a[0]
 
 xcen=round(xcen)
 ycen=round(ycen)
@@ -140,14 +148,17 @@ temp=temp*psize
 
 ;   MEASURING RADIAL PROFILE
 ri=(findgen(extrad/rbin))*rbin
-rmedian=[]
-rquarlow=[]
-rquarup=[]
-rmean=[]
-rrms=[]
-rcflux=[]
-rcflux_sig=[]
+rmedian=(findgen(extrad/rbin))*rbin*!values.f_nan
+rquarlow=(findgen(extrad/rbin))*rbin*!values.f_nan
+rquarup=(findgen(extrad/rbin))*rbin*!values.f_nan
+rsiglow=(findgen(extrad/rbin))*rbin*!values.f_nan
+rsigup=(findgen(extrad/rbin))*rbin*!values.f_nan
+rmean=(findgen(extrad/rbin))*rbin*!values.f_nan
+rrms=(findgen(extrad/rbin))*rbin*!values.f_nan
+rcflux=(findgen(extrad/rbin))*rbin*!values.f_nan
+rcflux_sig=(findgen(extrad/rbin))*rbin*!values.f_nan
 
+if  ~keyword_set(silent) then begin
 print,replicate('-',40)
 print,string('rmin',format='(a8)'),$
   string('rmax',format='(a8)'),$
@@ -158,6 +169,8 @@ print,string('rmin',format='(a8)'),$
   string('sig2',format='(a10)'),$
   string('sig0',format='(a10)'),$
   string('sig3',format='(a10)')
+endif
+
 for i=0,n_elements(ri)-1 do begin
     xp=ri[i]
     tagring=where(temp le ri[i]+rbin/2.0 and temp ge ri[i]-rbin/2.0 and im eq im)
@@ -166,17 +179,18 @@ for i=0,n_elements(ri)-1 do begin
     yp=im[tagring]
     
     dy=cgPercentiles(yp, Percentiles=[0.25, 0.5, 0.75])
-    rmedian=[rmedian,dy[1]]
-    rrms=[rrms,medabsdev(yp)]
+    rmedian[i]=dy[1]
+    rrms[i]=medabsdev(yp)
     
-    if  tagcflux[0] eq -1 then rcflux=[rcflux,0.0] else rcflux=[rcflux,total(im[tagcflux])]
+    if  tagcflux[0] eq -1 then rcflux[i]=0.0 else rcflux[i]=total(im[tagcflux])
     
-    rcflux_sig=[rcflux_sig,skysig*(n_elements(tagcflux)*1.0)^0.5*(1.00/psize)]
+    rcflux_sig[i]=skysig*(n_elements(tagcflux)*1.0)^0.5*(1.00/psize)
     
     ;rquarlow=[rquarlow,dy[0]]
     ringspace=!dpi*((ri[i]+rbin/2.0)^2.0-(ri[i]-rbin/2.0>0.0)^2.0)
     ringnpix=ringspace/(psize)^2.0
     ringsig=sqrt((3.0*rms0/sqrt(ringnpix))^2.0+skysig^2.0)
+    if  ~keyword_set(silent) then begin
     print,  string(ri[i]-rbin/2.0,format='(f8.2)'),$
             string(ri[i]+rbin/2.0,format='(f8.2)'),$
             string(median(yp),format='(f15.4)'),$
@@ -186,25 +200,29 @@ for i=0,n_elements(ri)-1 do begin
             string(ringsig,format='(e10.2)'),$
             string(rms0,format='(e10.2)'),$
             string(skysig,format='(e10.2)')
+    endif
     
-    rquarlow=[rquarlow,dy[0]]         
-    rquarup=[rquarup,dy[2]]
+    rquarlow[i]=dy[0]         
+    rquarup[i]=dy[2]
                 
-    rsiglow=[rquarlow,median(yp)-ringsig]
-    rsigup=[rquarup,median(yp)+ringsig]
+    rsiglow[i]=median(yp)-ringsig
+    rsigup[i]=median(yp)+ringsig
     
-    rmean=[rmean,mean(yp)]
+    rmean[i]=mean(yp)
 endfor
-print,replicate('-',40)
+if  ~keyword_set(silent) then print,replicate('-',40)
 
 ri_model=findgen(1000)*0.01
 u=ri_model^2.0/a[2]/a[3]/psize/psize
 rmean_model=a[1]/(u+1.0)^a[7]+a[0]
 
-fwhmm=2.0*sqrt(a[2]*a[3])*sqrt(2.^(1/a[7])-1)*psize
-print,'fwhm_m',fwhmm,'"'
-fwhmd=2.0*interpol(ri,rmedian,0.5*max(rmedian,/nan))
-print,'fwhm_d',fwhmd,'"'
+fwhmm=-1
+fwhmd=-1
+
+;fwhmm=2.0*sqrt(a[2]*a[3])*sqrt(2.^(1/a[7])-1)*psize
+;print,'fwhm_m',fwhmm,'"'
+;fwhmd=2.0*interpol(ri,rmedian,0.5*max(rmedian,/nan))
+;print,'fwhm_d',fwhmd,'"'
 
 rms=skysig
 ringspace=!dpi*((ri+rbin/2.0)^2.0-(ri-rbin/2.0>0.0)^2.0)
