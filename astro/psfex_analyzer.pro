@@ -1,19 +1,44 @@
-PRO PSFEX_ANALYZER,name,im,flag=flag,plot=plot,$
-    magzero=magzero
+PRO PSFEX_ANALYZER,name,im,$
+    flag=flag,plot=plot,$
+    magzero=magzero,$
+    ELONGATION=elongation,$
+    SNR_WIN=SNR_WIN
 ;+
 ;   use PSFEX analyze the image PSF
-;   requires: impro (J.M.)/astrolib(GSFC)
-;   name:   prefix for the output files  
-;   im:     image file name
+;   requires:   impro (J.M.)/astrolib(GSFC)
+;               theli
 ;   
+;   name:   prefix for the output files  
+;   im:     image file name (...)
+;   flag:   flag image (...)
+;   rms:    not implemented yet
+;   magzero:    specify magzero value if the header value is wrong
+;   /plot:  just plot psfex_check using psfex results from last run
+;   
+;   ouput:
+;       name=test_psfex
+;       test_psfex_seg.fits
+;       test_psfex.cat
+;       test_psfex_all.cat
+;       test_psfex_snap.fits
+;       test_psfex_samp.fits
+;       test_psfex_resi.fits
+;       test_psfex_psfex.fits
+;       test_psfex_proto.fits
+;       test_psfex_chi.fits
+;       test_psfex.psf
+;       test_psfex_vignet.fits
+;       test_psfex_psfex_check.eps
+;       
 ;-
 
+if  keyword_set(elongation) then elong=elongation else elong=1.12
+if  keyword_set(snr_win) then snr=snr_win else snr=30
 
 ;   HEADER
 imk=readfits(im,imkhd)
 getrot,imkhd,ang,cdelt
 psize=abs(cdelt[0])*60.0*60.0
-
 if  ~keyword_set(magzero) then begin
     magzero=sxpar(imkhd,'MAGZERO')
 endif
@@ -33,7 +58,7 @@ if  ~keyword_set(plot) then begin
     if  keyword_set(flag) then sexconfig.flag_image=flag
     sexconfig.DETECT_MINAREA=5.0
     sexconfig.seeing_fwhm=1.00
-    sexconfig.PARAMETERS_NAME='/Users/Rui/GDrive/Worklib/projects/xlib/etc/xlib.sex.param_psfex'
+    sexconfig.PARAMETERS_NAME=cgSourceDir()+'../etc/xlib.sex.param_psfex'
     sexconfig.BACK_SIZE=round(64)    ; in pixels
     sexconfig.catalog_name='tmp.cat'
     sexconfig.CATALOG_TYPE='FITS_LDAC'
@@ -49,7 +74,7 @@ if  ~keyword_set(plot) then begin
     spawn,'rm -rf '+name+'.cat'
     spawn,'rm -rf '+name+'_all.cat'
     cmd='ldacfilter -i tmp.cat -o '+name+'.cat '+$ 
-        '-t LDAC_OBJECTS -c "((ELONGATION<1.12)AND(SNR_WIN>30));"'
+        '-t LDAC_OBJECTS -c "((ELONGATION<'+strtrim(elong,2)+')AND(SNR_WIN>'+strtrim(snr,2)+'));"'
     spawn,cmd
     cmd='ldacdelkey -i tmp.cat -o '+name+'_all.cat '+$
         '-k VIGNET -t LDAC_OBJECTS
@@ -88,14 +113,13 @@ writefits,name+'_psfex.fits',cube[*,*,0],hd
 tb=mrdfits(name+'.cat',2)
 writefits,name+'_vignet.fits',tb.VIGNET
 
-
 ;   DO PLOTTING
 tb=mrdfits(name+'_all.cat',1)
 psize=sxpar(tb.field_header_card,'SEXPXSCL')
 print,tb.field_header_card
 tb=mrdfits(name+'_all.cat',2)
-tag1=where(tb.flags le 0.0 and tb.SNR_WIN gt 15 and tb.elongation le 1.12)
-tag2=where(tb.flags le 0.0 and tb.SNR_WIN gt 30 and tb.elongation le 1.12)
+tag1=where(tb.flags le 0.0 and tb.SNR_WIN gt snr/2.0 and tb.elongation le elong)
+tag2=where(tb.flags le 0.0 and tb.SNR_WIN gt snr and tb.elongation le elong)
 print,'Good Objs:',n_elements(tb.flags)
 print,'Bad  Objs:',n_elements(tag2)
 
@@ -134,10 +158,15 @@ END
 
 PRO TEST_PSFEX_ANALYZER
 
-psfex_analyzer,'../psfex/ia445_NDWFS1/ia445_NDWFS1',$
-    '/Users/Rui/Workspace/highz/products/dey/Stacks/NDWFS1_LAE1_ia445_nosm.fits',$
-    flag='/Users/Rui/Workspace/highz/products/dey/Stacks/NDWFS1_LAE1_ia445_nosm_flag.fits',$
-    rms='/Users/Rui/Workspace/highz/products/dey/Stacks/NDWFS1_LAE1_ia445_nosm_rms.fits',$
+;psfex_analyzer,'../psfex/ia445_NDWFS1/ia445_NDWFS1',$
+;    '/Users/Rui/Workspace/highz/products/dey/Stacks/NDWFS1_LAE1_ia445_nosm.fits',$
+;    flag='/Users/Rui/Workspace/highz/products/dey/Stacks/NDWFS1_LAE1_ia445_nosm_flag.fits',$
+;    rms='/Users/Rui/Workspace/highz/products/dey/Stacks/NDWFS1_LAE1_ia445_nosm_rms.fits',$
+;    magzero=32.40
+
+psfex_analyzer,'test_psfex',$
+    'NDWFS1_LAE1_ia445_nosm.fits',$
     magzero=32.40
+
 
 END
