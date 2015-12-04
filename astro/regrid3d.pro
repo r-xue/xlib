@@ -12,7 +12,7 @@ PRO REGRID3D,   oldim,oldhd,$
 ; INPUTS:
 ;   oldim,oldhd,refhd
 ;   [regridv]:  0   no frame difference was considered 
-;               1   LSRK(old) -> BARY(new,ref)
+;               1   LSRK(old) -> BARY(new,ref) (default if /regridv)
 ;               2   BARY(old) -> LSRK(new,ref)
 ;   [missing=!VALUEE.F_NAN]
 ;               
@@ -21,7 +21,8 @@ PRO REGRID3D,   oldim,oldhd,$
 ; 
 ; NOTES:
 ;   if refhd=oldhd, no 2D regridding will happen. 
-;   For example, IDL>regrid3d,oldim,oldhd,newim,newhd,oldhd,regridv=1
+;   For example, 
+;       IDL>regrid3d,oldim,oldhd,newim,newhd,oldhd,regridv=1
 ;   will only regrid the velocity frame from LSRK->BARY, and the astrometry is
 ;   not touched 
 ;     
@@ -62,10 +63,12 @@ if n_elements(regridv) ne 0 then begin
   
   rd_hd, newhd, s=newh, c=newc, /full
   rd_hd, refhd, s=refh, c=refc, /full
-  print,"input cube velo info:  ", newh.ctype[2],newh.specsys,newh.velref
+  print,"input cube velo info:  ", newh.ctype[2],newh.specsys,newh.velref,(newh.cdelt[2]/1.e3)
   oldv=newh.v*1000.
-  print,"ref   cube velo info:  ", refh.ctype[2],refh.specsys,refh.velref
+  oldcv=abs(newh.cdelt[2]/1.e3)
+  print,"ref   cube velo info:  ", refh.ctype[2],refh.specsys,refh.velref,(refh.cdelt[2]/1.e3)
   refv=refh.v*1000.
+  refcv=abs(refh.cdelt[2]/1.e3)
 
   
   ; macthing 3rd axis
@@ -91,7 +94,7 @@ if n_elements(regridv) ne 0 then begin
       if regridv eq 2 then dfra=dframe[i,j]*1000.
       spex=newim[i,j,*]
       new2im[i,j,*]=interpol(spex,oldv+dfra,refv)
-      tagnan=where(refv gt max(oldv+dfra) or refv lt min(oldv+dfra))
+      tagnan=where(refv gt max(oldv+dfra+0.5*oldcv) or refv lt min(oldv+dfra-0.5*oldcv))
       if tagnan[0] ne -1 then new2im[i,j,[tagnan]]=!VALUES.F_NAN
     endfor
   endfor
