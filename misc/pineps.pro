@@ -30,6 +30,9 @@ PRO PINEPS, pdfname, epslist, clean=clean, print=print,$
 
 fulllist=epslist+'.eps'
 
+tag=where(file_test(fulllist) ne 0)
+fulllist=fulllist[tag]
+
 if  not keyword_set(latex) then begin
 
     psfiles=strjoin(fulllist,' ')
