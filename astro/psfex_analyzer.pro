@@ -1,8 +1,8 @@
-PRO PSFEX_ANALYZER,name,im,$
-    flag=flag,$
-    magzero=magzero,$
-    ELONGATION=elongation,$
-    SNR_WIN=SNR_WIN,$
+PRO PSFEX_ANALYZER,name,$
+    im,flag=flag,$
+    magzero=magzero,SATUR_LEVEL=SATUR_LEVEL,$
+    ELONGATION=elongation,SNR_WIN=SNR_WIN,$
+    HOMOPSF_PARAMS=HOMOPSF_PARAMS,$
     skip=skip
 ;+
 ; NAME:
@@ -46,7 +46,10 @@ PRO PSFEX_ANALYZER,name,im,$
 
 if  keyword_set(elongation) then elong=elongation else elong=1.12
 if  keyword_set(snr_win) then snr=snr_win else snr=30
+
+if  ~keyword_set(SATUR_LEVEL) then SATUR_LEVEL=50000.0
 if  ~keyword_set(skip) then skip=''
+if  ~keyword_set(HOMOPSF_PARAMS) then HOMOPSF_PARAMS='5.0,3.0'
 
 ;   HEADER
 imk=readfits(im,imkhd)
@@ -84,6 +87,7 @@ if  ~strmatch(skip,'*se*',/f) then begin
     sexconfig.ANALYSIS_THRESH=1.25
     sexconfig.checkimage_type='SEGMENTATION'
     sexconfig.checkimage_name=name+'_seg.fits'
+    sexconfig.SATUR_LEVEL=SATUR_LEVEL
     im_sex,im,sexconfig,configfile=name+'.sex.config'
 
     spawn,'rm -rf '+name+'.cat'
@@ -112,7 +116,7 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     psfexconfig.SAMPLE_MINSN=30
     psfexconfig.SAMPLE_FWHMRANGE='2,8'
     psfexconfig.HOMOBASIS_TYPE='GAUSS-LAGUERRE'
-    psfexconfig.HOMOPSF_PARAMS='2.0,3.0'
+    psfexconfig.HOMOPSF_PARAMS=HOMOPSF_PARAMS
     psfexconfig.HOMOKERNEL_SUFFIX='_homo.fits'
     ;psfexconfig.CHECKPLOT_DEV='PS'
     ;psfexconfig.CHECKPLOT_TYPE='FWHM'
@@ -203,6 +207,5 @@ PRO TEST_PSFEX_ANALYZER
 psfex_analyzer,'test_psfex',$
     'NDWFS1_LAE1_ia445_nosm.fits',$
     magzero=32.40
-
 
 END
