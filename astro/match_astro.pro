@@ -109,6 +109,10 @@ catalogs=['GSC2.3','SDSS-DR7','SDSS-DR9']
 tags=['_gsc232','_sdss7','_sdss9']
 constraints=['Class=0','us=1,gs=1,rs=1,is=1,zs=1','us=1,gs=1,rs=1,is=1,zs=1']
 
+catalogs=['SDSS-DR9']
+tags=['_sdss9']
+constraints=['gs=1,rs=1,is=1']
+
 if  n_elements(refcat) ne 0 then begin
     catalogs=[catalogs,refcat.name]
     tags=[tags,'_'+string(refcat.name)]
@@ -124,12 +128,12 @@ for i=0,n_elements(catalogs)-1 do begin
     ;   QUERY CATALOG STARS
         
     if  constraints[i] ne 'user' then begin 
-    st=query_refobj(image,flag=flag,catalog=catalogs[i],$
-        constraint=constraints[i],sat=50000.0,/nan,iso=3.0,$
-        outname=outname+tags[i]+'_match_astro_radec')
-    if  size(st,/tn) ne size({tmp:''},/tn) then continue
-        rlist=st.RAJ2000
-        dlist=st.DEJ2000
+        st=query_refobj(image,flag=flag,catalog=catalogs[i],$
+            constraint=constraints[i],sat=50000.0,/nan,iso=3.0,$
+            outname=outname+tags[i]+'_match_astro_radec')
+        if  size(st,/tn) ne size({tmp:''},/tn) then continue
+            rlist=st.RAJ2000
+            dlist=st.DEJ2000
     endif else begin
         rlist=refcat.ra
         dlist=refcat.dec
