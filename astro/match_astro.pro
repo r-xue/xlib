@@ -385,15 +385,14 @@ END
 
 PRO TEST_MATCH_ASTRO
 
-    astr=match_astro('../images/R_NDWFS1.fits','../psfex/R_NDWFS1.cat',$
-        flag='../images/R_NDWFS1_flag.fits',$
-        outname='R_NDWFS1_test',$
-        hd=hd)
-    im=readfits('../images/R_NDWFS1.fits',hd_old)
-    writefits,'R_NDWFS1_new.fits',im,hd
-    hd=match_astro('R_NDWFS1_new.fits','../psfex/R_NDWFS1.cat',$
-        flag='../images/R_NDWFS1_flag.fits',$
-        outname='R_NDWFS1_new')
+astr=match_astro('../images/R_NDWFS1.fits',catfile='../psfex/R_NDWFS1.cat',$
+    flag='../images/R_NDWFS1_flag.fits',$
+    outname='R_NDWFS1_test')
+im=readfits('../images/R_NDWFS1.fits',hd_old)
+writefits,'R_NDWFS1_new.fits',im,astr[2].hd
+hd=match_astro('R_NDWFS1_new.fits',catfile='../psfex/R_NDWFS1.cat',$
+    flag='../images/R_NDWFS1_flag.fits',$
+    outname='R_NDWFS1_new')
 
 END
 
