@@ -85,7 +85,7 @@ foreach filename,ulist do begin
             hextractx,im,hd,$
                 radec=[objs[io].ra,objs[io].dec],subim,subhd,$
                 (objs[io].bxsz)[ib]*[0.5,-0.5],$
-                (objs[io].bxsz)[ib]*[-0.5,0.5]
+                (objs[io].bxsz)[ib]*[-0.5,0.5],/silent
             outname=objs[io].outname+'.fits'
             subim=subim*bscale
             sxaddpar, subhd, 'DATAMAX', max(subim,/nan),before='HISTORY'
@@ -143,7 +143,7 @@ foreach filename,ulist do begin
             objs[io].imfile[ib]=outname
             objs[io].imext[ib]=0
         endif
-        print,'bscale:',bscale
+        ;print,'bscale:',bscale
         print,'>>>>>',outname        
     endfor
     

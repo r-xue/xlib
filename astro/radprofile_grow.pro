@@ -7,7 +7,7 @@ FUNCTION RADPROFILE_GROW,IM,XCEN,YCEN,RBIN,RRANGE=RRANGE,FAST=FAST,addnoise=addn
 ;-
 
 sz=size(im)
-dist_ellipse,temp,sz[[1,2]],xcen,ycen,1.0,0.,/double
+dist_ellipse,temp,sz[[1,2]],xcen,ycen,1.0,0.
 
 imfull=im
 if  n_elements(rrange) eq 2 then begin
@@ -42,8 +42,11 @@ if  tag[0] ne -1 and keyword_set(fast) then begin
         ;if  n_elements(tag0) le (ceil(rbin)>2) then continue
         if  tag1[0] eq -1 then continue
         fill=median(im[tag0],/even)
-        imfull[tag1]=fill
-        if  n_elements(addnoise) ne 0 then imfull[tag1]=imfull[tag1]+addnoise*randomn(seed,n_elements(tag1))
+        if  n_elements(addnoise) ne 0 then begin
+            imfull[tag1]=fill+addnoise*randomn(seed,n_elements(tag1),/double)
+        endif else begin
+            imfull[tag1]=fill
+        endelse
 ;        mmm,im[tag0],tmpsky,tmpsig,tmpskew
 ;        imfull[tag1]=tmpsky+randomn(seed,n_elements(tag1))*tmpsig
     endfor

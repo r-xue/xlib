@@ -1,7 +1,8 @@
 FUNCTION QUERY_REFOBJ,image,flag=flag,$
     catalog=catalog,CONSTRAINT=CONSTRAINT,$
     sat=sat,nan=nan,iso=iso,$
-    outname=outname
+    outname=outname,$
+    outcat=outcat
 ;+
 ; NAME:
 ;   star_picker
@@ -132,5 +133,6 @@ endif else begin
 
 endelse
 
+if  n_elements(outcat) ne 0 then save,cat,filename=outcat+'_refobj.xdr'
 return,cat
 END

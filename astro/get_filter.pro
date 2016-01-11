@@ -4,7 +4,7 @@ FUNCTION GET_FILTER,select
 ;   GET_FILTER
 ;
 ; PURPOSE:
-;   return filter information in a structure
+;   return filter information via a structure
 ;
 ; INPUTS:
 ;   select      see the options below
@@ -21,7 +21,8 @@ FUNCTION GET_FILTER,select
 ;   vega2abs was from a note of K.S.Lee
 ;   
 ; HISTORY:
-;   20150818    R.Xue   introduced (reorgnized from getfilters.pro)
+;   20150818    R.Xue   introduced (re-orgnized from getfilters.pro)
+;   20151202    R.Xue   borrow k_load_filters for popular filters
 ;-
 
 path=cgsourceDir()+'../data/filters/'
@@ -31,7 +32,7 @@ if  select eq 'gemini/n-g' then begin
     namef='GMOS-!6g!n'
     ew=0.0
     effwave=0.0
-    readcol,path+'gmos_n_g_G0301.txt',wv,tf,format='(f,f)'
+    readcol,/silent,path+'gmos_n_g_G0301.txt',wv,tf,format='(f,f)'
     wave=wv*10.
     tran=tf
     vega2ab=!values.f_nan
@@ -42,7 +43,7 @@ if  select eq 'gemini/n-i' then begin
     namef='GMOS-!8i!6'
     ew=0.0
     effwave=0.0
-    readcol,path+'gmos_n_i_G0302.txt',wv,tf,format='(f,f)'
+    readcol,/silent,path+'gmos_n_i_G0302.txt',wv,tf,format='(f,f)'
     wave=wv*10.
     tran=tf
     vega2ab=!values.f_nan
@@ -53,7 +54,7 @@ if  select eq 'gemini/n-r' then begin
     namef='GMOS-!8r!6'
     ew=0.0
     effwave=0.0
-    readcol,path+'gmos_n_r_G0303.txt',wv,tf,format='(f,f)'
+    readcol,/silent,path+'gmos_n_r_G0303.txt',wv,tf,format='(f,f)'
     wave=wv*10.
     tran=tf
     vega2ab=!values.f_nan
@@ -64,7 +65,7 @@ if  select eq 'kpno-mosaic-bw' then begin
     namef='MOSAIC-!8Bw!6'
     ew=1275.21
     effwave=4110.78
-    readcol,path+'k10250d',wv,tf,format='(f,f)',skip=14
+    readcol,/silent,path+'k10250d',wv,tf,format='(f,f)',skip=14
     wave=wv*1.0
     tran=tf/100.
     vega2ab=0.0185
@@ -75,7 +76,7 @@ if  select eq 'kpno-mosaic-r' then begin
     namef='MOSAIC-!8R!6'
     ew=1511.13
     effwave=6513.54
-    readcol,path+'k1004bp_aug04.txt',wv,tf,format='(f,f)',skip=14
+    readcol,/silent,path+'k1004bp_aug04.txt',wv,tf,format='(f,f)',skip=14
     wave=wv*1.
     tran=tf/100.
     vega2ab=0.215
@@ -86,7 +87,7 @@ if  select eq 'kpno-mosaic-i' then begin
     namef='MOSAIC-!8I!6'
     ew=1914.59
     effwave=8204.53
-    readcol,path+'k1005bp_aug04.txt',wv,tf,format='(f,f)',skip=14
+    readcol,/silent,path+'k1005bp_aug04.txt',wv,tf,format='(f,f)',skip=14
     wave=wv*1.
     tran=tf/100.
     vega2ab=0.459
@@ -97,7 +98,7 @@ if  select eq 'kpno-mosaic-wrc4' then begin
     namef='MOSAIC-!8WRC4!6'
     ew=41.79
     effwave=5828.71
-    readcol,path+'k1024_mar11.txt',wv,tf,format='(f,f)'
+    readcol,/silent,path+'k1024_mar11.txt',wv,tf,format='(f,f)'
     wave=wv*1.
     tran=tf/100.
     vega2ab=!values.f_nan
@@ -108,7 +109,7 @@ if  select eq 'subaru-ia445' then begin
     namef='Subaru-!8IA445!6'
     ew=201
     effwave=4458
-    readcol,'/Users/Rui/GDrive/Worklib/filters/aux/filter-0321.asc',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,'/Users/Rui/GDrive/Worklib/filters/aux/filter-0321.asc',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf
     vega2ab=!values.f_nan
@@ -184,6 +185,20 @@ if  select eq 'irac-ch4' then begin
     vega2ab=4.40
 endif
 
+if  n_elements(name) eq 0 then begin
+    k_load_filters,select,filter_nlambda, filter_lambda, filter_pass
+    ; filter_pass is the contribution to the detector signal per photon
+    ; entering the atmosphere of Earth at a specific AM.
+    ; it's not the filter transmission function here.
+    name=''
+    namef=''
+    ew=!values.f_nan
+    effwave=!values.f_nan
+    wave=filter_lambda
+    tran=filter_pass
+    vega2ab=k_vega2ab(filterlist=select,/kurucz)
+endif
+
 filter={name:name,$                   ; shortname    
         namef:namef,$                 ; formated name (for IDL plots)
         ew:ew,$                       ; ew in AA
@@ -194,5 +209,27 @@ filter={name:name,$                   ; shortname
         tran:tran}                    ; transmision function vector
 
 return,filter
+
+END
+
+PRO TEST_GET_FILTER
+
+st=get_filter('sdss_i6.par')
+plot,st.wave,st.tran
+print,st.vega2ab
+
+;st=get_filter('ndwfs_Bw.par')
+;plot,st.wave,st.tran/max(st.tran,/nan)
+;print,st.vega2ab
+;st=get_filter('kpno-mosaic-bw')
+;oplot,st.wave,st.tran/max(st.tran,/nan),color=cgcolor('red')
+;print,st.vega2ab
+
+st=get_filter('ndwfs_R.par')
+plot,st.wave,st.tran/max(st.tran,/nan)
+print,st.vega2ab
+st=get_filter('kpno-mosaic-r')
+oplot,st.wave,st.tran/max(st.tran,/nan),color=cgcolor('red')
+print,st.vega2ab
 
 END

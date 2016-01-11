@@ -209,3 +209,15 @@ psfex_analyzer,'test_psfex',$
     magzero=32.40
 
 END
+
+PRO TEST_SCAMP
+
+scampconfig=init_scamp_config()
+scampconfig.astref_catalog='SDSS-R9'
+scampconfig.MAGZERO_KEY='NONE'
+scampconfig.EXPOTIME_KEY='NONE'
+scampconfig.MAGZERO_OUT=0.0
+;scampconfig.PHOTINSTRU_KEY='NONE'
+im_scamp,'test_psfex_all.cat',scampconfig, configfile='test_psfex.scamp.config'
+
+END
