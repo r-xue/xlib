@@ -5,7 +5,7 @@ FUNCTION QUERY_REFOBJ,image,flag=flag,$
     outcat=outcat
 ;+
 ; NAME:
-;   star_picker
+;   query_refobj
 ;
 ; PURPOSE:
 ;   query reference objects in a fits image from online catalogues

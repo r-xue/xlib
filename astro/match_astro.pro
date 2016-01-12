@@ -4,6 +4,7 @@ FUNCTION match_astro,image,flag=flag,$
     ximage=ximage,yimage=yimage,$                       ; OPTION 3
     gcntrd=gcntrd,cntrd=cntrd,fwhm=fwhm,$               ; OPTION 4
     refcat=refcat,$                                     ; USER REF OBJ LIST
+    sat=sat,$
     outname=outname,$
     xrms=xrms,yrms=yrms,xresid=xresid,yresid=yresid,success=success,$
     check_image=check_image
@@ -104,14 +105,18 @@ if  n_elements(minsnr) eq 0 then minsnr=15.0
 if  n_elements(maxelong) eq 0 then maxelong=1.2 ;ell=0.1
 if  n_elements(fwhm) eq 0 then fwhm=4.0
 if  n_elements(flag) eq 0 then flag=''
+if  n_elements(sat) eq 0 then sat=50000.0
 
 catalogs=['GSC2.3','SDSS-DR7','SDSS-DR9']
 tags=['_gsc232','_sdss7','_sdss9']
 constraints=['Class=0','us=1,gs=1,rs=1,is=1,zs=1','us=1,gs=1,rs=1,is=1,zs=1']
 
+
+;   We alway use SDSS-DR9 as the reference here.
+
 catalogs=['SDSS-DR9']
 tags=['_sdss9']
-constraints=['gs=1,rs=1,is=1']
+constraints=['us=1,gs=1,rs=1,is=1,zs=1']
 
 if  n_elements(refcat) ne 0 then begin
     catalogs=[catalogs,refcat.name]
@@ -119,7 +124,6 @@ if  n_elements(refcat) ne 0 then begin
     constraints=[constraints,'user']
 endif
 
-;   We alway use SDSS-DR7 as the reference here.
 
 ms=[]
 
@@ -129,7 +133,7 @@ for i=0,n_elements(catalogs)-1 do begin
         
     if  constraints[i] ne 'user' then begin 
         st=query_refobj(image,flag=flag,catalog=catalogs[i],$
-            constraint=constraints[i],sat=50000.0,/nan,iso=3.0,$
+            constraint=constraints[i],sat=sat,/nan,iso=3.0,$
             outname=outname+tags[i]+'_match_astro_radec')
         if  size(st,/tn) ne size({tmp:''},/tn) then continue
             rlist=st.RAJ2000
@@ -269,7 +273,7 @@ for i=0,n_elements(catalogs)-1 do begin
       string(n_elements(ximg),format='(i4)')+'/'+$
       string(n_elements(xlist),format='(i4)'),$
       'xrms='+string(sigdx,format='(f6.3)')+'"',$
-      'xrms='+string(sigdy,format='(f6.3)')+'"',$
+      'yrms='+string(sigdy,format='(f6.3)')+'"',$
       'xoffset='+string(xm*(-psize),format='(f6.3)')+'"',$
       'yoffset='+string(ym*psize,format='(f6.3)')+'"',$
       'pix='+strtrim(string(psize,format='(f6.3)'),2)+'"'],$
@@ -320,7 +324,7 @@ for i=0,n_elements(catalogs)-1 do begin
       string(n_elements(ximg),format='(i4)')+'/'+$
       string(n_elements(xlist),format='(i4)'),$
       'xrms='+string(sigdx,format='(f6.3)')+'"',$
-      'xrms='+string(sigdy,format='(f6.3)')+'"',$
+      'yrms='+string(sigdy,format='(f6.3)')+'"',$
       'xoffset='+string(xm*(-psize),format='(f6.3)')+'"',$
       'yoffset='+string(ym*psize,format='(f6.3)')+'"',$
       'pix='+strtrim(string(psize,format='(f6.3)'),2)+'"'],$
@@ -397,6 +401,7 @@ writefits,'R_NDWFS1_new.fits',im,astr[2].hd
 hd=match_astro('R_NDWFS1_new.fits',catfile='../psfex/R_NDWFS1.cat',$
     flag='../images/R_NDWFS1_flag.fits',$
     outname='R_NDWFS1_new')
+;astr=match_astro('Y_image.fits',catfile='test.cat',outname='test',sat=0.0)
 
 END
 
