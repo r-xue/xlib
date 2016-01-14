@@ -198,6 +198,11 @@ for i=0,n_elements(catalogs)-1 do begin
 
     extast,hd,astr
     hd_new=hd
+    ;   GET GRID OF ALL PV* (TEMP FIX)
+    for ipv=0,20 do begin
+        sxdelpar,hd_new,'PV1_'+strtrim(ipv,2)
+        sxdelpar,hd_new,'PV2_'+strtrim(ipv,2)
+    endfor
     putast,hd_new,astr_new
     ;    print,'new astr:'
     ;    print,astr
