@@ -39,8 +39,8 @@ make_astr,astr,delt=double([-psize[0], dy])/3600.,$
   crpix=fix(ndim[0:1]/2)+1,crval=crval[0:1],$
   ctype=ctype
 
-putast,hd,astr
-sxaddpar,hd,'EQUINOX',2000
+putast,hd,astr,EQUINOX =2000
+
 if n_elements(ndim) eq 3 then begin
   if n_elements(vtype) eq 0 then vtype='VELO-LSR'
   SXADDPAR,hd,'CRPIX3',1
