@@ -268,8 +268,8 @@ for i=0,n_elements(catalogs)-1 do begin
     
     ;oplot,xd[wfit]*psize,yd[wfit]*psize,psym=symcat(9),color=cgcolor('red')
     
-    RESISTANT_Mean, xd, 2, xm, sigdx
-    RESISTANT_Mean, yd, 2, ym, sigdy
+    RESISTANT_Mean, xd, 2, xm, sigdx,numrejx
+    RESISTANT_Mean, yd, 2, ym, sigdy,numrejy
     
     al_legend,outname,box=0,/left,/bottom
     
@@ -277,8 +277,8 @@ for i=0,n_elements(catalogs)-1 do begin
       ['matching rate:',$
       string(n_elements(ximg),format='(i4)')+'/'+$
       string(n_elements(xlist),format='(i4)'),$
-      'xrms='+string(sigdx,format='(f6.3)')+'"',$
-      'yrms='+string(sigdy,format='(f6.3)')+'"',$
+      'xrms='+string(sigdx*psize*sqrt(1.*n_elements(xd)-numrejx),format='(f6.3)')+'"',$
+      'yrms='+string(sigdy*psize*sqrt(1.*n_elements(yd)-numrejy),format='(f6.3)')+'"',$
       'xoffset='+string(xm*(-psize),format='(f6.3)')+'"',$
       'yoffset='+string(ym*psize,format='(f6.3)')+'"',$
       'pix='+strtrim(string(psize,format='(f6.3)'),2)+'"'],$
@@ -319,8 +319,8 @@ for i=0,n_elements(catalogs)-1 do begin
 
     ;oplot,xd[wfit]*psize,yd[wfit]*psize,psym=symcat(9),color=cgcolor('red')
 
-    RESISTANT_Mean, xd, 2, xm, sigdx
-    RESISTANT_Mean, yd, 2, ym, sigdy
+    RESISTANT_Mean, xd, 2, xm, sigdx,numrejx
+    RESISTANT_Mean, yd, 2, ym, sigdy,numrejy
 
     al_legend,outname,box=0,/left,/bottom
 
@@ -328,8 +328,8 @@ for i=0,n_elements(catalogs)-1 do begin
       ['matching rate:',$
       string(n_elements(ximg),format='(i4)')+'/'+$
       string(n_elements(xlist),format='(i4)'),$
-      'xrms='+string(sigdx,format='(f6.3)')+'"',$
-      'yrms='+string(sigdy,format='(f6.3)')+'"',$
+      'xrms='+string(sigdx*psize*sqrt(1.*n_elements(xd)-numrejx),format='(f6.3)')+'"',$
+      'yrms='+string(sigdy*psize*sqrt(1.*n_elements(yd)-numrejy),format='(f6.3)')+'"',$
       'xoffset='+string(xm*(-psize),format='(f6.3)')+'"',$
       'yoffset='+string(ym*psize,format='(f6.3)')+'"',$
       'pix='+strtrim(string(psize,format='(f6.3)'),2)+'"'],$
@@ -400,12 +400,13 @@ PRO TEST_MATCH_ASTRO
 
 astr=match_astro('../images/R_NDWFS1.fits',catfile='../psfex/R_NDWFS1.cat',$
     flag='../images/R_NDWFS1_flag.fits',$
-    outname='R_NDWFS1_test')
+    outname='R_NDWFS1_test',xrms=xrms,yrms=yrms)
 im=readfits('../images/R_NDWFS1.fits',hd_old)
-writefits,'R_NDWFS1_new.fits',im,astr[2].hd
+writefits,'R_NDWFS1_new.fits',im,astr.hd
 hd=match_astro('R_NDWFS1_new.fits',catfile='../psfex/R_NDWFS1.cat',$
     flag='../images/R_NDWFS1_flag.fits',$
     outname='R_NDWFS1_new')
+print,xrms,yrms
 ;astr=match_astro('Y_image.fits',catfile='test.cat',outname='test',sat=0.0)
 
 END
