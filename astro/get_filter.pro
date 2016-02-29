@@ -65,10 +65,16 @@ if  select eq 'kpno-mosaic-bw' then begin
     namef='MOSAIC-!8Bw!6'
     ew=1275.21
     effwave=4110.78
-    readcol,/silent,path+'k10250d',wv,tf,format='(f,f)',skip=14
-    wave=wv*1.0
-    tran=tf/100.
-    vega2ab=0.0185
+        
+;    readcol,/silent,path+'k10250d',wv,tf,format='(f,f)',skip=14
+;    wave=wv*1.0
+;    tran=tf/100.
+;    vega2ab=0.0185
+;   this is just the filter
+    k_load_filters,'ndwfs_Bw.par',filter_nlambda, filter_lambda, filter_pass
+    wave=filter_lambda
+    tran=filter_pass
+    vega2ab=k_vega2ab(filterlist='ndwfs_Bw.par',/kurucz)
 endif
 
 if  select eq 'kpno-mosaic-r' then begin
@@ -76,10 +82,18 @@ if  select eq 'kpno-mosaic-r' then begin
     namef='MOSAIC-!8R!6'
     ew=1511.13
     effwave=6513.54
-    readcol,/silent,path+'k1004bp_aug04.txt',wv,tf,format='(f,f)',skip=14
-    wave=wv*1.
-    tran=tf/100.
-    vega2ab=0.215
+    
+    ;readcol,/silent,path+'k1004bp_aug04.txt',wv,tf,format='(f,f)',skip=14
+    ;wave=wv*1.
+    ;tran=tf/100.
+    ;vega2ab=0.215
+    
+    k_load_filters,'ndwfs_R.par',filter_nlambda, filter_lambda, filter_pass
+    wave=filter_lambda
+    tran=filter_pass
+    vega2ab=k_vega2ab(filterlist='ndwfs_R.par',/kurucz)
+    
+
 endif
 
 if  select eq 'kpno-mosaic-i' then begin
@@ -87,10 +101,17 @@ if  select eq 'kpno-mosaic-i' then begin
     namef='MOSAIC-!8I!6'
     ew=1914.59
     effwave=8204.53
-    readcol,/silent,path+'k1005bp_aug04.txt',wv,tf,format='(f,f)',skip=14
-    wave=wv*1.
-    tran=tf/100.
-    vega2ab=0.459
+    
+;    readcol,/silent,path+'k1005bp_aug04.txt',wv,tf,format='(f,f)',skip=14
+;    wave=wv*1.
+;    tran=tf/100.
+;    vega2ab=0.459
+    
+    k_load_filters,'ndwfs_I.par',filter_nlambda, filter_lambda, filter_pass
+    wave=filter_lambda
+    tran=filter_pass
+    vega2ab=k_vega2ab(filterlist='ndwfs_I.par',/kurucz)
+    
 endif
 
 if  select eq 'kpno-mosaic-wrc4' then begin
@@ -98,9 +119,9 @@ if  select eq 'kpno-mosaic-wrc4' then begin
     namef='MOSAIC-!8WRC4!6'
     ew=41.79
     effwave=5828.71
-    readcol,/silent,path+'k1024_mar11.txt',wv,tf,format='(f,f)'
-    wave=wv*1.
-    tran=tf/100.
+    readcol,/silent,path+'/misc/k1024_mar11.txt',wv,tf,format='(f,f)'
+    wave=float(wv*1.)
+    tran=float(tf/100.)>0.0
     vega2ab=!values.f_nan
 endif
 
@@ -109,9 +130,9 @@ if  select eq 'subaru-ia445' then begin
     namef='Subaru-!8IA445!6'
     ew=201
     effwave=4458
-    readcol,/silent,'/Users/Rui/GDrive/Worklib/filters/aux/filter-0321.asc',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/misc/ia445_07.txt',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
-    tran=tf
+    tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
 
@@ -199,6 +220,18 @@ if  n_elements(name) eq 0 then begin
     vega2ab=k_vega2ab(filterlist=select,/kurucz)
 endif
 
+wave_halfpower=[]
+tranmax=max(tran,tagmax)
+wave_maxtran=wave[tagmax]
+x=wave[0:tagmax]
+y=tran[0:tagmax]
+tmp=min(abs(y-0.5*tranmax),tag)
+wave_halfpower=[wave_halfpower,x[tag]]
+x=wave[tagmax:-1]
+y=tran[tagmax:-1]
+tmp=min(abs(y-0.5*tranmax),tag)
+wave_halfpower=[wave_halfpower,x[tag]]
+
 filter={name:name,$                   ; shortname    
         namef:namef,$                 ; formated name (for IDL plots)
         ew:ew,$                       ; ew in AA
@@ -206,6 +239,8 @@ filter={name:name,$                   ; shortname
         ewf:3e10*1e8/effwave^2.0*ew,$ ; ew in hz
         vega2ab:vega2ab,$             ; AB=Vega+vega2ab
         wave:wave,$                   ; wave vector
+        wave_halfpower:[min(wave_halfpower),max(wave_halfpower)],$    
+        wave_maxtran:wave_maxtran,$   ; wave halfpower                 
         tran:tran}                    ; transmision function vector
 
 return,filter
@@ -218,18 +253,24 @@ st=get_filter('sdss_i6.par')
 plot,st.wave,st.tran
 print,st.vega2ab
 
-;st=get_filter('ndwfs_Bw.par')
-;plot,st.wave,st.tran/max(st.tran,/nan)
-;print,st.vega2ab
-;st=get_filter('kpno-mosaic-bw')
-;oplot,st.wave,st.tran/max(st.tran,/nan),color=cgcolor('red')
-;print,st.vega2ab
-
-st=get_filter('ndwfs_R.par')
+st=get_filter('ndwfs_Bw.par')
 plot,st.wave,st.tran/max(st.tran,/nan)
+y=st.tran*(1./st.wave)
+oplot,st.wave,y/max(y),color=cgcolor('yellow')
 print,st.vega2ab
-st=get_filter('kpno-mosaic-r')
-oplot,st.wave,st.tran/max(st.tran,/nan),color=cgcolor('red')
+
+st=get_filter('kpno-mosaic-bw')
+y=st.tran
+oplot,st.wave,y/max(y),color=cgcolor('red')
 print,st.vega2ab
+
+;st=get_filter('ndwfs_R.par')
+;y=st.tran/(1./st.wave)
+;plot,st.wave,y/max(y,/nan)
+;print,st.vega2ab
+;st=get_filter('kpno-mosaic-r')
+;y=st.tran/(1./st.wave)
+;oplot,st.wave,y/max(y,/nan),color=cgcolor('red')
+;print,st.vega2ab
 
 END
