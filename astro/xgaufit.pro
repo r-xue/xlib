@@ -134,3 +134,52 @@ print,'----xgaufit----'
 return,results
 END
 
+
+PRO TEST_XGAUFIT
+
+im=readfits('SMC_ATCA+PKS.fits',hd)
+rd_hd,hd,s=s
+im1=im
+im2=im
+
+sz=size(im,/d)
+for i=0,sz[0]-1 do begin
+    for j=0,sz[1]-1 do begin
+        
+        spec=im[i,j,*]
+        plot,s.v,spec
+        if  total(spec eq spec) lt n_elements(spec) or total(spec) eq 0  then continue
+
+        results=xgaufit(s.v,spec,ncmax=3,fwhm=2.0)
+        bestfit=results[0]
+        foreach result,results do begin
+            tt='nc='+strtrim(result.nc,2)+' improve:  '+$
+                string(result.signif,format='(f7.1)')+textoidl(' \sigma')
+            if result.signif gt 5.0 or result.nc eq 1  then begin
+                bestfit=result
+            endif else begin
+                ;break
+            endelse
+        endforeach
+        result=results[1]
+        
+        cc=['yellow','red','green','blue','cyan']
+        prop=[]
+        for nn=0,result.nc-1 do begin
+            print,'comp:'+strtrim(nn+1,2),result.par[nn*3+2:nn*3+4]
+            oplot,result.xmod,result.ymod[*,nn+1],color=cgcolor(cc[nn]),psym=10
+            prop=[prop,result.par[nn*3+2]^2.0*result.par[nn*3+4]]
+            print,'h2 prop',result.par[nn*3+2]^2.0*result.par[nn*3+4]
+            if  nn eq 0 then im1[i,j,*]=result.ymod[*,nn+1]
+            if  nn eq 1 then im2[i,j,*]=result.ymod[*,nn+1]
+        endfor
+        
+    endfor
+endfor
+
+writefits,'im1.fits',im1
+writefits,'im2.fits',im2
+
+
+END
+

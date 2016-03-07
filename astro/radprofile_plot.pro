@@ -65,7 +65,7 @@ if  n_elements(extrafun) ne 0 then begin
 endif
 
 for i=0,n_elements(rp.center)-1 do begin
-    limits=rp.median[i]+rp.unc[i]*[-1,1]
+    limits=rp.median[i]+rp.unc[i]*2.0*[-1,1]
     limits=limits/ns
     limits=limits>(min(yrange)*0.1)
     cgplots,[rp.center[i],rp.center[i]],limits,thick=5,color=cgcolor('dark gray'),noclip=0
@@ -96,7 +96,7 @@ axis,YAxis=1, YLog=1, YRange=yrange*ns*c2f,$
 rscale=1.0
 plot,[1],[1],psym=cgsymcat(1),$
     xrange=xrange,xstyle=1,$
-    yrange=[0,2.5],ystyle=1,$
+    yrange=[0,3.5],ystyle=1,$
     xtitle='Radius ["]',$
     ytitle='Flux!dr!n/Flux!d1"!n',$
     /nodata,pos=[0.15,0.1,0.9,0.38],/noe

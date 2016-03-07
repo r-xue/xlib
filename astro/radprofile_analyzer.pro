@@ -66,6 +66,8 @@ endif
 skytag=where(temp gt skyrad[0] and temp le skyrad[1] and im eq im)
 resistant_mean,im[skytag],3.0,skymod,skysig,num_rej
 pixsig=skysig*sqrt((n_elements(skytag)-num_rej-1)*1.0)
+;mmm,im[skytag],skymod,pixsig,skyskew
+
 flag=(temp le skyrad[0] or im ne im)*1.0
 rms_scale=rms_scale(im, 10.0/psize,flag=flag)
 if  ~keyword_set(nosub) then begin

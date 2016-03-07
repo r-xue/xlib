@@ -24,6 +24,12 @@ set_plot,'x'
 
 END
 
+PRO TEST2_READ_TABLE
+
+tb=read_table('gsheet:uvline:1lMJEc1xdEHIqXqVtuPwHwguJvptCzPL97Ola9FbXHXQ',header=hd,/refresh)
+
+END
+
 
 FUNCTION READ_TABLE,file,header=header,$
     scalar=scalar,$
@@ -48,10 +54,17 @@ FUNCTION READ_TABLE,file,header=header,$
 ; INPUTS:
 ;   file        table file name 
 ;               this could be any spreadsheet format, e.g. odt,xlsx,csv,gsheet 
+;
 ;               note:   any format supported by libreoffice will be automatically 
 ;                       converted to csv on demand, then be read into IDL via read_csv()
 ;                       if the file is gsheet, the file id will be used for downloading 
 ;                       spreadsheet in csv, then be read into IDL
+;                       now, google doc id is supported:
+;                       try something like: gsheet:../uvline:1lMJEc1xdEHIqXqVtuPwHwguJvptCzPL97Ola9FbXHXQ
+;                       1st tag: gsheet
+;                       2nd tag: local csv cach file name
+;                       3rd tag: google id
+;                       
 ;   srow        select rows to import (start with 0, the IDL way)
 ;   skey        colume names used to select content, together with sval     
 ;   sval        wildcard characeters used to select content, together with skey
@@ -122,7 +135,14 @@ FUNCTION READ_TABLE,file,header=header,$
 
 rootname=cgrootname(file,dir=dir,ext=ext)
 csvfile=file
-if  ext ne 'csv' and ext ne 'gsheet' then begin
+isid=strmatch(file,'gsheet:*',/f)
+if  isid then begin
+    tmp=strsplit(file,':',/ext)
+    rootname=tmp[1]
+    id=tmp[2]
+    dir=repstr(dir,'gsheet:','')
+endif
+if  (ext ne 'csv' and ext ne 'gsheet' and not isid) then begin
     csvfile=dir+rootname+'.csv'
     if  keyword_set(refresh) or not file_test(csvfile) then begin
         ;cmd='unoconv -f csv -o '+csvfile+' '+file
@@ -131,27 +151,34 @@ if  ext ne 'csv' and ext ne 'gsheet' then begin
         spawn,cmd
     endif
 endif
-if  ext eq 'gsheet' then begin
+if  ext eq 'gsheet' or isid then begin
     csvfile=dir+rootname+'.csv'
     if  keyword_set(refresh) or not file_test(csvfile) then begin
-        openr,lun,file,/get_lun
-        id=strarr(1)
-        readf,lun,id
-        free_lun, lun
-        id=STRSPLIT(id,":",/EXTRACT)
-        id=repstr(id[-1],'"}','')
+        if  not isid then begin
+            openr,lun,file,/get_lun
+            id=strarr(1)
+            readf,lun,id
+            free_lun, lun
+            id=STRSPLIT(id,":",/EXTRACT)
+            id=repstr(id[-1],'"}','')
+        endif
         ourl = obj_new('IDLnetURL')
         oUrl->SetProperty, url_scheme='https'
         oUrl->SetProperty, URL_HOST='docs.google.com'
         oUrl->SetProperty, URL_PATH='/spreadsheets/d/'+id+'/export?format=csv'
         if  ~keyword_set(silent) then begin
+            print,''
+            print,replicate('-',50)
+            print,''
             print,'fetch: docs.google.com/spreadsheets/d/'+id+'/export?format=csv'
-            print,csvfile
+            print,'save: ',csvfile
+            print,''
         endif
         tmp=oUrl->Get(filename=csvfile)
         OBJ_DESTROY, oUrl
     endif
 endif
+
 
 tab=READ_CSV(csvfile,header=header)
 nrow=n_elements(tab.(0))
