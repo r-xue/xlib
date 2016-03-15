@@ -1,4 +1,4 @@
-PRO PINEPS, pdfname, epslist, clean=clean, print=print,$
+PRO PINEPS, pdfname, epslist, clean=clean, verbose=verbose,$
     latex=latex,pdflatex=pdflatex,width=width,landscape=landscape,$
     nx=nx,papersize=papersize
 ;+
@@ -21,6 +21,7 @@ PRO PINEPS, pdfname, epslist, clean=clean, print=print,$
 ; KEYWORDS:
 ;   latex         use latex (or pdflatex) to combine eps
 ;   pdflatex      optionally use pdflatex
+;   verbose       verbose ouput
 ;   
 ; HISTORY:
 ;
@@ -40,7 +41,7 @@ if  not keyword_set(latex) then begin
     cmd=cmd+pdfname+'.pdf'
     cmd=cmd+' -dNOPAUSE -dBATCH -q -dEPSCrop -c "<</Orientation 0>> setpagedevice " -f '
     cmd=cmd+psfiles
-    if  keyword_set(print) then begin
+    if  keyword_set(verbose) then begin
         print,replicate('>',10)
         print,cmd
         print,replicate('>',10)
@@ -84,10 +85,19 @@ endif else begin
     free_lun, lun
     
     if  keyword_set(pdflatex) then begin
-        spawn,'pdflatex -shell-escape tmp_pineps.tex'
+        if  keyword_set(verbose) then begin
+            spawn,'pdflatex -shell-escape tmp_pineps.tex'
+        endif else begin
+            spawn,'pdflatex -shell-escape tmp_pineps.tex',cmdlog
+        endelse
     endif else begin
-        spawn,'latex tmp_pineps.tex'
-        spawn,'dvipdfm tmp_pineps.dvi';spawn,'dvips '+pdfname+'.dvi -o'
+        if  keyword_set(verbose) then begin
+            spawn,'latex tmp_pineps.tex'
+            spawn,'dvipdfm tmp_pineps.dvi';spawn,'dvips '+pdfname+'.dvi -o'
+        endif else begin
+            spawn,'latex tmp_pineps.tex',cmdlog
+            spawn,'dvipdfm tmp_pineps.dvi',cmdlog;spawn,'dvips '+pdfname+'.dvi -o'
+        endelse
     endelse
     
     ;   RENAME LATEX TMP FILES
