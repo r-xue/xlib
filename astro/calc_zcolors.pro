@@ -43,7 +43,7 @@ flam_1220=(w_1220/w_1700)^(beta)
 
 flux_lya=flam[tag_lya]*ew_obs
 flam[tag_lya]=flam[tag_lya]+flux_lya/(abs(w[tag_lya-1]-w[tag_lya+1])/2.0)
-flam=flam*exp(-LM_IGMTAU(w,z))
+flam=flam*exp(-calc_igmtau(w,z))
 
 sed={   flam_1220:flam_1220,$               ;   erg s^-1 cm^-2 AA-1
         flam_1700:flam_1700,$               ;   erg s^-1 cm^-2 AA-1        
