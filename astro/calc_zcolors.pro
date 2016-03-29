@@ -12,9 +12,7 @@ FUNCTION CALC_ZCOLORS,band,$
 
 ;   IM_FILTERMAG()
 ;
-forward_function LM_IGMTAUDA
-forward_function LM_IGMTAUDB
-forward_function LM_IGMTAU
+
 
 if  n_elements(ew) eq 0 then ew=0.0
 if  n_elements(beta) eq 0 then beta=-2.0
@@ -43,7 +41,7 @@ flam_1220=(w_1220/w_1700)^(beta)
 
 flux_lya=flam[tag_lya]*ew_obs
 flam[tag_lya]=flam[tag_lya]+flux_lya/(abs(w[tag_lya-1]-w[tag_lya+1])/2.0)
-flam=flam*exp(-calc_igmtau(w,z))
+flam=flam*exp(-calc_igmtau(w,z,model='I14'))
 
 sed={   flam_1220:flam_1220,$               ;   erg s^-1 cm^-2 AA-1
         flam_1700:flam_1700,$               ;   erg s^-1 cm^-2 AA-1        

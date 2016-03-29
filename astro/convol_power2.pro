@@ -30,6 +30,8 @@ PRO TEST_CONVOL_POWER2
 
 repo1='/Users/Rui/Workspace/highz/reduc/lyahalo/images/'
 repo2='/Users/Rui/Workspace/highz/reduc/uvlfs/pcf1/'
+repopsf='/Users/Rui/Workspace/highz/reduc/lyahalo/psfex/'
+
 flist=['wrc4_pcf1','R_pcf1','I_pcf1']
 for i=0,n_elements(flist)-1 do begin
     convol_power2,repo1+flist[i]+'.fits',repo2+flist[i]+'.fits',/silent
@@ -38,6 +40,7 @@ for i=0,n_elements(flist)-1 do begin
     print,sxpar(hd,'MAGZERO'),sxpar(hd,'EFFGAIN')
     convol_power2,repo1+flist[i]+'_rms.fits',repo2+flist[i]+'_rms.fits',/silent
     convol_power2,repo1+flist[i]+'_flag.fits',repo2+flist[i]+'_flag.fits',/silent
+    convol_power2,repopsf+flist[i]+'_psfex.fits',repo2+flist[i]+'_psfex.fits',/silent
 endfor
 
 END

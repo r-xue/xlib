@@ -3,6 +3,8 @@ FUNCTION CALC_QB,filter,mode=mode,$
     beta=beta,zigm=zigm                 ;   mode='cont'
 ;+
 ;   all wave are in the obs frame
+;   mode='line':    calculate b (bandwidth)
+;   mode='cont':    calculate coeff q  (q=1 if beta=-2 and no IGM)
 ;-
 
 c=3e18
@@ -23,7 +25,7 @@ if  mode eq 'cont' then begin
     g=(ft.tran>0.0)
     qb=g/w
     qb=qb*(w/wave)^(2.+beta)
-    if  keyword_set(zigm) then qb=qb*exp(-LM_IGMTAU(w,zigm))
+    if  keyword_set(zigm) then qb=qb*exp(-calc_IGMTAU(w,zigm,model='I14'))
     qb=tsum(w,qb)
     qb=qb/tsum(w,g/w)
 endif
