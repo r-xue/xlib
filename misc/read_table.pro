@@ -26,7 +26,14 @@ END
 
 PRO TEST2_READ_TABLE
 
-tb=read_table('gsheet:uvline:1lMJEc1xdEHIqXqVtuPwHwguJvptCzPL97Ola9FbXHXQ',header=hd,/refresh)
+tb=read_table('gsheet:hectospec2015:15urOlGHTHGrvjiHRpaUsTW2tIBsQMgFnqQGQn1JCkfk',header=hd)
+window,1,xsize=500,ysize=500
+plot,tb.ra,tb.dec,psym=3,xrange=[37.1,36],yrange=[-5.1,-4.0],xstyle=1,ystyle=1,/nodata
+
+tag=where(tb.sci_cal eq 1)
+oplot,tb[tag].ra,tb[tag].dec,psym=4
+tag=where(tb.comments_rx eq 'ignore=3.55')
+oplot,tb[tag].ra,tb[tag].dec,psym=4,color=cgcolor('blue')
 
 END
 

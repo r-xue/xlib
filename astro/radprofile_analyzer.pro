@@ -5,7 +5,7 @@ FUNCTION RADPROFILE_ANALYZER,file,outname=outname,$
     rbin=rbin,skysize=skysize,$
     center=center,extrad=extrad,$
     refxy=refxy,fitxy=fitxy,$
-    silent=silent
+    silent=silent,sigscale=sigscale
 ;+
 ;   analyzing the center object radial profile in the FITS image
 ;   psize could be specified if no header is available.
@@ -27,6 +27,7 @@ FUNCTION RADPROFILE_ANALYZER,file,outname=outname,$
 if  ~keyword_set(skyrad)    then skyrad=[5.,8.]
 if  ~keyword_set(modrad)    then modrad=5.
 if  ~keyword_set(skysize)   then skysize=20.0
+if  ~keyword_set(sigscale)  then sigscale=10.0   
 
 ;   GET IMAGES SPECIFICATION
 
@@ -69,9 +70,10 @@ pixsig=skysig*sqrt((n_elements(skytag)-num_rej-1)*1.0)
 ;mmm,im[skytag],skymod,pixsig,skyskew
 
 flag=(temp le skyrad[0] or im ne im)*1.0
-rms_scale=rms_scale(im, 10.0/psize,flag=flag)
+rms_scale=rms_scale(im, sigscale/psize,flag=flag)
 if  ~keyword_set(nosub) then begin
     im=im-skymod;median(im[skytag])
+    print,'+remove sky',skymod
 endif
 
 ;   MEASURING RADIAL PROFILE

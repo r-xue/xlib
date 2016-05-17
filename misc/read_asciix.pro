@@ -1,8 +1,12 @@
-FUNCTION READ_ASCIIX,file
+FUNCTION READ_ASCIIX,file,refresh=refresh
 
-template=ascii_template(file)
 rootname=cgrootname(file,dir=dir,ext=ext)
-save,template,filename=dir+'/'+rootname+'.template'
+if  ~file_test(dir+'/'+rootname+'.template') or keyword_set(refresh) then begin
+    template=ascii_template(file)
+    save,template,filename=dir+'/'+rootname+'.template'
+endif
+
+restore,filename=dir+'/'+rootname+'.template'
 struct=read_ascii(file,template=template)
 
 return,struct

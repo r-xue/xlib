@@ -221,16 +221,28 @@ if  n_elements(name) eq 0 then begin
 endif
 
 wave_halfpower=[]
+wave_10perpower=[]
+wave_5perpower=[]
+
 tranmax=max(tran,tagmax)
 wave_maxtran=wave[tagmax]
 x=wave[0:tagmax]
 y=tran[0:tagmax]
 tmp=min(abs(y-0.5*tranmax),tag)
 wave_halfpower=[wave_halfpower,x[tag]]
+tmp=min(abs(y-0.1*tranmax),tag)
+wave_10perpower=[wave_10perpower,x[tag]]
+tmp=min(abs(y-0.05*tranmax),tag)
+wave_5perpower=[wave_5perpower,x[tag]]
+
 x=wave[tagmax:-1]
 y=tran[tagmax:-1]
 tmp=min(abs(y-0.5*tranmax),tag)
 wave_halfpower=[wave_halfpower,x[tag]]
+tmp=min(abs(y-0.1*tranmax),tag)
+wave_10perpower=[wave_10perpower,x[tag]]
+tmp=min(abs(y-0.05*tranmax),tag)
+wave_5perpower=[wave_5perpower,x[tag]]
 
 filter={name:name,$                   ; shortname    
         namef:namef,$                 ; formated name (for IDL plots)
@@ -239,7 +251,9 @@ filter={name:name,$                   ; shortname
         ewf:3e10*1e8/effwave^2.0*ew,$ ; ew in hz
         vega2ab:vega2ab,$             ; AB=Vega+vega2ab
         wave:wave,$                   ; wave vector
-        wave_halfpower:[min(wave_halfpower),max(wave_halfpower)],$    
+        wave_halfpower:[min(wave_halfpower),max(wave_halfpower)],$
+        wave_10perpower:[min(wave_10perpower),max(wave_10perpower)],$
+        wave_5perpower:[min(wave_5perpower),max(wave_5perpower)],$
         wave_maxtran:wave_maxtran,$   ; wave halfpower                 
         tran:tran}                    ; transmision function vector
 

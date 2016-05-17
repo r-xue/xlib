@@ -34,7 +34,7 @@ PRO GAL_DEPROJ_MS,ref,reftype=reftype,box=box,$
 ; GAL_DEPROJ_MS,'MGP',reftype=1,out='mcs_ms',/nodp
 ;-
 
-if n_elements(ores) eq 0 then ores='*'
+if n_elements(ores) eq 0 then ores='_smo*'  ; keyword for resolution choose
 if n_elements(mres) eq 0 then mres='*'
 if n_elements(out) eq 0 then out='all_ms'
 if n_elements(reftype) eq 0 then reftype=0
@@ -157,7 +157,7 @@ for ind=0,n_elements(s.(0))-1 do begin
   d25=s.(where(h eq 'D_25 (")'))[ind]
   
   ; HEX SAMPLING
-  temp=fitsloc+galno+types[reftype].posfix+'_smo'+ores+dp+'.fits'
+  temp=fitsloc+galno+types[reftype].posfix+ores+dp+'.fits'
 
   if file_test(temp) eq 0 then continue
   temp=(file_search(temp))[0]
@@ -212,8 +212,8 @@ for ind=0,n_elements(s.(0))-1 do begin
   gal_ms.inc=inc
   
   foreach type, types do begin
-    fname=fitsloc+galno+type.posfix+'_smo'+ores+dp+'.fits'
-    fnamemsk=fitsloc+galno+type.posfix+'_mskd_smo'+ores+dp+'.fits'
+    fname=fitsloc+galno+type.posfix+ores+dp+'.fits'
+    fnamemsk=fitsloc+galno+type.posfix+'_mskd'+ores+dp+'.fits'
 
     if file_test(fname) or file_test(fnamemsk) then begin
       if file_test(fnamemsk) then fname=fnamemsk
@@ -268,7 +268,7 @@ for ind=0,n_elements(s.(0))-1 do begin
   endforeach
   
   foreach type, types do begin
-    fname=fitsloc+galno+type.posfix+'_iwt_smo'+ores+dp+'.fits'
+    fname=fitsloc+galno+type.posfix+'_iwt'+ores+dp+'.fits'
     if file_test(fname) then begin
       im=readfits(fname,hd,/silent)
       if type.tag eq 'hi' then gal_ms.nh1wt=(calc_cn(im,'hi',hd=hd,MSPPC2=MSPPC2, HELIUM=HELIUM))[pxout,pyout]
