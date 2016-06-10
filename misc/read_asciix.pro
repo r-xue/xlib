@@ -1,4 +1,4 @@
-FUNCTION READ_ASCIIX,file,refresh=refresh
+FUNCTION READ_ASCIIX,file,refresh=refresh,template=template
 
 rootname=cgrootname(file,dir=dir,ext=ext)
 if  ~file_test(dir+'/'+rootname+'.template') or keyword_set(refresh) then begin

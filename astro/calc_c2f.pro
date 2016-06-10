@@ -37,6 +37,7 @@ FUNCTION CALC_C2F,cps,$
 ;   
 ; NOTE:
 ;   The equation here is the same as mag2flux.pro
+;   snr=(2.5*alog10(exp(1.0)))/magerr
 ;-
 
 if  n_elements(vega2ab) eq 0 then vega2ab=0.0

@@ -91,39 +91,69 @@ FUNCTION match_phot,catfile,imfile,band
 ;-
 
 hd = mrdfits(catfile,1)
-print,hd
 tb = mrdfits(catfile,2)
+print,hd
 print,tag_names(tb)
-reftb=query_refobj(imfile,catalog='SDSS-DR9',constraint='us=1,gs=1,rs=1,is=1,zs=1')
-;restore,'ia445_NDWFS1_refobj.xdr'
-cat=reftb
-print,tag_names(cat)
 
-sdss=cat
-sdra = sdss.raj2000
-sddec = sdss.dej2000
-sdU = sdss.Umag
-sdG = sdss.Gmag
-sdR = sdss.Rmag
-sdI = sdss.Imag
-sdZ = sdss.Zmag
-sdUerr = sdss.e_Umag
-sdGerr = sdss.e_Gmag
-sdRerr = sdss.e_Rmag
-sdIerr = sdss.e_Imag
-sdZerr = sdss.e_Zmag
-nsd = n_elements(sdU)
+;reftb=query_refobj(imfile,catalog='SDSS-DR9',constraint='us=1,gs=1,rs=1,is=1,zs=1')
+;;reftb=query_refobj(imfile,catalog='SDSS-DR9')
+;;restore,'ia445_NDWFS1_refobj.xdr'
+;cat=reftb
+;print,tag_names(cat)
+;sdss=cat
+;sdra = sdss.raj2000
+;sddec = sdss.dej2000
+;sdG = sdss.Gmag
+;sdGerr = sdss.e_Gmag
+;sdG = sdss.Gpmag
+;sdGerr = sdss.e_Gpmag
+
+sdss=mrdfits('/Users/Rui/Workspace/highz/products/dey/Stacks/Bootes_SDSS.fits',1)
+sdra = sdss.ra
+sddec = sdss.dec
+sdG = sdss.G
+sdGerr = sdss.err_G
 
 
-ra = tb.alphawin_j2000
-dec = tb.deltawin_j2000
+;sdU = sdss.Umag
+;sdR = sdss.Rmag
+;sdI = sdss.Imag
+;sdZ = sdss.Zmag
+;sdUerr = sdss.e_Umag
+;sdRerr = sdss.e_Rmag
+;sdIerr = sdss.e_Imag
+;sdZerr = sdss.e_Zmag
+;nsd = n_elements(sdU)
+
+
+;ra = tb.alphawin_j2000
+;dec = tb.deltawin_j2000
+ra = tb.alpha_j2000
+dec = tb.delta_j2000
 mag4 = tb.mag_aper[4]
 mag4err = tb.magerr_aper[4]
-;magiso = tb.mag_iso
-;magisoerr = tb.magerr_iso
+magiso = tb.mag_iso
+magisoerr = tb.magerr_iso
 magauto = tb.mag_auto
 magautoerr = tb.magerr_auto
 f1 = tb.flags
+f3 = tb.imaflags_iso
+
+tt=where(magisoerr le 0.05 and mag4err le 0.2 and magauto le 30 and f3 le 19 and f1 lt 1 and magautoerr le 0.05)  
+
+
+ra = ra[tt]
+dec = dec[tt]
+;mag4 = mag4[tt]
+;mag4err = mag4err[tt]
+magiso = magiso[tt]
+magisoerr = magisoerr[tt]
+magauto = magauto[tt]
+magautoerr = magautoerr[tt]
+f1 = f1[tt]
+f3 = f3[tt]
+
+
 ;f3 = tb.imaflags_iso
 
 if  band eq 'r' then begin
@@ -142,7 +172,7 @@ if  band eq 'i' then begin
 endif
 
 res=matchall_sph(sdra,sddec,ra,dec,1.0/60./60.,nwidth)
-sdtag=where(nwidth eq 1 and sdmerr le 0.2 and sdm le 25.0 and sdm ge 15.0)
+sdtag=where(nwidth eq 1 and sdmerr le 0.05 and sdmerr gt 0.0 and sdm le 23.0 and sdm ge 15.0)
 tbtag=res[res[sdtag]]
 
 x=magauto[tbtag]
@@ -152,11 +182,13 @@ f1=f1[tbtag]
 tag=where(xe le 0.05 and f1 le 4)
 
 
-plot,x[tag],y[tag],psym=symcat(16),xstyle=1,ystyle=1
-offset=median(-x[tag]+y[tag])
-print,offset
-oplot,[0,30],[0,30]+offset
-oplot,[0,30],[0,30]
+plot,y[tag],x[tag]-y[tag],psym=symcat(16),xstyle=1,ystyle=1,yrange=[-1,1],xrange=[17,23],$
+    xtitle='SDSS-g',ytitle='MAG_IM-MAG_SDSS'
+offset=median(x[tag]-y[tag])
+print,'mag_im-mag_sdss',offset
+oplot,[0,30],[0,0]+offset,color=cgcolor('red')
+oplot,[0,30],[0,0]
+al_legend,"zpt(IM-SDSS)="+string(offset,format='(f6.2)')
 
 END
 
@@ -180,5 +212,10 @@ catfile='test_psfex_all.cat'
 ;temp=match_phot('ia445_NDWFS4_all.cat','../images/ia445_NDWFS4.fits','g')
 ;temp=match_phot('ia445_NDWFS5_all.cat','../images/ia445_NDWFS5.fits','g')
 temp=match_phot('ia445_NDWFS6_all.cat','../images/ia445_NDWFS6.fits','g')
+;temp=match_phot('LAE1_ia445_nosm.cat','LAE1_ia445_nosm.fits','g')
+;temp=match_phot('LAE1_ia445.cat','LAE1_ia445.fits','g')
+
+;temp=match_phot('mos027sS.fits.cat','mos027sS.fits','g')
+
 
 END

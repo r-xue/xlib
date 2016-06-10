@@ -39,7 +39,6 @@ endif
 if  n_elements(rbin) eq 0 then rbin=psize
 sz=size(im)
 
-
 ;   FILL OBJECT CENTER PIXEL
 
 xcen=(sz[1]-1)/2.
@@ -81,6 +80,7 @@ endif
 if  ~keyword_set(silent) then begin
     print,replicate('-',40)
     print_struct,rms_scale
+    print,replicate('-',40)
     print,string('rmin',format='(a8)'),$
       string('rmax',format='(a8)'),$
       string('rmedian',format='(a12)'),$
@@ -149,12 +149,12 @@ for i=0,n_elements(ri)-1 do begin
 
     tagcflux=where(temp lt ri[i] and im eq im)    
     if  tagcflux[0] ne -1 then begin
-        rp.cflux[i]=total(im[tagcflux],/nan)
+        rp.cflux[i]=total(im[tagcflux],/nan)*!dpi*(ri[i])^2.0/(n_elements(tagcflux)*1.0*psize^2.0)
         rp.rc_np[i]=n_elements(tagcflux)
         circlespace=!dpi*(ri[i])^2.0
         circlepix=circlespace/(psize)^2.0
         rp.rc_npt[i]=circlepix
-        rp.cflux_sig[i]=pixsig*(rp.rc_npt[i])^0.5+rp.rc_npt[i]*rp.skysig
+        rp.cflux_sig[i]=(pixsig*(rp.rc_npt[i])^0.5+rp.rc_npt[i]*rp.skysig)*!dpi*(ri[i])^2.0/(n_elements(tagcflux)*1.0*psize^2.0)
     endif
 
     if  ~keyword_set(silent) then begin
@@ -179,7 +179,6 @@ rp.fwhma=fwhm
 if  ~keyword_set(silent) then begin
     print,'fwhma:',fwhm
 endif
-print,'fwhma:',fwhm
 if  keyword_set(outname) then begin
     print,'radprofile_analyzer: save ',outname    
     save,rp,filename=outname

@@ -96,9 +96,9 @@ axis,YAxis=1, YLog=1, YRange=yrange*ns*c2f,$
 rscale=1.0
 plot,[1],[1],psym=cgsymcat(1),$
     xrange=xrange,xstyle=1,$
-    yrange=[0,3.5],ystyle=1,$
+    yrange=[0,1.5],ystyle=1,$
     xtitle='Radius ["]',$
-    ytitle='Flux!dr!n/Flux!d1"!n',$
+    ytitle='Flux!dr!n/Flux!dr<1"!n',$
     /nodata,pos=[0.15,0.1,0.9,0.38],/noe
 if  n_elements(extrafun) ne 0 then begin
     CALL_PROCEDURE,extrafun.name,extrafun.p1,'cflux',rscale

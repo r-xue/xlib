@@ -47,7 +47,8 @@ FUNCTION READ_TABLE,file,header=header,$
     bkey=bkey,$
     silent=silent,$
     refresh=refresh,$
-    keeptags=keeptags
+    keeptags=keeptags,$
+    types=types
 
 ;+
 ; NAME:
@@ -187,7 +188,7 @@ if  ext eq 'gsheet' or isid then begin
 endif
 
 
-tab=READ_CSV(csvfile,header=header)
+tab=READ_CSV(csvfile,header=header,types=types)
 nrow=n_elements(tab.(0))
 
 if  keyword_set(skey) then begin
@@ -229,12 +230,10 @@ if not keyword_set(silent) then begin
     for i=0,n_elements(header)-1 do begin
         print,"<"+header[i]+">","<"+tagnames[i]+">",size(tab[0].(i),/tn),format='(a-35,a-35,a-12)'
     endfor
-    print,""
     print,replicate('-',50)
     print,'column no.: ', n_elements(header)
     print,'rows   no.: ', n_elements(tab.(0))
     print,replicate('-',50)
-    print,""
 endif
 
 if  not keyword_set(scalar)  then begin

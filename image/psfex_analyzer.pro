@@ -3,6 +3,7 @@ PRO PSFEX_ANALYZER,name,$
     magzero=magzero,SATUR_LEVEL=SATUR_LEVEL,$
     ELONGATION=elongation,SNR_WIN=SNR_WIN,$
     HOMOPSF_PARAMS=HOMOPSF_PARAMS,$
+    PSFSIZE=PSFSIZE,$
     skip=skip
 ;+
 ; NAME:
@@ -37,6 +38,9 @@ PRO PSFEX_ANALYZER,name,$
 ;   test_psfex_vignet.fits < check the psfex cookbook
 ;   test_psfex_psfex_check.eps
 ;   
+; NOTE:
+;   compatible with psfex 3.18.0 from http://www.astromatic.net/wsvn/public/
+;   
 ; HISTORY:
 ;
 ;   20150401  RX  introduced
@@ -50,6 +54,7 @@ if  keyword_set(snr_win) then snr=snr_win else snr=30
 if  ~keyword_set(SATUR_LEVEL) then SATUR_LEVEL=50000.0
 if  ~keyword_set(skip) then skip=''
 if  ~keyword_set(HOMOPSF_PARAMS) then HOMOPSF_PARAMS='5.0,3.0'
+if  ~keyword_set(psfsize) then psfsize=121
 
 ;   HEADER
 imk=readfits(im,imkhd)
@@ -71,6 +76,7 @@ if  ~strmatch(skip,'*se*',/f) then begin
 
     sexconfig=INIT_SEX_CONFIG()
     sexconfig.pixel_scale=psize
+    sexconfig.flag_image=''
     if  keyword_set(flag) then sexconfig.flag_image=flag
     sexconfig.DETECT_MINAREA=5.0
     sexconfig.seeing_fwhm=1.00
@@ -88,6 +94,10 @@ if  ~strmatch(skip,'*se*',/f) then begin
     sexconfig.checkimage_type='SEGMENTATION'
     sexconfig.checkimage_name=name+'_seg.fits'
     sexconfig.SATUR_LEVEL=SATUR_LEVEL
+    tname=tag_names(sexconfig)
+    sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'PSFDISPLAY_TYPE',/f)))
+    sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'NTHREADS',/f)))
+    sexconfig.PHOT_APERTURES='5,10,20,40'
     im_sex,im,sexconfig,configfile=name+'.sex.config'
 
     spawn,'rm -rf '+name+'.cat'
@@ -108,8 +118,9 @@ endif
 ;   RUN PSFEX
 if  ~strmatch(skip,'*pe*',/f) then begin
     
+    psfsize_str=strtrim(psfsize,2)
     psfexconfig=INIT_PSFEX_CONFIG()
-    psfexconfig.psf_size='101,101'
+    psfexconfig.psf_size=psfsize_str+','+psfsize_str
     psfexconfig.PSF_SAMPLING=1.0
     psfexconfig.PSF_RECENTER='Y'
     psfexconfig.SAMPLE_MAXELLIP=0.1
@@ -118,11 +129,17 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     psfexconfig.HOMOBASIS_TYPE='GAUSS-LAGUERRE'
     psfexconfig.HOMOPSF_PARAMS=HOMOPSF_PARAMS
     psfexconfig.HOMOKERNEL_SUFFIX='_homo.fits'
-    ;psfexconfig.CHECKPLOT_DEV='PS'
-    ;psfexconfig.CHECKPLOT_TYPE='FWHM'
-    ;psfexconfig.CHECKPLOT_NAME='fwhm'
+    psfexconfig.CHECKPLOT_DEV='PSC'
+    psfexconfig.CHECKPLOT_TYPE='FWHM,ELLIPTICITY,COUNTS,COUNT_FRACTION,CHI2,MOFFAT_RESIDUALS,ASYMMETRY'
+    psfexconfig.CHECKPLOT_NAME='fwhm,ellipticity,counts,countfrac,moffatres,asymmetry'
     im_psfex,name+'.cat',psfexconfig,configfile=name+'.psfex.config'
-    checklist=['proto','resi','samp','snap','chi']
+    
+    checklist=[]
+    checklist=[checklist,strsplit(psfexconfig.CHECKPLOT_NAME,',',/ext)]
+    tmpname=psfexconfig.CHECKIMAGE_NAME
+    tmpname=repstr(tmpname,'.fits','')
+    checklist=[checklist,strsplit(tmpname,',',/ext)]
+    print,checklist
     
     print,replicate('+',20)
     print,'rename files:'
@@ -130,18 +147,25 @@ if  ~strmatch(skip,'*pe*',/f) then begin
         oldim=ci+'_'+name+'.fits'
         newim=name+'_'+ci+'.fits'
         base=FILE_BASENAME(name)
-        oldim=repstr(name+'_'+ci,base+'_'+ci,ci+'_'+base)+'.fits'
-        print,FILE_BASENAME(oldim),'->',newim
-        spawn,'mv '+FILE_BASENAME(oldim)+' '+newim
+        flist=file_search(ci+'*.*')
+        foreach fone,flist do begin
+            fone_new=repstr(fone,ci+'_'+base,base+'_'+ci)
+            print,fone,'->',fone_new
+            spawn,'mv '+fone+' '+fone_new
+        endforeach
     endforeach
     print,FILE_BASENAME(name+'.psf'),'->',name+'.psf'
     spawn,'mv '+FILE_BASENAME(name+'.psf')+' '+name+'.psf'
     print,replicate('+',20)
     
     ;   EXTRACT PSF MODEL
-    psf=mrdfits(name+'.psf',1)
+    psf=mrdfits(name+'.psf',1,psfhd)
+    print,replicate('+',20)
+    print,'-->',name+'.psf'
+    print,psfhd
+    print,replicate('+',20)
     cube=psf.(0)
-    hd=mk_hd([0.,0.],[101,101],psize)
+    hd=mk_hd([0.,0.],[psfsize,psfsize],psize)
 
     writefits,name+'_psfex.fits',cube[*,*,0],hd
     tb=mrdfits(name+'.cat',2)
