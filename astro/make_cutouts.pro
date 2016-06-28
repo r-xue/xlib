@@ -60,12 +60,13 @@ foreach filename,ulist do begin
     print,''
     
     tag=array_indices(imlist,where(imlist eq filename))
-    otag=transpose(tag[1,*])
-    btag=transpose(tag[0,*])
     if  (size(imlist))[0] ne 2 then begin
         otag=tag
         btag=replicate(0,n_elements(tag))
-    endif
+    endif else begin
+        otag=transpose(tag[1,*])
+        btag=transpose(tag[0,*])
+    endelse
     
     im=readfits(objs[otag[0]].imfile[btag[0]],hd,$
         ext=objs[otag[0]].imext[btag[0]],/silent)

@@ -136,6 +136,133 @@ if  select eq 'subaru-ia445' then begin
     vega2ab=!values.f_nan
 endif
 
+;   from CpackP SUBARU_IA filters
+
+if  select eq 'subaru-ib427' then begin
+    name='Subaru-IB427'
+    namef='Subaru-!8IB427!6'
+    ew=207.3
+    effwave=4263.5
+    readcol,/silent,path+'/cosmos/IB427.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib464' then begin
+    name='Subaru-IB464'
+    namef='Subaru-!8IB464!6'
+    ew=218.1
+    effwave=4635.1
+    readcol,/silent,path+'/cosmos/IB464.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib484' then begin
+    name='Subaru-IB484'
+    namef='Subaru-!8IB484!6'
+    ew=229.1
+    effwave=4849.2
+    readcol,/silent,path+'/cosmos/IB484.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib505' then begin
+    name='Subaru-IB505'
+    namef='Subaru-!8IB505!6'
+    ew=231.5
+    effwave=5062.5
+    readcol,/silent,path+'/cosmos/IB505.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib527' then begin
+    name='Subaru-IB527'
+    namef='Subaru-!8IB527!6'
+    ew=242.7
+    effwave=5261.1
+    readcol,/silent,path+'/cosmos/IB527.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib574' then begin
+    name='Subaru-IB574'
+    namef='Subaru-!8IB574!6'
+    ew=272.8
+    effwave=5764.8
+    readcol,/silent,path+'/cosmos/IB574.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib624' then begin
+    name='Subaru-IB624'
+    namef='Subaru-!8IB624!6'
+    ew=299.9
+    effwave=6232.9
+    readcol,/silent,path+'/cosmos/IB624.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib679' then begin
+    name='Subaru-IB679'
+    namef='Subaru-!8IB679!6'
+    ew=335.8
+    effwave=6781.1
+    readcol,/silent,path+'/cosmos/IB679.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib709' then begin
+    name='Subaru-IB709'
+    namef='Subaru-!8IB709!6'
+    ew=316.3
+    effwave=7073.6
+    readcol,/silent,path+'/cosmos/IB709.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib738' then begin
+    name='Subaru-IB738'
+    namef='Subaru-!8IB738!6'
+    ew=323.8
+    effwave=7361.5
+    readcol,/silent,path+'/cosmos/IB738.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib767' then begin
+    name='Subaru-IB767'
+    namef='Subaru-!8IB767!6'
+    ew=365.0
+    effwave=7684.9
+    readcol,/silent,path+'/cosmos/IB767.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+if  select eq 'subaru-ib824' then begin
+    name='Subaru-IB824'
+    namef='Subaru-!8IB824!6'
+    ew=342.8
+    effwave=8244.5
+    readcol,/silent,path+'/cosmos/IB824.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+
+
+
+
 if  select eq 'kpno-newfirm-j' then begin
     name=''
     namef=''
@@ -243,6 +370,9 @@ tmp=min(abs(y-0.1*tranmax),tag)
 wave_10perpower=[wave_10perpower,x[tag]]
 tmp=min(abs(y-0.05*tranmax),tag)
 wave_5perpower=[wave_5perpower,x[tag]]
+
+
+print,wave_halfpower
 
 filter={name:name,$                   ; shortname    
         namef:namef,$                 ; formated name (for IDL plots)

@@ -1,6 +1,6 @@
 PRO PINEPS, pdfname, epslist, clean=clean, verbose=verbose,$
     latex=latex,pdflatex=pdflatex,width=width,landscape=landscape,$
-    nx=nx,papersize=papersize
+    nx=nx,papersize=papersize,ps=ps
 ;+
 ; NAME:
 ;   PINEPS
@@ -22,6 +22,7 @@ PRO PINEPS, pdfname, epslist, clean=clean, verbose=verbose,$
 ;   latex         use latex (or pdflatex) to combine eps
 ;   pdflatex      optionally use pdflatex
 ;   verbose       verbose ouput
+;   ps            input plots are in .ps rather than .eps
 ;   
 ; HISTORY:
 ;
@@ -29,7 +30,7 @@ PRO PINEPS, pdfname, epslist, clean=clean, verbose=verbose,$
 ;   20141001  RX  add the latex option  
 ;-
 
-fulllist=epslist+'.eps'
+if  keyword_set(ps) then fulllist=epslist+'.ps' else fulllist=epslist+'.eps'
 
 tag=where(file_test(fulllist) ne 0)
 fulllist=fulllist[tag]

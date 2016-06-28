@@ -53,3 +53,5 @@ Here is a list of IDL libraries I borrow:
   JHU/APL/S1R IDL library   http://fermi.jhuapl.edu/idl/ <web>
   
   Kcorrect                  http://howdy.physics.nyu.edu/index.php/Kcorrect <web>
+                            http://cosmo.nyu.edu/blanton/kcorrect/kcorrect.v4_3.tar.gz <web>
+                            

@@ -1,7 +1,7 @@
 PRO PSFEX_ANALYZER,name,$
     im,flag=flag,$
     magzero=magzero,SATUR_LEVEL=SATUR_LEVEL,$
-    ELONGATION=elongation,SNR_WIN=SNR_WIN,$
+    ELONGATION=elongation,SNR_WIN=SNR_WIN,FWHMRANGE=FWHMRANGE,$
     HOMOPSF_PARAMS=HOMOPSF_PARAMS,$
     PSFSIZE=PSFSIZE,$
     skip=skip
@@ -23,6 +23,10 @@ PRO PSFEX_ANALYZER,name,$
 ;   rms:        not implemented yet
 ;   magzero:    specify magzero value if the header value is wrong
 ;   /plot:      just plot psfex_check using psfex results from last run
+;
+;   fwhmrange   fwhmrange for psfex input objects
+;   elongation  max elong for psfex input objects
+;   snr_win     min snr for psfex input objects
 ;   
 ; OUTPUTS:  if name='test_psfex'
 ;   test_psfex_seg.fits < check the sextractor cookbook
@@ -40,23 +44,31 @@ PRO PSFEX_ANALYZER,name,$
 ;   
 ; NOTE:
 ;   compatible with psfex 3.18.0 from http://www.astromatic.net/wsvn/public/
+;   elon=A/B    (def. from the sextratcor manual) 
+;   elli=1-B/A  (def. from the sextratcor manual)
+;   
 ;   
 ; HISTORY:
 ;
-;   20150401  RX  introduced
-;   20151125  RX  add more comments
+;   20150401  RX    introduced
+;   20151125  RX    add more comments
+;   20160610  RX    combine checkplot to PDF
+;                   
 ;       
 ;-
 
-if  keyword_set(elongation) then elong=elongation else elong=1.12
-if  keyword_set(snr_win) then snr=snr_win else snr=30
+if  keyword_set(elongation) then elong=elongation else elong=1.25
+if  keyword_set(snr_win) then snr=snr_win else snr=20
+
+if  ~keyword_set(fwhmrange) then fwhmrange='2,10'
 
 if  ~keyword_set(SATUR_LEVEL) then SATUR_LEVEL=50000.0
 if  ~keyword_set(skip) then skip=''
 if  ~keyword_set(HOMOPSF_PARAMS) then HOMOPSF_PARAMS='5.0,3.0'
-if  ~keyword_set(psfsize) then psfsize=121
+if  ~keyword_set(psfsize) then psfsize=161
 
 ;   HEADER
+
 imk=readfits(im,imkhd)
 getrot,imkhd,ang,cdelt
 psize=abs(cdelt[0])*60.0*60.0
@@ -64,7 +76,13 @@ if  ~keyword_set(magzero) then begin
     magzero=sxpar(imkhd,'MAGZERO')
 endif
 
+
+;   SETUP OUTOUT DIR
+
+file_mkdir,file_dirname(name)
+
 ;   RUN SEXTRACTOR
+
 if  ~strmatch(skip,'*se*',/f) then begin
     
     print,replicate('+',20)
@@ -98,6 +116,7 @@ if  ~strmatch(skip,'*se*',/f) then begin
     sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'PSFDISPLAY_TYPE',/f)))
     sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'NTHREADS',/f)))
     sexconfig.PHOT_APERTURES='5,10,20,40'
+    sexconfig.PHOT_APERTURES='4,8,12,16'
     im_sex,im,sexconfig,configfile=name+'.sex.config'
 
     spawn,'rm -rf '+name+'.cat'
@@ -116,6 +135,10 @@ if  ~strmatch(skip,'*se*',/f) then begin
 endif
 
 ;   RUN PSFEX
+
+checkplot_type='FWHM,ELLIPTICITY,COUNTS,COUNT_FRACTION,CHI2,MOFFAT_RESIDUALS,ASYMMETRY'
+checkplot_name='fwhm,ellipticity,counts,countfrac,chi2,moffatres,asymmetry'
+
 if  ~strmatch(skip,'*pe*',/f) then begin
     
     psfsize_str=strtrim(psfsize,2)
@@ -123,42 +146,48 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     psfexconfig.psf_size=psfsize_str+','+psfsize_str
     psfexconfig.PSF_SAMPLING=1.0
     psfexconfig.PSF_RECENTER='Y'
-    psfexconfig.SAMPLE_MAXELLIP=0.1
-    psfexconfig.SAMPLE_MINSN=30
-    psfexconfig.SAMPLE_FWHMRANGE='2,8'
+    psfexconfig.SAMPLE_MAXELLIP=1.-1./elong
+    psfexconfig.SAMPLE_MINSN=snr
+    psfexconfig.SAMPLE_FWHMRANGE=fwhmrange
+    psfexconfig.SAMPLE_VARIABILITY=0.2
     psfexconfig.HOMOBASIS_TYPE='GAUSS-LAGUERRE'
     psfexconfig.HOMOPSF_PARAMS=HOMOPSF_PARAMS
     psfexconfig.HOMOKERNEL_SUFFIX='_homo.fits'
     psfexconfig.CHECKPLOT_DEV='PSC'
-    psfexconfig.CHECKPLOT_TYPE='FWHM,ELLIPTICITY,COUNTS,COUNT_FRACTION,CHI2,MOFFAT_RESIDUALS,ASYMMETRY'
-    psfexconfig.CHECKPLOT_NAME='fwhm,ellipticity,counts,countfrac,moffatres,asymmetry'
+    psfexconfig.CHECKPLOT_TYPE=checkplot_type
+    psfexconfig.CHECKPLOT_NAME=checkplot_name
     im_psfex,name+'.cat',psfexconfig,configfile=name+'.psfex.config'
     
-    checklist=[]
-    checklist=[checklist,strsplit(psfexconfig.CHECKPLOT_NAME,',',/ext)]
-    tmpname=psfexconfig.CHECKIMAGE_NAME
-    tmpname=repstr(tmpname,'.fits','')
-    checklist=[checklist,strsplit(tmpname,',',/ext)]
-    print,checklist
+    ;   BETTER NAME
     
     print,replicate('+',20)
     print,'rename files:'
+    checklist=[]
+    checklist=[checklist,strsplit(psfexconfig.CHECKPLOT_NAME,',',/ext)]
+    checklist=[checklist,strsplit(repstr(psfexconfig.CHECKIMAGE_NAME,'.fits',''),',',/ext)]
+    print,'rename list :',checklist
+    checkplot=[]
     foreach ci,checklist do begin
-        oldim=ci+'_'+name+'.fits'
-        newim=name+'_'+ci+'.fits'
-        base=FILE_BASENAME(name)
         flist=file_search(ci+'*.*')
-        foreach fone,flist do begin
-            fone_new=repstr(fone,ci+'_'+base,base+'_'+ci)
-            print,fone,'->',fone_new
-            spawn,'mv '+fone+' '+fone_new
+        foreach fold,flist do begin
+            fnew=repstr(file_basename(fold),ci+'_'+file_basename(name),name+'_'+ci)
+            print,fold,'->',fnew
+            spawn,'mv '+fold+' '+fnew
+            if  strmatch(fnew,'*.ps') then checkplot=[checkplot,fnew]
         endforeach
     endforeach
-    print,FILE_BASENAME(name+'.psf'),'->',name+'.psf'
-    spawn,'mv '+FILE_BASENAME(name+'.psf')+' '+name+'.psf'
+    print,file_basename(name+'.psf'),'->',name+'.psf'
+    spawn,'mv '+file_basename(name+'.psf')+' '+name+'.psf'
+    print,file_basename(name+'_homo.fits'),'->',name+'_homo.fits'
+    spawn,'mv '+file_basename(name+'_homo.fits')+' '+name+'_homo.fits'
     print,replicate('+',20)
     
+    ;   COMBINE PS FILE
+    
+    pineps,name+'_checkplot',repstr(checkplot,'.ps',''),/ps,/clean
+    
     ;   EXTRACT PSF MODEL
+    
     psf=mrdfits(name+'.psf',1,psfhd)
     print,replicate('+',20)
     print,'-->',name+'.psf'
@@ -174,11 +203,13 @@ if  ~strmatch(skip,'*pe*',/f) then begin
 endif
 
 ;   DO PLOTTING
+
 if  ~strmatch(skip,'*pl*',/f) then begin
+
 
     tb=mrdfits(name+'_all.cat',1)
     psize=sxpar(tb.field_header_card,'SEXPXSCL')
-    print,tb.field_header_card
+    ;print,tb.field_header_card
     tb=mrdfits(name+'_all.cat',2)
     tag1=where(tb.flags le 0.0 and tb.SNR_WIN gt snr/2.0 and tb.elongation le elong)
     tag2=where(tb.flags le 0.0 and tb.SNR_WIN gt snr and tb.elongation le elong)
@@ -187,7 +218,7 @@ if  ~strmatch(skip,'*pl*',/f) then begin
     
     ;   PLOT PSFEX SNAPSHOT
     set_plot,'ps'
-    device,filename=name+'_psfex_check.eps',bits=8,$
+    device,filename=name+'_psfex_checkphot.eps',bits=8,$
         xsize=5.5,ysize=5.5,$
         /inches,/encapsulated,/color
     !p.thick=2.0
@@ -231,6 +262,14 @@ PRO TEST_PSFEX_ANALYZER
 psfex_analyzer,'test_psfex',$
     'NDWFS1_LAE1_ia445_nosm.fits',$
     magzero=32.40
+
+END
+
+PRO TEST_PSFEX_KS
+
+psfex_analyzer,'psfex_test4ks/H_psfex',$
+    '/Users/keshi/optical/pcf1/H_matched_pcf1_sci_all.fits',$
+    magzero=24.12,skip='',snr=15,elong=1./(1.-0.2)
 
 END
 

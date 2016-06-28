@@ -7,7 +7,13 @@ END
 
 PRO RADPROFILE_PLOT,rp,name,$
     extrafun=extrafun,drange=drange,$
-    xrange=xrange,label=label
+    xrange=xrange,label=label,$
+    moffat=moffat
+;+
+;   plot maffat reference function
+;       moffat[0]   ;   FWHM in arcsec
+;       moffat[1]   ;   moffat beta
+;-
 
 set_plot,'ps'
 device,filename=name+'_radprofile.eps',bits=8,$
@@ -36,6 +42,17 @@ plot,[1],[1],psym=cgsymcat(1),$
     ytitle='Normalized Radial Profile',$
     ;title=csv+'_'+band+'_'+gtag+'_'+stag+'.dat'$
     /nodata,pos=[0.15,0.40,0.9,0.95]
+
+if  n_elements(moffat) eq 2 then begin
+    m_fwhm=moffat[0]
+    m_beta=moffat[1]
+    m_x=rp.center
+    a=m_fwhm/2.0/((0.5^(-1/m_beta)-1)^0.5)
+    u=m_x/a
+    m_y=(1.+u^2.0)^(-m_beta)
+    oplot,m_x,m_y
+endif
+
 
 ns=max(rp.median,/nan)
 ns1=max(rp.mean,/nan)
@@ -96,7 +113,7 @@ axis,YAxis=1, YLog=1, YRange=yrange*ns*c2f,$
 rscale=1.0
 plot,[1],[1],psym=cgsymcat(1),$
     xrange=xrange,xstyle=1,$
-    yrange=[0,1.5],ystyle=1,$
+    yrange=[0,2.0],ystyle=1,$
     xtitle='Radius ["]',$
     ytitle='Flux!dr!n/Flux!dr<1"!n',$
     /nodata,pos=[0.15,0.1,0.9,0.38],/noe
