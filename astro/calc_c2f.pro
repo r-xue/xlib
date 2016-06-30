@@ -6,7 +6,7 @@ FUNCTION CALC_C2F,cps,$
 
 ;+
 ; NAME:
-;   make_charts
+;   CALC_C2F
 ;
 ; PURPOSE:
 ;   convert image counts/s to physics flux units

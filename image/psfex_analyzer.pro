@@ -184,7 +184,7 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     
     ;   COMBINE PS FILE
     
-    pineps,name+'_checkplot',repstr(checkplot,'.ps',''),/ps,/clean
+    pineps,name+'_psfex_checkplot',repstr(checkplot,'.ps',''),/ps,/clean
     
     ;   EXTRACT PSF MODEL
     
@@ -269,7 +269,7 @@ PRO TEST_PSFEX_KS
 
 psfex_analyzer,'psfex_test4ks/H_psfex',$
     '/Users/keshi/optical/pcf1/H_matched_pcf1_sci_all.fits',$
-    magzero=24.12,skip='',snr=15,elong=1./(1.-0.2)
+    magzero=24.12,skip='',snr=15,elong=1./(1.-0.3)
 
 END
 

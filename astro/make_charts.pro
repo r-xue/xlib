@@ -77,6 +77,7 @@ layout={xsize:8,$
 endif
 
 ;   PLOT INDIVIDUAL OBJECTS
+
 outname=[]
 for nc=0,nobj-1 do begin
     
