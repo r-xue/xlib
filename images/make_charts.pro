@@ -1,7 +1,14 @@
-PRO MAKE_CHARTS,OBJ,mode=mode,$
-    outname=outname,$
-    cross=cross,layout=layout
+PRO MAKE_CHARTS,CUTOUTS,$
+    PLOT_METHOD=PLOT_METHOD,cross=cross,layout=layout,$
+    band_select=band_select,type_select=type_select,band_label=band_label,$
+    id_select=id_select,$
+    extra_label=extra_label,box_label=box_label,$
+    bxsz=bxsz,$
+    epslist=epslist
     
+    
+    
+
 ;+
 ; NAME:
 ;   make_charts
@@ -10,96 +17,92 @@ PRO MAKE_CHARTS,OBJ,mode=mode,$
 ;   make finding charts
 ;
 ; INPUTS:
-;   obj:    object structure vector
-;           .source     source name
-;           .objname    object name
-;           .label      object label
-;           .ra         RA
-;           .dec        DEC
-;           .bxsz       box size (in arcsec)
-;           .cell       cell size (in arcsec)
-;                       actually the cell size was determined by device dpi
-;           .band       band name
-;           .imfile     fits image full path
-;           .imext      fits image extension
-;           .ptile_min  min percentile for color scaling
-;           .ptile_max  max percentile for color scaling
-;   mode:   =0  images has been reprocessed to the desired size
-;           =1  images will be plotted as polygon
-;           =2  images will be plotted after resampling 
+;   objs:       check make_objects.pro for the detailed defination of this structure 
+;               it could a scale or vector of the predefined structure.
 ;
 ; OUTOUTS:
-;   outname     outout eps file name list
-;   
+;   epslist     outout eps file name list
+;
 ; KEYWORDS:
 ;   cross:      plot cross at center rather than bars to the left and top
 ;   layout:     see below (hold the input for pos_mp.pro)
-; 
+;   plot_method:    'orginal':      beaware that the xy may not be RA-DEC if pixel is rotated in
+;                   'polygon':      plot each pixel as a polygon, the file size could be too large.
+;                   'resample':     automatically resample based on the plot dpi request;
+;                                   so a pixel in the image will still appear as a pixel when printed out,
+;                                       * the pixel rotation will still show up.
+;                                       * no blurr when print the ps file on paper.
 ; EXAMPLE:
 ;   see TEST_MAKE_CHARTS
+; 
+; NOTE:
+;   The older version of make_charts.pro will load all input images at once for saving the time wasted on
+;   repeating load same images for individual objects, but this doesn't scale up well if the image dataset
+;   is too large for memory (like the COSMOS data in mutiple tiles/bands) 
+;   
+;   This new version will do the job in two steps:
+;       1. load input image one by one; for each images, generate requried stamps and save them to memory;
+;          release memory 
+;       2. plot stamps
+;   The 1st step is actually shared with the new version of make_cutouts.pro. 
+;   The input structures of make_charts.pro and make_cutouts.pro can share same structure tags now.
+;   
+; EXAMPLES:
+;   make_charts,cutouts,id_select='zc400275'
 ;
 ; HISTORY:
-;   20150812    R.Xue   add comments
-;   20150820    R.Xue   add comments
+;   20160629    R.Xue   completely rewritten from the older version
 ;-
 
-if  n_elements(mode) eq 0 then mode=2
 
-;   LOAD ALL LARGE IMAGES TOGETHER INTO MEMORY 
+if  n_elements(plot_method) eq 0 then plot_method='resample'
 
-nobj=n_elements(obj.source)
-imlist=[]
-for i=0,nobj-1 do begin
-    imlist=[imlist,obj[i].imfile]
-endfor
-imlist=imlist[rem_dup(imlist)]
-imlist=imlist[where(imlist ne '',/null)]
-print,'+++'
-print,'load fits images into memory:'
-print,'+++'
-imfits=[]
-for i=0,n_elements(imlist)-1 do begin
-    print,imlist[i]
-    rdfits_struct,imlist[i],tmp
-    tmp=ptr_new(tmp,/no_copy)
-    imfits=[imfits,tmp]
-endfor
+;   PLOT INDIVIDUAL OBJECTS (SORT BY IDS)
 
-;   SETUP LAYOUTS
+id=cutouts.nestedmap(Lambda(x:x.id))
+id=id.toarray(/tran)
 
-if  not keyword_set(layout) then begin    
-layout={xsize:8,$
+band=cutouts.nestedmap(Lambda(x:x.band))
+band=band.toarray(/tran)
+
+type=cutouts.nestedmap(Lambda(x:x.type))
+type=type.toarray(/tran)
+
+if  n_elements(id_select) eq 0 then id_select=id[uniq(id, sort(id))]
+if  n_elements(band_select) eq 0 then band_select=band[uniq(band, sort(band))]
+if  n_elements(type_seletc) eq 0 then type_select=replicate('sci',n_elements(band_select))
+
+
+if  ~keyword_set(layout) then begin
+    layout={xsize:8,$
         ysize:1.5,$
-        nxy:[n_elements((obj[0].imfile)),1],$
+        nxy:[n_elements(band_select),1],$
         margin:[0.01,0.01],$
         omargin:[0.06,0.02,0.01,0.02],$
         type:0}
 endif
 
-;   PLOT INDIVIDUAL OBJECTS
+print,''
+print,'Working on these bands:'
+print,''
+print,band_select+'-'+type_select
+print,''
 
-outname=[]
-for nc=0,nobj-1 do begin
+epslist=[]
+
+for i=0,n_elements(id_select)-1 do begin
     
-    print,replicate('>',20) 
-    print,strtrim(nc+1,2)+'/'+strtrim(nobj,2)
+    print,replicate('>',20)
+    print,strtrim(i+1,2)+'/'+strtrim(n_elements(id_select),2)
     print,replicate('<',20)
+
     
-    mra=obj[nc].ra
-    mdec=obj[nc].dec
-    bxsz=obj[nc].bxsz
-    cell=obj[nc].cell
-    imfile=obj[nc].imfile
-    band=obj[nc].band
-    oname=obj[nc].label
-    ptile=obj[nc].ptile_max
-    ext=obj[nc].imext
+    psfile=strtrim(id_select[i],2)
+    epslist=[epslist,psfile]
     
-    psfile=strtrim(obj[nc].source,2)
-    outname=[outname,psfile]
     set_plot,'ps'
     device, file=psfile+'.eps', /color, bits=8, /encapsulated,$
-        xsize=layout.xsize,ysize=layout.ysize,/inches,xoffset=0.0,yoffset=0.0
+        xsize=layout.xsize,ysize=layout.ysize,/inches
     !p.thick=1.5
     !x.thick = 1.5
     !y.thick = 1.5
@@ -109,63 +112,62 @@ for nc=0,nobj-1 do begin
     !x.gridstyle = 0
     !y.gridstyle = 0
     xyouts,'!6'
+    
+    for j=0,n_elements(band_select)-1 do begin
+        
+        
+        tag=where(id eq id_select[i] and band eq band_select[j] and type eq type_select[j])
 
-    for i=0,n_elements(imfile)-1 do begin
+        if  tag[0] eq -1 then continue
+        tag=tag[0]
         
-        tag=(where(imlist eq imfile[i]))[0]
-        if  tag eq -1 then continue
+        ;   Overwrite the default setting
+        if  n_elements(bxsz) ne 0 then bxsz1=bxsz else bxsz1=cutouts[tag].bxsz
         
-        print,band[i],' ',imfile[i]
-        pos=pos_mp(i,layout.nxy,layout.margin,layout.omargin)
+        print,id_select[i],'-',band_select[j],'-',type_select[j]
+        pos=pos_mp(j,layout.nxy,layout.margin,layout.omargin)
         posp=pos.position
         xtickname=replicate(' ',60)
         ytickname=replicate(' ',60)
         xtitle=' '
         ytitle=' '
-        if  pos.px eq 0 and pos.py eq (layout.nxy)[1]-1 then begin
+        if  pos.px eq 0 and pos.py eq (layout.nxy)[1]-1 and keyword_set(box_label) then begin
             xtickname=!null
             ytickname=!null
             xtitle=textoidl("!6\delta(R.A.) ['']")
             ytitle=textoidl("!6\delta(Dec.) ['']")
         endif
-        if  i eq floor((layout.nxy)[0]/2.0)-1 and (layout.nxy)[0] ne 1 then xtitle=oname
         cgloadct,0
         subim=fltarr(10,10)+255
         cgimage,subim,pos=posp,/keep,/noe
-        subtitle='!6'+band[i]
-
-        if  mode eq 2 or mode eq 0 then begin
+        subtitle='!6'+band_select[j]
+        if  n_elements(band_label) eq n_elements(band_select) then subtitle=band_label[j]
+        
+        if  plot_method eq 'resample' or plot_method eq 'orginal' then begin
 
             psize=dpxy(20.,ibox=[2.0,2.0],dpi=150,/silent)
             psize=min(1.0/psize)
 
-            if  mode eq 2 then begin
-                hdr0=(*imfits[tag]).hdr0
-                temphd=mk_hd([mra,mdec],fix((bxsz[i]/psize)/2.0)*2+1,psize)
+            if  plot_method eq 'resample' then begin
+                temphd=mk_hd([cutouts[tag].ra,cutouts[tag].dec],fix((bxsz1/psize)/2.0)*2+1,psize)
                 ;sxaddpar,hdr0,'EQUINOX',2000.0
-                if  ext[i] eq 0 then $
-                    hastrom_nan,(*imfits[tag]).im0,hdr0,subim,subhd,temphd,missing=!VALUES.F_NAN,/silent,$
-                        interp=0   
-                if  ext[i] eq 1 then $
-                    hastrom_nan,(*imfits[tag]).im1,hdr1,subim,subhd,temphd,missing=!VALUES.F_NAN,/silent,$
-                        interp=0   
+                hastrom_nan,cutouts[tag].im0,cutouts[tag].hd0,subim,subhd,temphd,missing=!VALUES.F_NAN,/silent,interp=0
             endif
-            if  mode eq 0 then begin
-                subhd=(*imfits[tag]).hdr0
-                subim=(*imfits[tag]).im0
+            if  plot_method eq 'original' then begin
+                subhd=cutouts[tag].hd0
+                subim=cutouts[tag].im0
             endif
-            
+
             if  not (min(subim,/nan) ne max(subim,/nan) and total(subim eq subim) gt 0) then continue
-            
+
             cgLoadCT,0,/rev,CLIP=[30,256]
-            
-            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[0.50,ptile[i]])
+
+            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[cutouts[tag].ptile_min,cutouts[tag].ptile_max])
             cgimage,subim,pos=posp,/noe, stretch=1,$
                 minvalue=percent[0],$
                 maxvalue=percent[1]
             nxy=size(subim,/d)
-    
-            ;if  (layout.nxy)[0] eq 1 then subtitle=''
+
             imcontour,subim,subhd,$
                 /Noerase,pos=posp,$
                 /nodata,xtitle=xtitle,ytitle=ytitle,title=' ',subtitle=' ',$
@@ -174,36 +176,33 @@ for nc=0,nobj-1 do begin
                 xcharsize=!p.charsize,ycharsize=!p.charsize,xminor=1,yminor=1,$
                 charsize=!p.charsize,type=layout.type
             cgLoadCT,0
-        
+
         endif
 
-        if  mode eq 1 then begin
-            
-            if  ext[i] eq 0 then $     
-                hextractx,(*imfits[tag]).im0,(*imfits[tag]).hdr0,$
-                    radec=[mra,mdec],subim,subhd,bxsz[i]*[0.5,-0.5],bxsz[i]*[-0.5,0.5]
-            if  ext[i] eq 1 then $
-                hextractx,(*imfits[tag]).im1,(*imfits[tag]).hdr1,$
-                    radec=[mra,mdec],subim,subhd,bxsz[i]*[0.5,-0.5],bxsz[i]*[-0.5,0.5]
+        if  plot_method eq 'polygon' then begin
+
+            cgLoadCT,0
+            hextractx,cutouts[tag].im0,cutouts[tag].hd0,$
+                radec=[cutouts[tag].ra,cutouts[tag].dec],subim,subhd,bxsz1*[0.5,-0.5],bxsz1*[-0.5,0.5]
 
             if  not ( min(subim,/nan) ne max(subim,/nan) and total(subim eq subim) gt 0 ) then continue
-            
-            plot,[0],[0],xrange=bxsz[i]*[0.5,-0.5],yrange=bxsz[i]*[-0.5,0.5],xstyle=1,ystyle=1,/noe,pos=posp,$
+
+            plot,[0],[0],xrange=bxsz1*[0.5,-0.5],yrange=bxsz1*[-0.5,0.5],xstyle=1,ystyle=1,/noe,pos=posp,$
                 xtitle=xtitle,ytitle=ytitle,xtickname=xtickname,ytickname=ytickname,$
                 xcharsize=!p.charsize,ycharsize=!p.charsize,xminor=1,yminor=1,$
                 charsize=!p.charsize
 
-            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[0.50,ptile[i]])
+            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[cutouts[tag].ptile_min,cutouts[tag].ptile_max])
             cgLoadCT,0,/rev,CLIP=[30,256]
-            map_fits,subim,hd=subhd,radec=[mra,mdec],$
+            map_fits,subim,hd=subhd,radec=[cutouts[tag].ra,cutouts[tag].dec],$
                 minvalue=percent[0],maxvalue=percent[1],stretch=1
             cgloadct,0
-            
-            plot,[0],[0],xrange=bxsz[i]*[0.5,-0.5],yrange=bxsz[i]*[-0.5,0.5],xstyle=1,ystyle=1,/noe,pos=posp,$
+
+            plot,[0],[0],xrange=bxsz1*[0.5,-0.5],yrange=bxsz1*[-0.5,0.5],xstyle=1,ystyle=1,/noe,pos=posp,$
                 xtitle=xtitle,ytitle=ytitle,xtickname=xtickname,ytickname=ytickname,$
                 xcharsize=!p.charsize,ycharsize=!p.charsize,xminor=1,yminor=1,$
                 charsize=!p.charsize
-        
+
         endif
 
         if  keyword_set(cross) then begin
@@ -218,170 +217,122 @@ for nc=0,nobj-1 do begin
                 color=cgcolor('red'),thick=8
         endelse
         if  (layout.nxy)[0] eq 1 then begin
-            xyouts,posp[2]+(posp[2]-posp[0])*0.1,(posp[1]+posp[3])*0.5,'!6'+band[i],ori=-90,/norm,ali=0.5
+            if  ~keyword_set(band_label) then begin
+                xyouts,posp[2]+(posp[2]-posp[0])*0.1,(posp[1]+posp[3])*0.5,'!6'+band[i],ori=-90,/norm,ali=0.5
+            endif else begin
+                xyouts,posp[2]+(posp[2]-posp[0])*0.1,(posp[1]+posp[3])*0.5,'!6'+band_label[j],ori=-90,/norm,ali=0.5 
+            endelse
         endif
         tx=posp[0]+(posp[2]-posp[0])*0.05
         ty=posp[1]+(posp[3]-posp[1])*0.95
         al_legend,subtitle+' ',pos=[tx,ty],background_color='white',$
-            textc='red',box=0,/norm,charsize=0.6
-
+            textc='red',box=0,/norm,charsize=0.4
+        
+        tx=posp[0]+(posp[2]-posp[0])*0.85
+        ty=posp[1]+(posp[3]-posp[1])*0.05
+        xyouts,tx,ty,extra_label[j,i],color=cgcolor('blue'),/norm,charsize=0.4,ali=0.5        
+            
     endfor
+    
+    if  ~keyword_set(box_label) then begin
+        xyouts,0.03,0.5,id_select[i],/normal,orien=90,ali=0.5
+    endif
     
     device,/close
     set_plot,'x'
     
 endfor
 
-END
-
-
-PRO TEST_MAKE_CHARTS,project
-;+
-; NAME:
-;   test_make_charts
-;
-; PURPOSE:
-;   make finding charts for different projects:
-;
-; INPUTS:
-;   project:    project name
-;
-; EXAMPLE:
-;   test_make_charts,'specz'
-;
-; HISTORY:
-;   20150812    R.Xue   revised from make_charts_all.pro
-;-
-
-;   PROJECT SELECTION
-
-if  project eq 'specz' then begin
-    path='/Users/Rui/Workspace/highz/products/mosaic/laecore_vs_lbgcore/lbg_specz.dat'
-    readcol,path,ra,dec,objname,specz,mag,format='f,f,a,f,f'
-    label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)+' '+objname+' '+strtrim(specz,2)+' '+strtrim(mag,2)
-endif
-
-if  project eq 'lae' then begin
-    path=cgsourceDir()+'/metadata/newfirm/'
-    readcol,path+'lyaemitter_all_clean.2d',ra,dec,tmp
-    label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)
-endif
-
-if  project eq 'lbg' then begin
-    path=cgsourceDir()+'/metadata/newfirm/'
-    readcol,path+'pcf_lbg_specz.2d',ra,dec
-    label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)
-endif
-
-if  project eq 'alma' then begin
-    path=cgsourceDir()+'/metadata/newfirm/'
-    readcol,path+'alma.2d',ra,dec
-    label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)
-endif
-
-if  strmatch(project,'DVPC*',/f) then begin
-    path='/Users/Rui/GDrive/Worklib/projects/highz/metadata/deimos/'+project+'.mask.txt'
-    readcol,path,objname,ra,dec,epoch,mag,band,tmp1,tmp2,tmp3,format='a,a,a,f,f,a,f,f,f'
-    label=strtrim(indgen(n_elements(ra))+1,2)+' '+ra+' '+dec+' '+objname
-endif
-
-if  project eq 'oden' then begin
-    path='/Users/Rui/Workspace/highz/products/mosaic/laecore_vs_lbgcore/lbg_overdensity.dat'
-    readcol,path,ra,dec,tmp1,tmp2,tmp3,format='f,f,a,f,f'
-    label=strtrim(indgen(n_elements(ra))+1,2)+' '+strtrim(ra,2)+' '+strtrim(dec,2)+' LBG CORE '
-endif
-
-if  project eq 'keck' then begin
-  path='pcf_dropouts_Ideep_pcfo_clean.dat'
-  restore,'pcf_dropouts_Ideep_pcfo_clean.template'
-  ttt=read_ascii(path,tem=template)
-  ra=ttt.field02
-  dec=ttt.field03
-  label=strtrim(ttt.field01,2)+'   '+strtrim(ttt.field06,2)+'   '+strtrim(ttt.field14,2)
-  objname=strtrim(ttt.field01,2)
-endif
-
-if  project eq 'keck2' then begin
-  path='pcf_dropouts_Ideep_pcfo_v2_clean.dat'
-  restore,'pcf_dropouts_Ideep_pcfo_clean.template'
-  ttt=read_ascii(path,tem=template)
-  ra=ttt.field02
-  dec=ttt.field03
-  label=strtrim(ttt.field01,2)+'   '+strtrim(ttt.field06,2)+'   '+strtrim(ttt.field14,2)
-  objname=strtrim(ttt.field01,2)
-endif
-
-;   SETUP OBJECTS STRUCTURE
-
-print,'number of objs:',n_elements(ra)
-str={source:'',$                        ; source name
-    objname:'',$                        ; object name
-    label:'',$                          ; label for this object
-    ra:!values.f_nan,$                  ; ra (in degree)
-    dec:!values.f_nan,$                 ; dec (in degree)
-    bxsz:replicate(!values.f_nan,6),$   ; box size (in arcsec)
-    cell:replicate(!values.f_nan,6),$   ; cell size (in arcsec)
-    band:replicate('',6),$              ; BAND TAG
-    imfile:replicate('',6),$            ; fits file full path
-    ptile_min:replicate(0.5,6),$        ; percentile color scaling
-    ptile_max:replicate(0.95,6),$       ; percentile color scaling
-    imext:replicate(0,6)}               ; fits file extension
-str=replicate(str,n_elements(ra))
-
-;   LOAD OBJECTS INFO
-
-str.source=strtrim(indgen(n_elements(ra)),2)
-str.objname=objname
-str.label=label
-
-if  strmatch(project,'DVPC*',/f) then begin
-    str.ra=tenv(ra)*15.
-    str.dec=tenv(dec)
-endif else begin
-    str.ra=ra
-    str.dec=dec
-endelse
-
-str.bxsz=15.0
-str.cell=[0.26,0.26,0.3,0.3,0.4,0.4]
-str.band=['WRC4','Bw','R','I','H','Ks']
-str.imfile[1,*]='stack_Bw_pcfo.fits'
-str.imfile[3,*]='stack_I_pcfo.fits'
-str.imfile[2,*]='stack_R_pcfo.fits'
-str.imfile[0,*]='stack_wrc4_pcfo.fits'
-
-m='stack_H.fits'
-hd=headfits(m)
-inout=check_point(hd,str.ra,str.dec)
-str[where(inout eq 1,/null)].imfile[4,*]=m
-
-m='stack_Ks.fits'
-hd=headfits(m)
-inout=check_point(hd,str.ra,str.dec)
-str[where(inout eq 1,/null)].imfile[5,*]=m
-
-;m='/Users/Rui/Workspace/highz/products/newfirm/imref/irac1.fits'
-;hd=headfits(m)
-;inout=check_point(hd,str.ra,str.dec)
-;str[where(inout eq 1,/null)].imfile[6,*]=m
-
-layout={xsize:8,$
-  ysize:1.7,$
-  nxy:[6,1],$
-  margin:[0.005,0.005],$
-  omargin:[0.06,0.15,0.01,0.01],$
-  type:0}
-
-;   RUN MAKE_CHARTS / OUPUT EPS FILE LIST
-make_charts,str,outname=outname,layout=layout
-
-if  strmatch(project,'DVPC*',/f) then begin
-    pineps,/latex,'xhs_fcs_deimos_'+project,outname,/clean
-endif else begin
-    pineps,/latex,'xhs_fcs_newfirm_'+project,outname,/clean
-endelse
 
 END
 
 
+PRO TEST_MAKE_CHARTS,cutouts,zcat
 
+    layout={xsize:8.,$
+        ysize:1.70,$
+        nxy:[9,2],$
+        margin:[0.005,0.005],$
+        omargin:[0.04,0.01,0.01,0.01],$
+        type:0}
+band_select=[   'Subaru-IB427',$
+                'Subaru-IB464',$
+                'Subaru-IA484',$
+                'Subaru-IB505',$
+                'Subaru-IA527',$
+                'Subaru-IA624',$
+                'Subaru-IA679',$
+                'Subaru-IA738',$
+                'Subaru-IA767',$
+                'Subaru-B',$
+                'Subaru-gp',$
+                'acs-g',$
+                'Subaru-V',$
+                'Subaru-rp',$
+                'Subaru-ip',$
+                'cfht-i',$
+                'acs-I']
+band_label=[    '!8IB427!6',$
+                '!8IB464!6',$
+                '!8IA484!6',$
+                '!8IB505!6',$
+                '!8IA527!6',$
+                '!8IA624!6',$
+                '!8IA679!6',$
+                '!8IA738!6',$
+                '!8IA767!6',$
+                '!8B!6',$
+                '!8g+!6',$
+                'acs-!8g!6',$
+                '!8V!6',$
+                '!8r+!6',$
+                '!8i+!6',$
+                'CFHT-!8i!6',$
+                'acs-!8I!6']                
+                
+extra_label=[]
+
+id=cutouts.nestedmap(Lambda(x:x.id))
+id=id.toarray(/tran)
+
+
+restore,'../cats/ibg_all.xdr'
+tag=strmatch(zc.group,'*'+zcat+'*',/f)
+id_select=zc[tag]
+id_select=id_select[uniq(id_select, sort(id_select))]
+
+for i=0,n_elements(id_select)-1 do begin
+    id1=id_select[i]
+    tag=where(id1 eq zc.id)
+    one_label=[ string(pc[tag].IB427_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].IB464_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].IA484_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].IB505_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].IA527_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].IA624_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].IA679_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].IA738_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].IA767_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].B_MAG_AUTO,format='(f5.2)'),$
+        '',$
+        '',$
+        string(pc[tag].V_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].r_MAG_AUTO,format='(f5.2)'),$
+        string(pc[tag].ip_MAG_AUTO,format='(f5.2)'),$
+        '',$
+        '']
+    extra_label=[[extra_label],[one_label]]
+endfor
+
+print,size(extra_label)
+
+make_charts,cutouts,$
+    id_select=id_select,$
+    band_select=band_select,band_label=band_label,$
+    extra_label=extra_label,$
+    bxsz=12,$
+    layout=layout,$
+    epslist=epslist
+pineps,/latex,zcat+'_charts',epslist
+
+END
