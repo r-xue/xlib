@@ -64,20 +64,23 @@ if  size(cutouts,/tn) eq size('',/tn) then begin
 
     fits_open,cutouts,fcb
     next=fcb.nextend
-    ;cutouts_hd=mrdfits(cutouts,next)
-    fits_read,fcb,cutouts_hd,EXTEN_NO=next
+    cutouts_hd=mrdfits(cutouts,next)     
+    ;fits_read,fcb,cutouts_hd,EXTEN_NO=next             ; doesn't work
+    ;cutouts_hd=readfits(cutouts,ext=next)              ; doesn't work
     id=strtrim(cutouts_hd.id,2)
     band=strtrim(cutouts_hd.band,2)
     type=strtrim(cutouts_hd.type,2)
     cutouts=cutouts_hd
     
 endif else begin
+    
     id=cutouts.nestedmap(Lambda(x:x.id))
     id=id.toarray(/tran)
     band=cutouts.nestedmap(Lambda(x:x.band))
     band=band.toarray(/tran)
     type=cutouts.nestedmap(Lambda(x:x.type))
     type=type.toarray(/tran)
+
 endelse
 
 if  n_elements(id_select) eq 0 then id_select=id[uniq(id, sort(id))]
@@ -187,7 +190,7 @@ for i=0,n_elements(id_select)-1 do begin
             cgLoadCT,0,/rev,CLIP=[30,256]
 
             percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[cutouts[tag].ptile_min,cutouts[tag].ptile_max])
-            cgimage,subim,pos=posp,/noe, stretch=1,$
+            cgimage,subim,pos=posp,/noe, stretch=5,$
                 minvalue=percent[0],$
                 maxvalue=percent[1]
             nxy=size(subim,/d)
@@ -219,7 +222,7 @@ for i=0,n_elements(id_select)-1 do begin
             percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[cutouts[tag].ptile_min,cutouts[tag].ptile_max])
             cgLoadCT,0,/rev,CLIP=[30,256]
             map_fits,subim,hd=subhd,radec=[cutouts[tag].ra,cutouts[tag].dec],$
-                minvalue=percent[0],maxvalue=percent[1],stretch=1
+                minvalue=percent[0],maxvalue=percent[1],stretch=5
             cgloadct,0
 
             plot,[0],[0],xrange=bxsz1*[0.5,-0.5],yrange=bxsz1*[-0.5,0.5],xstyle=1,ystyle=1,/noe,pos=posp,$
