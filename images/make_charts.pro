@@ -19,6 +19,7 @@ PRO MAKE_CHARTS,CUTOUTS,$
 ; INPUTS:
 ;   objs:       check make_objects.pro for the detailed defination of this structure 
 ;               it could a scale or vector of the predefined structure.
+;   cutouts
 ;
 ; OUTOUTS:
 ;   epslist     outout eps file name list
@@ -33,7 +34,7 @@ PRO MAKE_CHARTS,CUTOUTS,$
 ;                                       * the pixel rotation will still show up.
 ;                                       * no blurr when print the ps file on paper.
 ; EXAMPLE:
-;   see TEST_MAKE_CHARTS
+;   see cosmos_stack_charts.pro
 ; 
 ; NOTE:
 ;   The older version of make_charts.pro will load all input images at once for saving the time wasted on
@@ -59,14 +60,25 @@ if  n_elements(plot_method) eq 0 then plot_method='resample'
 
 ;   PLOT INDIVIDUAL OBJECTS (SORT BY IDS)
 
-id=cutouts.nestedmap(Lambda(x:x.id))
-id=id.toarray(/tran)
+if  size(cutouts,/tn) eq size('',/tn) then begin
 
-band=cutouts.nestedmap(Lambda(x:x.band))
-band=band.toarray(/tran)
-
-type=cutouts.nestedmap(Lambda(x:x.type))
-type=type.toarray(/tran)
+    fits_open,cutouts,fcb
+    next=fcb.nextend
+    ;cutouts_hd=mrdfits(cutouts,next)
+    fits_read,fcb,cutouts_hd,EXTEN_NO=next
+    id=strtrim(cutouts_hd.id,2)
+    band=strtrim(cutouts_hd.band,2)
+    type=strtrim(cutouts_hd.type,2)
+    cutouts=cutouts_hd
+    
+endif else begin
+    id=cutouts.nestedmap(Lambda(x:x.id))
+    id=id.toarray(/tran)
+    band=cutouts.nestedmap(Lambda(x:x.band))
+    band=band.toarray(/tran)
+    type=cutouts.nestedmap(Lambda(x:x.type))
+    type=type.toarray(/tran)
+endelse
 
 if  n_elements(id_select) eq 0 then id_select=id[uniq(id, sort(id))]
 if  n_elements(band_select) eq 0 then band_select=band[uniq(band, sort(band))]
@@ -85,15 +97,20 @@ endif
 print,''
 print,'Working on these bands:'
 print,''
-print,band_select+'-'+type_select
+for i=0,n_elements(band_select)-1 do begin
+    print,band_select[i]+'-'+type_select[i]
+endfor
 print,''
 
 epslist=[]
+for i=0,n_elements(cutouts_hd)-1 do begin
+    print,cutouts_hd[i]
+endfor
 
 for i=0,n_elements(id_select)-1 do begin
     
     print,replicate('>',20)
-    print,strtrim(i+1,2)+'/'+strtrim(n_elements(id_select),2)
+    print,strtrim(i+1,2)+'/'+strtrim(n_elements(id_select),2)+' '+id_select[i]
     print,replicate('<',20)
 
     
@@ -117,7 +134,6 @@ for i=0,n_elements(id_select)-1 do begin
         
         
         tag=where(id eq id_select[i] and band eq band_select[j] and type eq type_select[j])
-
         if  tag[0] eq -1 then continue
         tag=tag[0]
         
@@ -143,19 +159,27 @@ for i=0,n_elements(id_select)-1 do begin
         subtitle='!6'+band_select[j]
         if  n_elements(band_label) eq n_elements(band_select) then subtitle=band_label[j]
         
+        
+        if  n_elements(cutouts_hd) ne 0 then begin
+            fits_read,fcb,im0,hd0,exten_no=tag+1
+        endif else begin
+            hd0=cutouts[tag].hd0
+            im0=cutouts[tag].im0
+        endelse
+        
         if  plot_method eq 'resample' or plot_method eq 'orginal' then begin
 
             psize=dpxy(20.,ibox=[2.0,2.0],dpi=150,/silent)
             psize=min(1.0/psize)
-
+            
             if  plot_method eq 'resample' then begin
                 temphd=mk_hd([cutouts[tag].ra,cutouts[tag].dec],fix((bxsz1/psize)/2.0)*2+1,psize)
                 ;sxaddpar,hdr0,'EQUINOX',2000.0
-                hastrom_nan,cutouts[tag].im0,cutouts[tag].hd0,subim,subhd,temphd,missing=!VALUES.F_NAN,/silent,interp=0
+                hastrom_nan,im0,hd0,subim,subhd,temphd,missing=!VALUES.F_NAN,/silent,interp=0
             endif
             if  plot_method eq 'original' then begin
-                subhd=cutouts[tag].hd0
-                subim=cutouts[tag].im0
+                subhd=hd0
+                subim=im0
             endif
 
             if  not (min(subim,/nan) ne max(subim,/nan) and total(subim eq subim) gt 0) then continue
@@ -182,7 +206,7 @@ for i=0,n_elements(id_select)-1 do begin
         if  plot_method eq 'polygon' then begin
 
             cgLoadCT,0
-            hextractx,cutouts[tag].im0,cutouts[tag].hd0,$
+            hextractx,im0,hd0,$
                 radec=[cutouts[tag].ra,cutouts[tag].dec],subim,subhd,bxsz1*[0.5,-0.5],bxsz1*[-0.5,0.5]
 
             if  not ( min(subim,/nan) ne max(subim,/nan) and total(subim eq subim) gt 0 ) then continue
@@ -244,95 +268,10 @@ for i=0,n_elements(id_select)-1 do begin
 endfor
 
 
+if  n_elements(cutouts_hd) ne 0 then begin
+    fits_close,fcb
+endif
+
+
 END
 
-
-PRO TEST_MAKE_CHARTS,cutouts,zcat
-
-    layout={xsize:8.,$
-        ysize:1.70,$
-        nxy:[9,2],$
-        margin:[0.005,0.005],$
-        omargin:[0.04,0.01,0.01,0.01],$
-        type:0}
-band_select=[   'Subaru-IB427',$
-                'Subaru-IB464',$
-                'Subaru-IA484',$
-                'Subaru-IB505',$
-                'Subaru-IA527',$
-                'Subaru-IA624',$
-                'Subaru-IA679',$
-                'Subaru-IA738',$
-                'Subaru-IA767',$
-                'Subaru-B',$
-                'Subaru-gp',$
-                'acs-g',$
-                'Subaru-V',$
-                'Subaru-rp',$
-                'Subaru-ip',$
-                'cfht-i',$
-                'acs-I']
-band_label=[    '!8IB427!6',$
-                '!8IB464!6',$
-                '!8IA484!6',$
-                '!8IB505!6',$
-                '!8IA527!6',$
-                '!8IA624!6',$
-                '!8IA679!6',$
-                '!8IA738!6',$
-                '!8IA767!6',$
-                '!8B!6',$
-                '!8g+!6',$
-                'acs-!8g!6',$
-                '!8V!6',$
-                '!8r+!6',$
-                '!8i+!6',$
-                'CFHT-!8i!6',$
-                'acs-!8I!6']                
-                
-extra_label=[]
-
-id=cutouts.nestedmap(Lambda(x:x.id))
-id=id.toarray(/tran)
-
-
-restore,'../cats/ibg_all.xdr'
-tag=strmatch(zc.group,'*'+zcat+'*',/f)
-id_select=zc[tag]
-id_select=id_select[uniq(id_select, sort(id_select))]
-
-for i=0,n_elements(id_select)-1 do begin
-    id1=id_select[i]
-    tag=where(id1 eq zc.id)
-    one_label=[ string(pc[tag].IB427_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].IB464_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].IA484_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].IB505_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].IA527_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].IA624_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].IA679_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].IA738_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].IA767_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].B_MAG_AUTO,format='(f5.2)'),$
-        '',$
-        '',$
-        string(pc[tag].V_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].r_MAG_AUTO,format='(f5.2)'),$
-        string(pc[tag].ip_MAG_AUTO,format='(f5.2)'),$
-        '',$
-        '']
-    extra_label=[[extra_label],[one_label]]
-endfor
-
-print,size(extra_label)
-
-make_charts,cutouts,$
-    id_select=id_select,$
-    band_select=band_select,band_label=band_label,$
-    extra_label=extra_label,$
-    bxsz=12,$
-    layout=layout,$
-    epslist=epslist
-pineps,/latex,zcat+'_charts',epslist
-
-END

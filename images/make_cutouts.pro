@@ -1,9 +1,3 @@
-;THIS also replace gal_deproj
-;please note that some time you can get the cutouts images easily using webtools (e.g. http://irsa.ipac.caltech.edu/data/COSMOS/index_cutouts.html)
-;
-
-
-
 PRO MAKE_CUTOUTS,OBJS,$
     EXTRACT_METHOD=EXTRACT_METHOD,$
     EXPORT_METHOD=EXPORT_METHOD,$
@@ -22,12 +16,20 @@ PRO MAKE_CUTOUTS,OBJS,$
 ;               it could a scale or vector of the predefined structure.
 ;
 ; OUTOUTS:
-;   output      specified exfits name
+;   output      specified mef name
 ;               variable (in a LIST type) holding cutouts data
 ;               
 ; KEYWORDS:
 ;   cross:      plot cross at center rather than bars to the left and top
 ;   layout:     see below (hold the input for pos_mp.pro)
+;   export_method:      'mef'       muti-extension fits
+;                                   this is the default format for data analysis.
+;                                   the last extention is the cutout index;
+;                                   and the 1->n-1 extenstions are cutout stamps (im,hd);
+;                                   this option is actually fast then 'list' in some cases, 
+;                                   and more flexiable for none-IDL software.
+;                       'list'      idl variable (list type)
+;                       
 ;
 ; EXAMPLE:
 ;   see TEST_MAKE_CHARTS
@@ -51,18 +53,31 @@ PRO MAKE_CUTOUTS,OBJS,$
 ;
 ; HISTORY:
 ;   20160629    R.Xue   completely rewritten from the older version
+;   20160602    R.Xue   use the mutiple-extension fits as the default output format
 ;                       
 ;-
+
+
+;THIS also replace gal_deproj
+;please note that some time you can get the cutouts images easily using webtools (e.g. http://irsa.ipac.caltech.edu/data/COSMOS/index_cutouts.html)
+;
+
+print,''
+print,'---------'
+print,'num. of cutouts.',n_elements(objs)
+print,'---------'
+print,''
+
 
 ;   DEFAULT SETUP
 
 if  n_elements(extract_method) eq 0 then extract_method='hextractx'
-if  n_elements(export_method) eq 0 then export_method='stamps'
+if  n_elements(export_method) eq 0 then export_method='mef'
 if  n_elements(output) eq 0 then output=''
 
 ;   FIND OUT A LIST OF UNIQ FITS/EXTENSION COMBINATIONS
 
-imlist=strtrim(objs.image,2)+' '+strtrim(round(objs.imext),2)
+imlist=strtrim(objs.image,2)+' ext='+strtrim(round(objs.imext),2)
 proclist=objs.proc
 temp1=rem_dup(imlist)
 temp2=where((objs.image)[temp1] ne '' and (objs.proc)[temp1] ne 0,/null)
@@ -71,19 +86,22 @@ print,''
 print,'Hold on..To examine these files:'
 print,''
 foreach filename,ulist do begin
-    print,'    ',filename
+    print,'    ',filename,'  counts:',strtrim(n_elements(where(imlist eq filename)),2)
 endforeach
 print,''
 
 ;   LOOP THROUGH EACH FILE TO EXTRACTING STAMPS
 
-if  strmatch(export_method,'exfits',/f) then begin
+if  strmatch(export_method,'mef',/f) then begin
     mkhdr,h,'',/exten
     dir=file_dirname(output,/m)
     file_mkdir,dir
+    ;,/create
+    ;mwrfits,'',output,/create
     writefits,output,'',h
+    ;mwrfits,objs,output
     print,''
-    print,'export to a multi-extension fits with a dummy primary image/header'
+    print,'setup to a multi-extension fits with a dummy primary image/header'
     print,'     ',output
     print,''
 endif
@@ -92,11 +110,12 @@ if  strmatch(export_method,'list',/f) then begin
     output=list()
 endif
 
-
+objs_sort=objs
+cc=0
 foreach filename,ulist do begin
 
     print,''
-    print,'+++++ reading  ',filename
+    print,'<<<<< reading  ',filename
     print,''
 
     tag=where(filename eq imlist)
@@ -110,7 +129,7 @@ foreach filename,ulist do begin
 
         iobj=tag[i]
         
-        print,'<<<<<',string(i+1,format='(i5)')+'/'+strtrim(n_elements(tag),2),$
+        print,'>>>>> ',string(i+1,format='(i5)')+'/'+strtrim(n_elements(tag),2),$
             ' obj: ', objs[iobj].id,$
             adstring(objs[iobj].ra,objs[iobj].dec,2),$
             ' band: ',objs[iobj].band
@@ -172,11 +191,13 @@ foreach filename,ulist do begin
 
         ;   EXPIRT AS MULTI-EXT FITS
 
-        if  strmatch(export_method,'exfits',/f) then begin
+        if  strmatch(export_method,'mef',/f) then begin
             key="XTENSION= 'IMAGE   '           / IMAGE extension                                "
             subhd=[key,subhd]
             writefits,output,subim,subhd,/append
-            print,'>>>>> append',output
+            print,'>>>>> append ',output
+            objs_sort[cc]=objs[iobj]
+            cc=cc+1
         endif
 
         ;   EXPORT AS A IDL LIST DATA TYPE
@@ -192,6 +213,30 @@ foreach filename,ulist do begin
 
 endforeach
 
-print,''
+
+;fits_write,output,objs_sort,extname='OBJECTS',XTENSION='BINTABLE'
+mwrfits,objs_sort,output
+
+;fits_open,output,fcb
+;next=fcb.nextend
+;fits_close,fcb
+;cutouts_hd=mrdfits(output,'OBJECTS')
+;print_struct,cutouts_hd
+;print_struct,objs_sort
+;
+;if  strmatch(export_method,'mef',/f) then begin
+;    ;modfits,output,objs_sort[0:cc-1],exten_no=1
+;    print,''
+;    print,'>>>>> resort index ',output
+;    print,cutouts_hd
+;    print,''
+;
+;endif
+;
+;cutouts_hd=mrdfits(output,1)
+;print,cutouts_hd.ra
+;print,objs_sort[0:cc-1].ra
+;
+;print,''
 
 END
