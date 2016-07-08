@@ -138,10 +138,6 @@ for i=0,n_elements(id_select)-1 do begin
         
         tag=where(id eq id_select[i] and band eq band_select[j] and type eq type_select[j])
         if  tag[0] eq -1 then continue
-        tag=tag[0]
-        
-        ;   Overwrite the default setting
-        if  n_elements(bxsz) ne 0 then bxsz1=bxsz else bxsz1=cutouts[tag].bxsz
         
         print,id_select[i],'-',band_select[j],'-',type_select[j]
         pos=pos_mp(j,layout.nxy,layout.margin,layout.omargin)
@@ -157,18 +153,42 @@ for i=0,n_elements(id_select)-1 do begin
             ytitle=textoidl("!6\delta(Dec.) ['']")
         endif
         cgloadct,0
-        subim=fltarr(10,10)+255
+        subim=intarr(2,2)+255
         cgimage,subim,pos=posp,/keep,/noe
         subtitle='!6'+band_select[j]
         if  n_elements(band_label) eq n_elements(band_select) then subtitle=band_label[j]
-        
-        
+
         if  n_elements(cutouts_hd) ne 0 then begin
-            fits_read,fcb,im0,hd0,exten_no=tag+1
+            fits_read,fcb,im0,hd0,exten_no=tag[0]+1
         endif else begin
-            hd0=cutouts[tag].hd0
-            im0=cutouts[tag].im0
+            hd0=cutouts[tag[0]].hd0
+            im0=cutouts[tag[0]].im0
         endelse
+        picktag=tag[0]
+        ;++
+        ;   if more than one cutouts meet the selection, we pick the better one (less missing data)
+        ;--
+        if  n_elements(tag) ne 1 then begin
+            for k=1,n_elements(tag)-1 do begin
+                if  n_elements(cutouts_hd) ne 0 then begin
+                    fits_read,fcb,im_tmp,hd_tmp,exten_no=tag[k]+1
+                endif else begin
+                    hd_tmp=cutouts[tag[k]].hd0
+                    im_tmp=cutouts[tag[k]].im0
+                endelse
+                if  total((im0 eq im0 and im0 ne 0.0)*1.0) lt total((im_tmp eq im_tmp and im_tmp ne 0.0)*1.0) then begin
+                    print,'-->>'
+                    print,size(im0)
+                    print,size(im_tmp)
+                    im0=im_tmp
+                    hd0=hd_tmp
+                    picktag=tag[k]
+                endif
+            endfor
+        endif
+        
+        ;   Overwrite the default setting
+        if  n_elements(bxsz) ne 0 then bxsz1=bxsz else bxsz1=cutouts[picktag].bxsz
         
         if  plot_method eq 'resample' or plot_method eq 'orginal' then begin
 
@@ -176,7 +196,7 @@ for i=0,n_elements(id_select)-1 do begin
             psize=min(1.0/psize)
             
             if  plot_method eq 'resample' then begin
-                temphd=mk_hd([cutouts[tag].ra,cutouts[tag].dec],fix((bxsz1/psize)/2.0)*2+1,psize)
+                temphd=mk_hd([cutouts[picktag].ra,cutouts[picktag].dec],fix((bxsz1/psize)/2.0)*2+1,psize)
                 ;sxaddpar,hdr0,'EQUINOX',2000.0
                 hastrom_nan,im0,hd0,subim,subhd,temphd,missing=!VALUES.F_NAN,/silent,interp=0
             endif
@@ -189,7 +209,7 @@ for i=0,n_elements(id_select)-1 do begin
 
             cgLoadCT,0,/rev,CLIP=[30,256]
 
-            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[cutouts[tag].ptile_min,cutouts[tag].ptile_max])
+            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[cutouts[picktag].ptile_min,cutouts[picktag].ptile_max])
             cgimage,subim,pos=posp,/noe, stretch=5,$
                 minvalue=percent[0],$
                 maxvalue=percent[1]
@@ -210,7 +230,7 @@ for i=0,n_elements(id_select)-1 do begin
 
             cgLoadCT,0
             hextractx,im0,hd0,$
-                radec=[cutouts[tag].ra,cutouts[tag].dec],subim,subhd,bxsz1*[0.5,-0.5],bxsz1*[-0.5,0.5]
+                radec=[cutouts[picktag].ra,cutouts[picktag].dec],subim,subhd,bxsz1*[0.5,-0.5],bxsz1*[-0.5,0.5]
 
             if  not ( min(subim,/nan) ne max(subim,/nan) and total(subim eq subim) gt 0 ) then continue
 
@@ -219,9 +239,9 @@ for i=0,n_elements(id_select)-1 do begin
                 xcharsize=!p.charsize,ycharsize=!p.charsize,xminor=1,yminor=1,$
                 charsize=!p.charsize
 
-            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[cutouts[tag].ptile_min,cutouts[tag].ptile_max])
+            percent=cgPercentiles(subim[where(subim eq subim)], Percentiles=[cutouts[picktag].ptile_min,cutouts[picktag].ptile_max])
             cgLoadCT,0,/rev,CLIP=[30,256]
-            map_fits,subim,hd=subhd,radec=[cutouts[tag].ra,cutouts[tag].dec],$
+            map_fits,subim,hd=subhd,radec=[cutouts[picktag].ra,cutouts[picktag].dec],$
                 minvalue=percent[0],maxvalue=percent[1],stretch=5
             cgloadct,0
 
