@@ -1,6 +1,6 @@
 PRO HEXTRACTX,IM,HD,subim,subhd,xrange,yrange,$
     radec=radec,arcmin=arcmin,pxbox=pxbox,$
-    silent=silent
+    silent=silent,EXTENSION=EXTENSION
     
 ;+
 ; NAME:
@@ -42,8 +42,14 @@ PRO HEXTRACTX,IM,HD,subim,subhd,xrange,yrange,$
 ;                 rename it to disp_fits.pro
 ;   20150419  RX  performace enhancement
 ;                 fix the "no-overlap" conditon
+;   20160708  RX  if <im> is a file name, then we will try to use the faster fxreadx.pro
 ;
 ;-
+
+
+if  size(im,/tn) eq size('',/tn) then begin
+    hd=headfits(im,ext=extension,/silent)
+endif
 
 if  n_elements(xrange) eq 1 $
     then xbox=[-1.,1.]*abs(xrange) $
@@ -63,14 +69,20 @@ if  n_elements(radec) eq 2 then begin
 endif
 adxy,hd,xbox,ybox,xx,yy
 
-nxy=size(im,/d)
+nxy=[sxpar(hd,'NAXIS1'),sxpar(hd,'NAXIS2')]
+
 xmin=floor(min(xx)-2)>0
 xmax=ceil(max(xx)+2)<nxy[0]-1
 ymin=floor(min(yy)-2)>0
 ymax=ceil(max(yy)+2)<nxy[1]-1
 
 if  xmin le nxy[0]-1 and xmax ge 0 and ymin le nxy[1]-1 and ymax ge 0 then begin
-    hextract,im,hd,subim,subhd,xmin,xmax,ymin,ymax,silent=silent   
+    if  size(im,/tn) ne size('',/tn) then begin
+        hextract,im,hd,subim,subhd,xmin,xmax,ymin,ymax,silent=silent
+    endif else begin
+        fxreadx,im,subim,subhd,xmin,xmax,ymin,ymax,extension=extension
+    endelse
 endif
+
 
 END

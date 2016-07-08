@@ -92,7 +92,7 @@ print,''
 
 ;   LOOP THROUGH EACH FILE TO EXTRACTING STAMPS
 
-if  strmatch(export_method,'mef',/f) then begin
+if  strmatch(export_method,'mef',/f) or strmatch(export_method,'stamps',/f) then begin
     mkhdr,h,'',/exten
     dir=file_dirname(output,/m)
     file_mkdir,dir
@@ -119,9 +119,14 @@ foreach filename,ulist do begin
     print,''
 
     tag=where(filename eq imlist)
-
-
-    im=readfits(objs[tag[0]].image,hd,ext=objs[tag[0]].imext,/silent)
+    
+    hd=headfits(objs[tag[0]].image,ext=objs[tag[0]].imext,/silent)
+    if  strmatch(extract_method,'hextract',/f) or $
+        strmatch(extract_method,'hastrom',/f) or $
+        strmatch(extract_method,'hextractx',/f) $
+        then begin
+        im=readfits(objs[tag[0]].image,hd,ext=objs[tag[0]].imext,/silent)
+    endif
     getrot,hd,rotang,cdelt
     opsize=abs(cdelt[0]*60.*60.)
 
@@ -144,6 +149,15 @@ foreach filename,ulist do begin
                 radec=[objs[iobj].ra,objs[iobj].dec],subim,subhd,$
                 (objs[iobj].bxsz)*[0.5,-0.5],$
                 (objs[iobj].bxsz)*[-0.5,0.5],/silent
+        endif
+        
+        ;   SMART DIRECT EXTRACT FAST
+
+        if  strmatch(extract_method,'hextractx-fast',/f) then begin
+            hextractx,objs[tag[0]].image,hd,$
+                radec=[objs[iobj].ra,objs[iobj].dec],subim,subhd,$
+                (objs[iobj].bxsz)*[0.5,-0.5],$
+                (objs[iobj].bxsz)*[-0.5,0.5],/silent,EXTENSION=objs[tag[0]].imext
         endif
 
         ;   RESAMPLE
@@ -187,6 +201,8 @@ foreach filename,ulist do begin
             file_mkdir,dir
             writefits,outname,subim,subhd
             print,'>>>>> ',outname
+            objs_sort[cc]=objs[iobj]
+            cc=cc+1
         endif
 
         ;   EXPIRT AS MULTI-EXT FITS
@@ -213,10 +229,15 @@ foreach filename,ulist do begin
 
 endforeach
 
+if  strmatch(export_method,'mef',/f) or strmatch(export_method,'stamps',/f) then begin
+    print,'++'
+    print,'write the database catalog'
+    print,''
+    mwrfits,objs_sort,output
+    print,'++'
+endif
 
 ;fits_write,output,objs_sort,extname='OBJECTS',XTENSION='BINTABLE'
-mwrfits,objs_sort,output
-
 ;fits_open,output,fcb
 ;next=fcb.nextend
 ;fits_close,fcb

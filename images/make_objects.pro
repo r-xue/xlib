@@ -57,7 +57,7 @@ obj=    { $
         dec:!values.f_nan,$
         ;
         bxsz:30.0,$
-        cell:1.0,$
+        cell:0.2,$
         mode:1,$
         ;
         image:'',$              ;   original image file name

@@ -372,7 +372,6 @@ tmp=min(abs(y-0.05*tranmax),tag)
 wave_5perpower=[wave_5perpower,x[tag]]
 
 
-print,wave_halfpower
 
 filter={name:name,$                   ; shortname    
         namef:namef,$                 ; formated name (for IDL plots)

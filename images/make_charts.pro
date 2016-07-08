@@ -28,6 +28,8 @@ PRO MAKE_CHARTS,CUTOUTS,$
 ;   cross:      plot cross at center rather than bars to the left and top
 ;   layout:     see below (hold the input for pos_mp.pro)
 ;   plot_method:    'orginal':      beaware that the xy may not be RA-DEC if pixel is rotated in
+;                                   if some object stamps are from fits image with pixel rotation, the image
+;                                   orientation might not be aligned!!!!
 ;                   'polygon':      plot each pixel as a polygon, the file size could be too large.
 ;                   'resample':     automatically resample based on the plot dpi request;
 ;                                   so a pixel in the image will still appear as a pixel when printed out,
