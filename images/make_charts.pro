@@ -277,10 +277,12 @@ for i=0,n_elements(id_select)-1 do begin
         al_legend,subtitle+' ',pos=[tx,ty],background_color='white',$
             textc='red',box=0,/norm,charsize=0.4
         
-        tx=posp[0]+(posp[2]-posp[0])*0.85
-        ty=posp[1]+(posp[3]-posp[1])*0.05
-        xyouts,tx,ty,extra_label[j,i],color=cgcolor('blue'),/norm,charsize=0.4,ali=0.5        
-            
+        if  keyword_set(extra_label) then begin
+            tx=posp[0]+(posp[2]-posp[0])*0.85
+            ty=posp[1]+(posp[3]-posp[1])*0.05
+            xyouts,tx,ty,extra_label[j,i],color=cgcolor('blue'),/norm,charsize=0.4,ali=0.5        
+        endif
+        
     endfor
     
     if  ~keyword_set(box_label) then begin

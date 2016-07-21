@@ -20,12 +20,15 @@ if  n_elements(z) eq 0 then z=2.78
 
 ew_obs=ew*(1.+z)
 ft=get_filter(band)
+
+
+
 w=ft.wave       ;   ft.wave in angstrom
 x=3e18/w
 y=ft.tran>0.0   ;   signal per photons
 
 w_lya=1216.*(1+z)
-tag=where((w-w_lya) le +ew_obs+w_lya*(10.0)/3e5 and (w-w_lya) gt w_lya*(10.0)/3e5)
+tag=where((w-w_lya) le +10.0+w_lya*(10.0)/3e5 and (w-w_lya) gt w_lya*(10.0)/3e5)
 w_lya=min(w[tag])
 tag_lya=where(w_lya eq w)
 
@@ -40,7 +43,9 @@ flam_1220=(w_1220/w_1700)^(beta)
 
 
 flux_lya=flam[tag_lya]*ew_obs
-flam[tag_lya]=flam[tag_lya]+flux_lya/(abs(w[tag_lya-1]-w[tag_lya+1])/2.0)
+if  tag[0] ne -1 then begin
+    flam[tag_lya]=flam[tag_lya]+flux_lya/(abs(w[tag_lya-1]-w[tag_lya+1])/2.0)
+endif
 flam=flam*exp(-calc_igmtau(w,z,model='I14'))
 
 sed={   flam_1220:flam_1220,$               ;   erg s^-1 cm^-2 AA-1

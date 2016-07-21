@@ -248,12 +248,12 @@ if  select eq 'subaru-ib767' then begin
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib824' then begin
-    name='Subaru-IB824'
+if  select eq 'subaru-ib827' then begin
+    name='Subaru-IB827'
     namef='Subaru-!8IB824!6'
     ew=342.8
     effwave=8244.5
-    readcol,/silent,path+'/cosmos/IB824.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB827.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan

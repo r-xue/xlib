@@ -1,6 +1,7 @@
 PRO PSFEX_ANALYZER,name,$
     im,flag=flag,$
     magzero=magzero,SATUR_LEVEL=SATUR_LEVEL,$
+    WEIGHT_IMAGE=WEIGHT_IMAGE,WEIGHT_TYPE=WEIGHT_TYPE,$
     ELONGATION=elongation,SNR_WIN=SNR_WIN,FWHMRANGE=FWHMRANGE,$
     HOMOPSF_PARAMS=HOMOPSF_PARAMS,$
     PSFSIZE=PSFSIZE,$
@@ -25,7 +26,7 @@ PRO PSFEX_ANALYZER,name,$
 ;   /plot:      just plot psfex_check using psfex results from last run
 ;
 ;   fwhmrange   fwhmrange for psfex input objects
-;   elongation  max elong for psfex input objects
+;   elongation  max elong for psfex input objects (default 1.11 or A/B=1/0.9
 ;   snr_win     min snr for psfex input objects
 ;   
 ; OUTPUTS:  if name='test_psfex'
@@ -57,15 +58,16 @@ PRO PSFEX_ANALYZER,name,$
 ;       
 ;-
 
-if  keyword_set(elongation) then elong=elongation else elong=1.25
+if  keyword_set(elongation) then elong=elongation else elong=1.1111
 if  keyword_set(snr_win) then snr=snr_win else snr=20
-
 if  ~keyword_set(fwhmrange) then fwhmrange='2,10'
-
 if  ~keyword_set(SATUR_LEVEL) then SATUR_LEVEL=50000.0
-if  ~keyword_set(skip) then skip=''
 if  ~keyword_set(HOMOPSF_PARAMS) then HOMOPSF_PARAMS='5.0,3.0'
 if  ~keyword_set(psfsize) then psfsize=161
+if  ~keyword_set(skip) then skip=''
+if  ~keyword_set(WEIGHT_IMAGE) then weight_image='weight.fits'
+if  ~keyword_set(WEIGHT_TYPE) then weight_type='NONE'
+
 
 ;   HEADER
 
@@ -75,7 +77,6 @@ psize=abs(cdelt[0])*60.0*60.0
 if  ~keyword_set(magzero) then begin
     magzero=sxpar(imkhd,'MAGZERO')
 endif
-
 
 ;   SETUP OUTOUT DIR
 
@@ -88,8 +89,8 @@ if  ~strmatch(skip,'*se*',/f) then begin
     print,replicate('+',20)
     print,'FILE:    ',strtrim(im)
     print,'NAME:    ',strtrim(name)
-    print,'MAGZERO: ',strtrim(magzero,2)
-    print,'PSIZE:   ',strtrim(psize,2)
+    print,'MAGZERO: ',string(magzero,format='(f0.3)')
+    print,'PSIZE:   ',string(psize,format='(f0.3)')+'"'
     print,replicate('+',20)
 
     sexconfig=INIT_SEX_CONFIG()
@@ -112,6 +113,8 @@ if  ~strmatch(skip,'*se*',/f) then begin
     sexconfig.checkimage_type='SEGMENTATION'
     sexconfig.checkimage_name=name+'_seg.fits'
     sexconfig.SATUR_LEVEL=SATUR_LEVEL
+    sexconfig.WEIGHT_IMAGE=WEIGHT_IMAGE
+    sexconfig.WEIGHT_TYPE=WEIGHT_TYPE
     tname=tag_names(sexconfig)
     sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'PSFDISPLAY_TYPE',/f)))
     sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'NTHREADS',/f)))
@@ -131,13 +134,25 @@ if  ~strmatch(skip,'*se*',/f) then begin
         '-k VIGNET -t LDAC_OBJECTS
     spawn,cmd
     spawn,'rm -rf tmp.cat'
-
+    print,replicate('+',20)
+    print,''
+    print,'output catalogs:'
+    tmp=headfits(name+'_all.cat',ext=2,/silent)
+    print,name+'_all.cat',' n='+strtrim(sxpar(tmp,'NAXIS2'),2)
+    tmp=headfits(name+'.cat',ext=2,/silent)
+    print,name+'.cat',' n='+strtrim(sxpar(tmp,'NAXIS2'),2)
+    print,''
+    print,replicate('+',20)
+    
 endif
 
 ;   RUN PSFEX
 
 checkplot_type='FWHM,ELLIPTICITY,COUNTS,COUNT_FRACTION,CHI2,MOFFAT_RESIDUALS,ASYMMETRY'
 checkplot_name='fwhm,ellipticity,counts,countfrac,chi2,moffatres,asymmetry'
+
+CHECKIMAGE_TYPE='CHI,PROTOTYPES,SAMPLES,RESIDUALS,SNAPSHOTS,MOFFAT,-MOFFAT,-SYMMETRICAL'
+CHECKIMAGE_NAME='chi.fits,proto.fits,samp.fits,resi.fits,snap.fits,moffat.fits,moffatsub.fits,symsub.fits'
 
 if  ~strmatch(skip,'*pe*',/f) then begin
     
@@ -156,17 +171,21 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     psfexconfig.CHECKPLOT_DEV='PSC'
     psfexconfig.CHECKPLOT_TYPE=checkplot_type
     psfexconfig.CHECKPLOT_NAME=checkplot_name
+    psfexconfig.CHECKIMAGE_TYPE=checkimage_type
+    psfexconfig.CHECKIMAGE_NAME=checkimage_name
+    psfexconfig.CHECKIMAGE_CUBE='Y'
     im_psfex,name+'.cat',psfexconfig,configfile=name+'.psfex.config'
     
     ;   BETTER NAME
     
     print,replicate('+',20)
-    print,'rename files:'
+    print,''
     checklist=[]
     checklist=[checklist,strsplit(psfexconfig.CHECKPLOT_NAME,',',/ext)]
     checklist=[checklist,strsplit(repstr(psfexconfig.CHECKIMAGE_NAME,'.fits',''),',',/ext)]
-    print,'rename list :',checklist
     checkplot=[]
+    print,'rename list :',checklist
+    print,'rename files:'
     foreach ci,checklist do begin
         flist=file_search(ci+'*.*')
         foreach fold,flist do begin
@@ -176,10 +195,12 @@ if  ~strmatch(skip,'*pe*',/f) then begin
             if  strmatch(fnew,'*.ps') then checkplot=[checkplot,fnew]
         endforeach
     endforeach
+    print,''
     print,file_basename(name+'.psf'),'->',name+'.psf'
     spawn,'mv '+file_basename(name+'.psf')+' '+name+'.psf'
     print,file_basename(name+'_homo.fits'),'->',name+'_homo.fits'
     spawn,'mv '+file_basename(name+'_homo.fits')+' '+name+'_homo.fits'
+    print,''
     print,replicate('+',20)
     
     ;   COMBINE PS FILE
@@ -211,10 +232,20 @@ if  ~strmatch(skip,'*pl*',/f) then begin
     psize=sxpar(tb.field_header_card,'SEXPXSCL')
     ;print,tb.field_header_card
     tb=mrdfits(name+'_all.cat',2)
-    tag1=where(tb.flags le 0.0 and tb.SNR_WIN gt snr/2.0 and tb.elongation le elong)
-    tag2=where(tb.flags le 0.0 and tb.SNR_WIN gt snr and tb.elongation le elong)
-    print,'Good Objs:',n_elements(tb.flags)
-    print,'Bad  Objs:',n_elements(tag2)
+    taginput=where(tb.SNR_WIN gt snr and tb.elongation le elong)
+    
+    tagflag1 =where(tb.flags le 0.0 and tb.SNR_WIN gt snr and tb.elongation le elong)
+    tagflag2 =where(tb.flags le 0.0 and tb.SNR_WIN gt snr/2.0 and tb.elongation le elong)
+    tagflag3 =where(tb.flags le 0.0 and tb.SNR_WIN gt 7.0 and tb.elongation le elong)
+    print,replicate('+',20)
+;    print,'Good Objs:           ',n_elements(tb.flags)
+;    print,'Bad  Objs:              ',n_elements(tag2)
+    print,'N.Objs (>SNR<ELONG):          ',n_elements(taginput)
+    print,'N.Objs (>SNR<ELONG;flag=0):   ',n_elements(tagflag1)
+    psf=mrdfits(name+'.psf',1,psfhd,/silent)
+    print,'N.Objs (Loaded):              ',sxpar(psfhd,'LOADED')
+    print,'N.Objs (ACCEPTED):            ',sxpar(psfhd,'ACCEPTED')
+    print,replicate('+',20)
     
     ;   PLOT PSFEX SNAPSHOT
     set_plot,'ps'
@@ -237,12 +268,14 @@ if  ~strmatch(skip,'*pl*',/f) then begin
     
     oplot,tb.flux_radius*psize,tb.mag_auto,psym=symcat(16),symsize=0.1,$
         color=cgcolor('slate gray')
-    oplot,tb[tag1].flux_radius*psize,tb[tag1].mag_auto,psym=symcat(16),symsize=0.1,$
+    oplot,tb[tagflag3].flux_radius*psize,tb[tagflag3].mag_auto,psym=symcat(16),symsize=0.1,$
         color=cgcolor('blue')
-    oplot,tb[tag2].flux_radius*psize,tb[tag2].mag_auto,psym=symcat(16),symsize=0.3,$
+    oplot,tb[tagflag2].flux_radius*psize,tb[tagflag2].mag_auto,psym=symcat(16),symsize=0.1,$
+        color=cgcolor('green')
+    oplot,tb[tagflag1].flux_radius*psize,tb[tagflag1].mag_auto,psym=symcat(16),symsize=0.3,$
         color=cgcolor('red')
     
-    al_legend,name,/right,/bottom,box=0
+    al_legend,name,/right,/bottom,box=0,/top
     
     device,/close
     set_plot,'x'

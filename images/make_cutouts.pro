@@ -50,6 +50,9 @@ PRO MAKE_CUTOUTS,OBJS,$
 ;   ++++++ make_*.pro are replacing gal_deproj*pro in xlib ++++++
 ;   
 ;   The file/obejct metadata is defined as a "flat" structure now.
+;   example:
+;       make_cutouts,objs,export_method='list',output=cutouts
+;       save,cutouts,filename='../cutouts/ibg_cutouts4charts.xdr'
 ;
 ; HISTORY:
 ;   20160629    R.Xue   completely rewritten from the older version

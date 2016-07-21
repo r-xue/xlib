@@ -2,7 +2,7 @@
 # basic parameters for psfex
 #############################
 
-VIGNET(161,161)
+VIGNET(201,201)
 ALPHAWIN_J2000
 DELTAWIN_J2000
 XWIN_IMAGE
