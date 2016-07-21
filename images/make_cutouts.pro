@@ -12,16 +12,15 @@ PRO MAKE_CUTOUTS,OBJS,$
 ;   make finding charts
 ;
 ; INPUTS:
-;   obj:        check make_objects.pro for the detailed defination of this structure
-;               it could a scale or vector of the predefined structure.
+;   obj:        check <make_objects.pro> for the defination of this structure
+;               it could be a scale or vector of the predefined structure.
 ;
 ; OUTOUTS:
-;   output      specified mef name
-;               variable (in a LIST type) holding cutouts data
+;   output      file name for the MEF or fits catalog (method='mef'/'stamps')
+;               or 
+;               variable (in a LIST type) holding cutouts data (method='list')
 ;               
 ; KEYWORDS:
-;   cross:      plot cross at center rather than bars to the left and top
-;   layout:     see below (hold the input for pos_mp.pro)
 ;   export_method:      'mef'       muti-extension fits
 ;                                   this is the default format for data analysis.
 ;                                   the last extention is the cutout index;
@@ -29,6 +28,7 @@ PRO MAKE_CUTOUTS,OBJS,$
 ;                                   this option is actually fast then 'list' in some cases, 
 ;                                   and more flexiable for none-IDL software.
 ;                       'list'      idl variable (list type)
+;                       'stamps'    save cutout as fits files named after objs.imout+'.fits'
 ;                       
 ;
 ; EXAMPLE:
@@ -36,34 +36,33 @@ PRO MAKE_CUTOUTS,OBJS,$
 ;
 ; NOTE:
 ; 
-;   The older version of make_charts.pro will load all input images at once for saving the time wasted on
-;   repeating load same images for individual objects, but this doesn't scale up well if the image dataset
-;   is too large for memory (like the COSMOS data in mutiple tiles/bands)
+;   The older version of make_charts.pro will load all input images at once to avoid repeatly 
+;   loading same images for individual objects, but this approach doesn't scale up well if the dataset
+;   is too large for the physical memory (e.g. the COSMOS data..)
 ;
-;   This new version will do the job in two steps:
-;       1. load input image one by one; for each images, generate requried stamps and save them to memory;
-;          release memory
-;       2. plot stamps
-;   The 1st step is actually shared with the new version of make_cutouts.pro.
-;   The input structures of make_charts.pro and make_cutouts.pro can share same structure tags now.
+;   This new version will do the job with two steps:
+;       1.  load input image one by one; for each images, generate requested stamps and save them to mef
+;           (done by make_cutouts.pro)
+;       2.  plot charts, one object each time (done by make_charts.pro)
+;       3.  assemble eps to pdf (done by pineps.pro)
 ;
-;   ++++++ make_*.pro are replacing gal_deproj*pro in xlib ++++++
-;   
-;   The file/obejct metadata is defined as a "flat" structure now.
+;   *** make_*.pro are replacing gal_deproj*pro in xlib
+;   *** file/obejct metadata is defined as a "flat" structure now.
 ;   example:
 ;       make_cutouts,objs,export_method='list',output=cutouts
 ;       save,cutouts,filename='../cutouts/ibg_cutouts4charts.xdr'
+;       THIS also replace gal_deproj
+;       please note that some time you can get the cutouts images easily using webtools 
+;       (e.g. http://irsa.ipac.caltech.edu/data/COSMOS/index_cutouts.html)
 ;
 ; HISTORY:
 ;   20160629    R.Xue   completely rewritten from the older version
-;   20160602    R.Xue   use the mutiple-extension fits as the default output format
+;   20160702    R.Xue   use the mutiple-extension fits as the default output format
 ;                       
 ;-
 
 
-;THIS also replace gal_deproj
-;please note that some time you can get the cutouts images easily using webtools (e.g. http://irsa.ipac.caltech.edu/data/COSMOS/index_cutouts.html)
-;
+
 
 print,''
 print,'---------'

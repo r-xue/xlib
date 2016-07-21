@@ -17,9 +17,7 @@ PRO MAKE_CHARTS,CUTOUTS,$
 ;   make finding charts
 ;
 ; INPUTS:
-;   objs:       check make_objects.pro for the detailed defination of this structure 
-;               it could a scale or vector of the predefined structure.
-;   cutouts
+;   cutouts     mef from make_cutouts.pro
 ;
 ; OUTOUTS:
 ;   epslist     outout eps file name list
@@ -36,7 +34,7 @@ PRO MAKE_CHARTS,CUTOUTS,$
 ;                                       * the pixel rotation will still show up.
 ;                                       * no blurr when print the ps file on paper.
 ; EXAMPLE:
-;   see cosmos_stack_charts.pro
+;   see make_charts_example.pro
 ; 
 ; NOTE:
 ;   The older version of make_charts.pro will load all input images at once for saving the time wasted on
