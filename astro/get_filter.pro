@@ -258,9 +258,38 @@ if  select eq 'subaru-ib827' then begin
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
+if  select eq 'subaru-ip' then begin
+    name='Subaru-IP'
+    namef='Subaru-!8I+!6'
+    ew=!values.f_nan
+    effwave=!values.f_nan
+    readcol,/silent,path+'/cosmos/i_subaru.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
 
+if  select eq 'subaru-rp' then begin
+    name='Subaru-RP'
+    namef='Subaru-!8R+!6'
+    ew=!values.f_nan
+    effwave=!values.f_nan
+    readcol,/silent,path+'/cosmos/r_subaru.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
 
-
+if  select eq 'subaru-gp' then begin
+    name='Subaru-GP'
+    namef='Subaru-!8g+!6'
+    ew=!values.f_nan
+    effwave=!values.f_nan
+    readcol,/silent,path+'/cosmos/g_subaru.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
 
 
 if  select eq 'kpno-newfirm-j' then begin

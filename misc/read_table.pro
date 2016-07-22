@@ -188,7 +188,7 @@ if  ext eq 'gsheet' or isid then begin
     endif
 endif
 
-
+print,csvfile
 tab=READ_CSV(csvfile,header=header,types=types)
 nrow=n_elements(tab.(0))
 

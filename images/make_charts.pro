@@ -85,7 +85,7 @@ endelse
 
 if  n_elements(id_select) eq 0 then id_select=id[uniq(id, sort(id))]
 if  n_elements(band_select) eq 0 then band_select=band[uniq(band, sort(band))]
-if  n_elements(type_seletc) eq 0 then type_select=replicate('sci',n_elements(band_select))
+if  n_elements(type_select) eq 0 then type_select=replicate('sci',n_elements(band_select))
 
 
 if  ~keyword_set(layout) then begin
@@ -107,7 +107,7 @@ print,''
 
 epslist=[]
 for i=0,n_elements(cutouts_hd)-1 do begin
-    print,cutouts_hd[i]
+    ;print,cutouts_hd[i]
 endfor
 
 for i=0,n_elements(id_select)-1 do begin
@@ -273,12 +273,12 @@ for i=0,n_elements(id_select)-1 do begin
         tx=posp[0]+(posp[2]-posp[0])*0.05
         ty=posp[1]+(posp[3]-posp[1])*0.95
         al_legend,subtitle+' ',pos=[tx,ty],background_color='white',$
-            textc='red',box=0,/norm,charsize=0.4
+            textc='red',box=0,/norm,charsize=0.8
         
         if  keyword_set(extra_label) then begin
             tx=posp[0]+(posp[2]-posp[0])*0.85
             ty=posp[1]+(posp[3]-posp[1])*0.05
-            xyouts,tx,ty,extra_label[j,i],color=cgcolor('blue'),/norm,charsize=0.4,ali=0.5        
+            xyouts,tx,ty,extra_label[j,i],color=cgcolor('blue'),/norm,charsize=0.8,ali=0.5        
         endif
         
     endfor

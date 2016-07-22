@@ -79,7 +79,7 @@ if  n_elements(output) eq 0 then output=''
 
 ;   FIND OUT A LIST OF UNIQ FITS/EXTENSION COMBINATIONS
 
-imlist=strtrim(objs.image,2)+' ext='+strtrim(round(objs.imext),2)
+imlist=strtrim(objs.image,2)+'|ext='+strtrim(round(objs.imext),2)
 proclist=objs.proc
 temp1=rem_dup(imlist)
 temp2=where((objs.image)[temp1] ne '' and (objs.proc)[temp1] ne 0,/null)
