@@ -32,15 +32,22 @@ for i=0,n_elements(ra)-1 do begin
         objs[ind].dec=dec[i]                ;   object dec
         objs[ind].bxsz=12.0                 ;   the box size in arcsec for each stamp
         objs[ind].image=image_list[j]       ;   input image for extacting stamps
+        objs[ind].imout=objname[i]+'/'+objname[i]+'_'+bands_list[j] ; stamp name
     endfor
 endfor
 
 
-;   RUN MAKE_CUTSOUTS
+;   RUN MAKE_CUTOUTS for finding charts
 
 tic
 make_cutouts,objs,export_method='mef',output='pcf_cutout4charts.fits',extract_method='hextractx-fast'
 toc
+
+;   RUN MAKE_CUTOUTS for examinations (export to individial fits files) 
+
+;tic
+;make_cutouts,objs,export_method='stamps',output='pcf_cutout4charts.fits',extract_method='hextractx-fast'
+;toc
 
 END
 
