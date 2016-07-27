@@ -1,5 +1,5 @@
 PRO PSFEX_ANALYZER,name,$
-    im,flag=flag,$
+    im,flag_image=flag_image,$
     magzero=magzero,SATUR_LEVEL=SATUR_LEVEL,$
     WEIGHT_IMAGE=WEIGHT_IMAGE,WEIGHT_TYPE=WEIGHT_TYPE,$
     ELONGATION=elongation,SNR_WIN=SNR_WIN,FWHMRANGE=FWHMRANGE,$
@@ -96,7 +96,7 @@ if  ~strmatch(skip,'*se*',/f) then begin
     sexconfig=INIT_SEX_CONFIG()
     sexconfig.pixel_scale=psize
     sexconfig.flag_image=''
-    if  keyword_set(flag) then sexconfig.flag_image=flag
+    if  keyword_set(flag_image) then sexconfig.flag_image=flag_image
     sexconfig.DETECT_MINAREA=5.0
     sexconfig.seeing_fwhm=1.00
     sexconfig.PARAMETERS_NAME=cgSourceDir()+'../etc/xlib.sex.param_psfex'
@@ -205,7 +205,7 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     
     ;   COMBINE PS FILE
     
-    pineps,name+'_psfex_checkplot',repstr(checkplot,'.ps',''),/ps,/clean
+    pineps,name+'_psfex_checkplot',repstr(checkplot,'.ps',''),/ps,/landscape,/clean
     
     ;   EXTRACT PSF MODEL
     

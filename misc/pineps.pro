@@ -30,6 +30,16 @@ PRO PINEPS, pdfname, epslist, clean=clean, verbose=verbose,$
 ;   20141001  RX  add the latex option  
 ;-
 
+;++++++
+;if  keyword_set(ps) then begin
+;    for i=0,n_elements(epslist)-1 do begin
+;        cmd="ps2eps -f "+epslist[i]+'.ps'
+;        spawn,cmd
+;    endfor
+;endif
+;fulllist=epslist+'.eps'
+;------
+
 if  keyword_set(ps) then fulllist=epslist+'.ps' else fulllist=epslist+'.eps'
 
 tag=where(file_test(fulllist) ne 0)
@@ -40,7 +50,11 @@ if  not keyword_set(latex) then begin
     psfiles=strjoin(fulllist,' ')
     cmd="gs -sDEVICE=pdfwrite -sOutputFile="
     cmd=cmd+pdfname+'.pdf'
-    cmd=cmd+' -dNOPAUSE -dBATCH -q -dEPSCrop -c "<</Orientation 0>> setpagedevice " -f '
+    if  keyword_set(landscape) then begin
+        cmd=cmd+' -dNOPAUSE -dBATCH -q -dEPSCrop -c "<</Orientation 1>> setpagedevice " -f '
+    endif else begin
+        cmd=cmd+' -dNOPAUSE -dBATCH -q -dEPSCrop -c "<</Orientation 0>> setpagedevice " -f '
+    endelse
     cmd=cmd+psfiles
     if  keyword_set(verbose) then begin
         print,replicate('>',10)
@@ -57,7 +71,6 @@ endif else begin
     if  keyword_set(width) then width=string(width,format='(f4.2)') else width='0.99'
     if  not keyword_set(nx) then nx=1
     openw, lun, 'tmp_pineps.tex', /get_lun, width=400
-
 
     printf,lun,'\documentclass[12pt]{article}'
     printf,lun,'\usepackage{graphicx}'
@@ -127,6 +140,14 @@ endif else begin
     endif
     
 endelse
+
+
+if  keyword_set(ps) and keyword_set(clean) then begin
+    psfiles=repstr(fulllist,'.eps','.ps')
+    psfiles=strjoin(psfiles,' ')
+    cmd="rm -rf "+psfiles
+    spawn,cmd
+endif
 
 END
 
