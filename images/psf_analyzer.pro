@@ -1,131 +1,190 @@
-PRO PSF_ANALYZER,name,im,catfile,flag=flag,$
-    plot=plot,magzero=magzero
+PRO PSF_ANALYZER,name,im,flag_image=flag_image
+    
+
+print,''
+print,replicate('+',30)
+print,'working on   ',name
+print,replicate('+',30)
+print,''
+cube=name+'_vignet.fits'
+cube=readfits(cube)
+tb=mrdfits(name+'.cat',2)
+print,tag_names(tb)
+ra_sex=tb.x_world
+dec_sex=tb.y_world
+
+cat=query_refobj(im,$
+    flag=flag_image,$
+    catalog='GSC2.3',constraint='Class=0',sat=50000.0,/nan,iso=5.)
+print,n_elements(cat)
+ra_cat=cat.raj2000
+dec_cat=cat.dej2000
+
+result=matchall_sph(ra_cat,dec_cat,ra_sex,dec_sex,1.0/60./60.*0.8,nwithin)
+tag=where(nwithin eq 1)
+print,n_elements(tag)
+
+ind=Result[Result[[tag]]]
+tt=where(tb[ind].flags le 1 and tb[ind].class_star gt 0.95)
+ind=ind[tt]
+print,n_elements(tt)
+
+xdrlist=[]
+subcube=cube[*,*,ind]
+subcube[where(subcube le -1e20,/null)]=!values.f_Nan
+writefits,name+'_psf_star.fits',subcube
+
+;for kk=0,n_elements(ind)-1 do begin
+;    subim=cube[*,*,ind[kk]]
+;    subim[where(subim le -1e20,/null)]=!values.f_Nan
+;    writefits,'../psf/temp.fits',subim
+;    if  total(float(subim eq subim)) le float(n_elements(subim))/2 then continue
+;    tmp=radprofile_analyzer('../psf/temp.fits',outname='../psf/'+name+'_psf_star'+strtrim(kk+1,2)+'.xdr',psize=0.258,skyrad=[7,10])
+;    xdrlist=[xdrlist,'../psf/'+name+'_psf_star'+strtrim(kk+1,2)+'.xdr']
+;endfor
+;
+;xhs_stack_process_radprofile_plot,xdrlist,'../psf/'+name+'_psf'
+;
+;im[where(im le -1e29)]=!values.f_nan
+;im2d_median=median(im,dim=3)
+;writefits,'../psfex/'+blist[i]+'_'+plist[i]+'_vignet_median.fits',im2d_median
+
+
+END
+
+
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;+
 ;   use HST GUIDE STARS for analyzing the image PSF
 ;-
 
-print,'run psf_analyzer:'
-print,im
-print,catfile+'.cat'
-print,catfile+'_all.cat'
 
-catalogs=['GSC2.3','SDSS-DR7']
-tags=['_gsc','_sdss']
+;plot=plot,magzero=magzero
+;
 
-for i=0,1 do begin
-        
-    star_pick,im,name+tags[i],flag=flag,catalog=catalogs[i]
-    temp={source:'',$
-        objname:'',$
-        outname:'',$
-        ra:!values.f_nan,$
-        dec:!values.f_nan,$
-        bxsz:!values.f_nan,$
-        cell:!values.f_nan,$
-        band:'',$
-        imfile:'',$
-        ptile:0.95,$
-        imext:0.0,$
-        proc:0.0,$
-        imunit:'counts/s'}
-    st=read_csv(name+tags[i]+'.csv')
-    rlist=st.field1
-    dlist=st.field2
-    hd=headfits(im)
-    getrot,hd,ang,cdelt
-    psize=abs(cdelt[0])*60.0*60.0
-    
-    adxy,hd,rlist,dlist,xlist,ylist
-    xlist=xlist+1.0
-    ylist=ylist+1.0
-    
-    tb=mrdfits(catfile+'.cat',2)
-    tb_all=mrdfits(catfile+'_all.cat',2)
-    
-    print,'high SNR Objects : ', n_elements(tb.x_image)
-    print,'ALL OBjects      : ', n_elements(tb_all.x_image)
-    
-    result=matchall_2d(tb.X_IMAGE,tb.Y_IMAGE,tb_all.X_IMAGE,tb_all.Y_IMAGE,3./0.258,nwithin)
-    tag=where(nwithin eq 1.0)
-    ximage=(tb.X_IMAGE)[tag]
-    yimage=(tb.Y_IMAGE)[tag]
-    print,'isolated objects : ', n_elements(tag)
-    
-    result=matchall_2d(ximage,yimage,xlist,ylist,4,nwithin)
-    tag_gsc=where(nwithin eq 1.0)
-    ind=Result[Result[[tag_gsc]]]
-    print,'cross-matching objects: ',n_elements(tag_gsc)
-    xd=xlist[ind]-ximage[tag_gsc]
-    yd=ylist[ind]-yimage[tag_gsc]
-    
-    
-    temp = {ds9reg, $
-        shape:'circle', $         ;- shape of the region
-        x:0., $             ;- center x position
-        y:0., $             ;- center y position
-        radius:10., $        ;- radius (if circle). Assumed to be arcsec
-        angle:0., $         ;- angle, if relevant. Degrees.
-        text:'', $          ;- text label
-        color:'red', $         ;- region color
-        width:10., $         ;- width (if relevant)
-        height:10., $        ;- height (if relevant)
-        font:'', $          ;- font for label
-        select:1B, $        ;- is selected?
-        fixed:0B, $         ;- is fixed?
-        edit:1B, $          ;- is editable?
-        move:1B, $          ;- is moveable?
-        rotate:0B, $        ;- can be rotated?
-        delete:1B}          ;- can be deleted?
-    
-    cxy=replicate(temp,n_elements(xlist[ind]))
-    cxy.color='blue'
-    cxy.x=xlist[ind]
-    cxy.y=ylist[ind]
-    
-    print,'catalogue xy ds9 region file: ',name+tags[i]+'_cxy.reg'
-    write_ds9reg,name+tags[i]+'_cxy.reg',cxy,'IMAGE'
-    
-    sxy=replicate(temp,n_elements(ximage[tag_gsc]))
-    sxy.color='red'
-    sxy.x=ximage[tag_gsc]
-    sxy.y=yimage[tag_gsc]
-    
-    print,'sextractor xy ds9 region file: ',name+tags[i]+'_sxy.reg'
-    write_ds9reg,name+tags[i]+'_sxy.reg',sxy,'IMAGE'
-    
-    set_plot,'ps'
-    device,filename=name+tags[i]+'_check.eps',bits=8,$
-        xsize=5.5,ysize=5.5,$
-        /inches,/encapsulated,/color
-    !p.thick=2.0
-    !x.thick = 2.0
-    !y.thick = 2.0
-    !z.thick = 2.0
-    !p.charsize=1.0
-    !p.charthick=2.0
-    !x.gridstyle = 0
-    !y.gridstyle = 0
-    xyouts,'!6'
-    
-    plot,xd*psize,yd*psize,psym=symcat(9),xrange=[1.5,-1.5],$
-        yrange=[-1.5,1.5],xstyle=1,ystyle=1,$
-        xtitle=textoidl('\delta X ["]'),ytitle=textoidl('\delta Y ["]')
-    
-    xm=median(xd*psize)
-    ym=median(yd*psize)
-    
-    al_legend,name,box=0,/left,/top
-    al_legend,'Offset: '+repstr(tags[i],'_','')+' - Measured',box=0,/left,/bottom
-    oplot,xm*[1,1],[-10,10],color=cgcolor('red'),thick=4
-    oplot,[-10,10],ym*[1,1],color=cgcolor('red'),thick=4
-    
-    device,/close
-    set_plot,'x'
+;print,'run psf_analyzer:'
+;print,im
+;print,catfile+'.cat'
+;print,catfile+'_all.cat'
+;
+;catalogs=['GSC2.3','SDSS-DR7']
+;tags=['_gsc','_sdss']
+;
+;for i=0,1 do begin
+;
+;    star_pick,im,name+tags[i],flag=flag,catalog=catalogs[i]
+;    temp={source:'',$
+;        objname:'',$
+;        outname:'',$
+;        ra:!values.f_nan,$
+;        dec:!values.f_nan,$
+;        bxsz:!values.f_nan,$
+;        cell:!values.f_nan,$
+;        band:'',$
+;        imfile:'',$
+;        ptile:0.95,$
+;        imext:0.0,$
+;        proc:0.0,$
+;        imunit:'counts/s'}
+;    st=read_csv(name+tags[i]+'.csv')
+;    rlist=st.field1
+;    dlist=st.field2
+;    hd=headfits(im)
+;    getrot,hd,ang,cdelt
+;    psize=abs(cdelt[0])*60.0*60.0
+;
+;    adxy,hd,rlist,dlist,xlist,ylist
+;    xlist=xlist+1.0
+;    ylist=ylist+1.0
+;
+;    tb=mrdfits(catfile+'.cat',2)
+;    tb_all=mrdfits(catfile+'_all.cat',2)
+;
+;    print,'high SNR Objects : ', n_elements(tb.x_image)
+;    print,'ALL OBjects      : ', n_elements(tb_all.x_image)
+;
+;    result=matchall_2d(tb.X_IMAGE,tb.Y_IMAGE,tb_all.X_IMAGE,tb_all.Y_IMAGE,3./0.258,nwithin)
+;    tag=where(nwithin eq 1.0)
+;    ximage=(tb.X_IMAGE)[tag]
+;    yimage=(tb.Y_IMAGE)[tag]
+;    print,'isolated objects : ', n_elements(tag)
+;
+;    result=matchall_2d(ximage,yimage,xlist,ylist,4,nwithin)
+;    tag_gsc=where(nwithin eq 1.0)
+;    ind=Result[Result[[tag_gsc]]]
+;    print,'cross-matching objects: ',n_elements(tag_gsc)
+;    xd=xlist[ind]-ximage[tag_gsc]
+;    yd=ylist[ind]-yimage[tag_gsc]
+;
+;
+;    temp = {ds9reg, $
+;        shape:'circle', $         ;- shape of the region
+;        x:0., $             ;- center x position
+;        y:0., $             ;- center y position
+;        radius:10., $        ;- radius (if circle). Assumed to be arcsec
+;        angle:0., $         ;- angle, if relevant. Degrees.
+;        text:'', $          ;- text label
+;        color:'red', $         ;- region color
+;        width:10., $         ;- width (if relevant)
+;        height:10., $        ;- height (if relevant)
+;        font:'', $          ;- font for label
+;        select:1B, $        ;- is selected?
+;        fixed:0B, $         ;- is fixed?
+;        edit:1B, $          ;- is editable?
+;        move:1B, $          ;- is moveable?
+;        rotate:0B, $        ;- can be rotated?
+;        delete:1B}          ;- can be deleted?
+;
+;    cxy=replicate(temp,n_elements(xlist[ind]))
+;    cxy.color='blue'
+;    cxy.x=xlist[ind]
+;    cxy.y=ylist[ind]
+;
+;    print,'catalogue xy ds9 region file: ',name+tags[i]+'_cxy.reg'
+;    write_ds9reg,name+tags[i]+'_cxy.reg',cxy,'IMAGE'
+;
+;    sxy=replicate(temp,n_elements(ximage[tag_gsc]))
+;    sxy.color='red'
+;    sxy.x=ximage[tag_gsc]
+;    sxy.y=yimage[tag_gsc]
+;
+;    print,'sextractor xy ds9 region file: ',name+tags[i]+'_sxy.reg'
+;    write_ds9reg,name+tags[i]+'_sxy.reg',sxy,'IMAGE'
+;
+;    set_plot,'ps'
+;    device,filename=name+tags[i]+'_check.eps',bits=8,$
+;        xsize=5.5,ysize=5.5,$
+;        /inches,/encapsulated,/color
+;    !p.thick=2.0
+;    !x.thick = 2.0
+;    !y.thick = 2.0
+;    !z.thick = 2.0
+;    !p.charsize=1.0
+;    !p.charthick=2.0
+;    !x.gridstyle = 0
+;    !y.gridstyle = 0
+;    xyouts,'!6'
+;
+;    plot,xd*psize,yd*psize,psym=symcat(9),xrange=[1.5,-1.5],$
+;        yrange=[-1.5,1.5],xstyle=1,ystyle=1,$
+;        xtitle=textoidl('\delta X ["]'),ytitle=textoidl('\delta Y ["]')
+;
+;    xm=median(xd*psize)
+;    ym=median(yd*psize)
+;
+;    al_legend,name,box=0,/left,/top
+;    al_legend,'Offset: '+repstr(tags[i],'_','')+' - Measured',box=0,/left,/bottom
+;    oplot,xm*[1,1],[-10,10],color=cgcolor('red'),thick=4
+;    oplot,[-10,10],ym*[1,1],color=cgcolor('red'),thick=4
+;
+;    device,/close
+;    set_plot,'x'
+;
+;endfor
 
-endfor
 
-END
-
+;---------------------------------------------------------------------------------------------------
 
 
 

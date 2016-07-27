@@ -4,7 +4,7 @@ FUNCTION CHECK_POINT,HD,RA,DEC,IM=IM, zero=zero
 ;   usually we check NAN as out of image FOV
 ;   /zero we define both NAN pixels and pixel=0 as out of image FOV
 ;   
-;   LOCATE_OBJECT is more effcient if 
+;   VALID_OBJECT is more effcient if 
 ;-
 adxy,hd,ra,dec,x,y
 np=n_elements(ra)

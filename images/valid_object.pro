@@ -1,7 +1,7 @@
-FUNCTION LOCATE_OBJECT,FILENAME,RA,DEC,$
-    ZERO=ZERO,NAN=NAN,GUARD=GUARD
+FUNCTION VALID_OBJECT,FILENAME,RA,DEC,$
+    ZERO=ZERO,NAN=NAN,GUARD=GUARD,FLAG=FLAG
 ;+
-;   check if a point is on the image
+;   check if an object is on the image
 ;   usually we check NAN as out of image FOV
 ;   /zero we define both NAN pixels and pixel=0 as out of image FOV
 ;   
@@ -10,7 +10,12 @@ FUNCTION LOCATE_OBJECT,FILENAME,RA,DEC,$
 ;       * reduce memory footprint
 ;       *
 ;   GUARD: consider the pixels near the image edge as out of FOV  [arcsec] 
-;-
+;   
+;   ZERO:   p=0 is considered out of FOV
+;   NAN:    missing data is consisdered out of FOV
+;   FLAG:   p=0 is considered *AS* FOV
+;   GUARD:  guard image edges as out of FOV
+;;-
 if  n_elements(guard) eq 0 then guard=0.0
 
 hd=headfits(filename)
@@ -32,15 +37,20 @@ in=ra*0.0
 tag=where(x ge 0+guard_pix and x lt nsize[0]-guard_pix and y ge 0+guard_pix and y lt nsize[1]-guard_pix)
 if  tag[0] ne -1 then begin
     if  keyword_set(zero) or keyword_set(nan) then begin
+        
         tmp=replicate(0.0,n_elements(tag))
         for i=0,n_elements(tag)-1 do begin
             fxread,filename,tmp0,tmp0hd,x[tag[i]],x[tag[i]],y[tag[i]],y[tag[i]]
             tmp[i]=tmp0
         endfor
+        
         if  keyword_set(zero) and keyword_set(nan) then tagshow=where(tmp eq tmp and tmp ne 0.0)
         if  keyword_set(zero) and ~keyword_set(nan) then tagshow=where(tmp ne 0.0)
         if  ~keyword_set(zero) and keyword_set(nan) then tagshow=where(tmp eq tmp)
+        if  keyword_set(flag) then tagshow=where(tmp eq 0.0)
+        
         if  tagshow[0] ne -1 then in[tag[tagshow]]=1.0
+        
     endif else begin
         in[tag]=1.0
     endelse
