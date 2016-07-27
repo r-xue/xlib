@@ -124,6 +124,11 @@ for i=0,1 do begin
 
 endfor
 
+END
+
+
+
+
 ;tag=tag[tag_gsc]
 ;print,n_elements(tag)
 
@@ -197,5 +202,3 @@ endfor
 ;    ;-
 ;    if  ~keyword_set(format) then format='fits'; format='fits.fz'
 ;    '../cats/'+output
-END
-
