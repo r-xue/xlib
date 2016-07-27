@@ -10,6 +10,6 @@ endif else begin
     ysize=800
 endelse
 
-if  ~windowavailable(WINID) then win,WINID,xsize=xsize,ysize=ysize else wset,WINID
+if  ~windowavailable(WINID) then window,WINID,xsize=xsize,ysize=ysize else wset,WINID
 
 END

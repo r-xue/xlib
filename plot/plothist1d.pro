@@ -16,7 +16,7 @@ PRO PLOTHIST1D,x,xbin,$
 ;-
 if n_elements(xmin) eq 0 then xmin=min(x,/nan)
 if n_elements(xmax) eq 0 then xmax=max(x,/nan)
-print,xmin,xmax
+;print,xmin,xmax
 if keyword_set(xlog) then begin
   tag=where(x eq x and x gt 0,/null)
   hist_x=alog10(x[tag])
@@ -33,7 +33,7 @@ if n_elements(det) ne 0 then det=det[tag]
 hist=histogram(hist_x,$
             min=hist_xmin,max=hist_xmax,$
             binsize=xbin,/nan,/L64)
-print,hist_xmin
+;print,hist_xmin
 hist_err=[[hist^0.5],[hist^0.5]]
 
 if n_elements(det) ne 0 then begin

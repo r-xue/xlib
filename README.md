@@ -12,7 +12,7 @@ Here is a list of IDL libraries I borrow:
   
   cprops:                   https://github.com/low-sky/cprops  <github>
   
-  idl-coyote:               https://code.google.com/p/idl-coyote  <svn>
+  idl-coyote:               https://github.com/idl-coyote  <github>
   
   impro:                    http://idl-moustakas.googlecode.com/svn/trunk/impro <svn>
   
@@ -54,6 +54,7 @@ Here is a list of IDL libraries I borrow:
   
   JBIU IDL Utilities        http://www.simulated-galaxies.ua.edu/jbiu/ <web>
   
-  Kcorrect                  http://howdy.physics.nyu.edu/index.php/Kcorrect <web>
+  Kcorrect                  http://kcorrect.org/ <web>
                             http://cosmo.nyu.edu/blanton/kcorrect/kcorrect.v4_3.tar.gz <web>
+                            https://github.com/blanton144/kcorrect <github>
                             
