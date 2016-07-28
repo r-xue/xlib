@@ -1,56 +1,70 @@
 PRO PSF_ANALYZER,name,im,flag_image=flag_image
-    
+;+
+;   use psfex_analyzer products to do some evaluations of the PSFEX results
+;-
 
 print,''
 print,replicate('+',30)
 print,'working on   ',name
 print,replicate('+',30)
 print,''
-cube=name+'_vignet.fits'
-cube=readfits(cube)
-tb=mrdfits(name+'.cat',2)
-print,tag_names(tb)
-ra_sex=tb.x_world
-dec_sex=tb.y_world
 
-cat=query_refobj(im,$
+;   QUERY GSC CAT / MAKE DS9 REGION FILE
+
+gsc=query_refobj(im,$
     flag=flag_image,$
-    catalog='GSC2.3',constraint='Class=0',sat=50000.0,/nan,iso=5.)
-print,n_elements(cat)
-ra_cat=cat.raj2000
-dec_cat=cat.dej2000
+    catalog='GSC2.3',constraint='Class=0',/nan,iso=5.,$
+    outname=name+'_gsc')
+save,gsc,filename=name+'_gsc_refobj.xdr'
+print,n_elements(cat)    
+;ra_cat=cat.raj2000
+;dec_cat=cat.dej2000
+;
+;cube=name+'_vignet.fits'
+;cube=readfits(cube)
+;tb=mrdfits(name+'.cat',2)
+;print,tag_names(tb)
+;ra_sex=tb.x_world
+;dec_sex=tb.y_world
+;
+;
+;result=matchall_sph(ra_cat,dec_cat,ra_sex,dec_sex,1.0/60./60.*0.8,nwithin)
+;tag=where(nwithin eq 1)
+;print,string('one to one match:',format='(A-30)'),string(n_elements(tag),format='(i10)')
+;
+;ind=Result[Result[[tag]]]
+;tt=where(tb[ind].flags le 1 and tb[ind].class_star gt 0.95)
+;ind=ind[tt]
+;print,string('scat okay:',format='(A-30)'),string(n_elements(tt),format='(i10)')
 
-result=matchall_sph(ra_cat,dec_cat,ra_sex,dec_sex,1.0/60./60.*0.8,nwithin)
-tag=where(nwithin eq 1)
-print,n_elements(tag)
 
-ind=Result[Result[[tag]]]
-tt=where(tb[ind].flags le 1 and tb[ind].class_star gt 0.95)
-ind=ind[tt]
-print,n_elements(tt)
 
-xdrlist=[]
-subcube=cube[*,*,ind]
-subcube[where(subcube le -1e20,/null)]=!values.f_Nan
-writefits,name+'_psf_star.fits',subcube
 
+
+
+
+
+;xdrlist=[]
+;subcube=cube[*,*,ind]
+;subcube[where(subcube le -1e20,/null)]=!values.f_Nan
+;writefits,name+'_psf_star.fits',subcube
+;
 ;for kk=0,n_elements(ind)-1 do begin
 ;    subim=cube[*,*,ind[kk]]
 ;    subim[where(subim le -1e20,/null)]=!values.f_Nan
-;    writefits,'../psf/temp.fits',subim
+;    writefits,name+'_psf_star'+strtrim(kk+1,2)+'.fits',subim
 ;    if  total(float(subim eq subim)) le float(n_elements(subim))/2 then continue
-;    tmp=radprofile_analyzer('../psf/temp.fits',outname='../psf/'+name+'_psf_star'+strtrim(kk+1,2)+'.xdr',psize=0.258,skyrad=[7,10])
-;    xdrlist=[xdrlist,'../psf/'+name+'_psf_star'+strtrim(kk+1,2)+'.xdr']
+;    tmp=radprofile_analyzer(name+'_psf_star'+strtrim(kk+1,2)+'.fits',outname=name+'_psf_star'+strtrim(kk+1,2)+'.xdr',psize=0.150,skyrad=[7,10])
+;    xdrlist=[xdrlist,name+'_psf_star'+strtrim(kk+1,2)+'.xdr']
 ;endfor
 ;
-;xhs_stack_process_radprofile_plot,xdrlist,'../psf/'+name+'_psf'
+;;xhs_stack_process_radprofile_plot,xdrlist,'../psf/'+name+'_psf'
 ;
-;im[where(im le -1e29)]=!values.f_nan
-;im2d_median=median(im,dim=3)
+;im2d_median=median(subcube,dim=3)
 ;writefits,'../psfex/'+blist[i]+'_'+plist[i]+'_vignet_median.fits',im2d_median
 
-
 END
+
 
 
 
