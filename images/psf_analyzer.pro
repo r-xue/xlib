@@ -11,26 +11,36 @@ print,''
 
 ;   QUERY GSC CAT / MAKE DS9 REGION FILE
 
-gsc=query_refobj(im,$
+gsc_all=query_refobj(im,$
     flag=flag_image,$
-    catalog='GSC2.3',constraint='Class=0',/nan,iso=5.,$
+    catalog='GSC2.3',constraint='Class=0',$
     outname=name+'_gsc')
+gsc_uns=query_refobj(im,$
+    flag=flag_image,/nan,$
+    catalog='GSC2.3',constraint='Class=0',$
+    outname=name+'_gsc')
+
+print,'all gsc:',n_elements(gsc_all)
+print,'uns gsc:',n_elements(gsc_uns)
+print,'sat gsc:',n_elements(gsc_all)-n_elements(gsc_uns)
+
+gsc=gsc_all
 save,gsc,filename=name+'_gsc_refobj.xdr'
-print,n_elements(cat)    
-;ra_cat=cat.raj2000
-;dec_cat=cat.dej2000
-;
-;cube=name+'_vignet.fits'
-;cube=readfits(cube)
-;tb=mrdfits(name+'.cat',2)
-;print,tag_names(tb)
-;ra_sex=tb.x_world
-;dec_sex=tb.y_world
-;
-;
-;result=matchall_sph(ra_cat,dec_cat,ra_sex,dec_sex,1.0/60./60.*0.8,nwithin)
-;tag=where(nwithin eq 1)
-;print,string('one to one match:',format='(A-30)'),string(n_elements(tag),format='(i10)')
+   
+ra_gsc=gsc.raj2000
+dec_gsc=gsc.dej2000
+
+cube=name+'_vignet.fits'
+cube=readfits(cube)
+tb=mrdfits(name+'.cat',2)
+ra_sex=tb.x_world
+dec_sex=tb.y_world
+;print,'psfex_vignet:',tag_names(tb)
+print,'all vig:',n_elements(ra_sex)
+
+result=matchall_sph(ra_gsc,dec_gsc,ra_sex,dec_sex,1.0/60./60.*0.8,nwithin)
+tag=where(nwithin eq 1)
+print,string('one to one match:',format='(A-30)'),string(n_elements(tag),format='(i10)')
 ;
 ;ind=Result[Result[[tag]]]
 ;tt=where(tb[ind].flags le 1 and tb[ind].class_star gt 0.95)

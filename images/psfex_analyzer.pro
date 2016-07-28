@@ -95,8 +95,13 @@ if  ~strmatch(skip,'*se*',/f) then begin
 
     sexconfig=INIT_SEX_CONFIG()
     sexconfig.pixel_scale=psize
+    
+    ;   SE will only process externa flag image when 
+    ;   <IMAFLAGS ISO> or <NIMAFLAGS ISO> are present in the catalog parameter file
+    ;   check out WeightWatcher for creating flag_image
     sexconfig.flag_image=''
     if  keyword_set(flag_image) then sexconfig.flag_image=flag_image
+    
     sexconfig.DETECT_MINAREA=5.0
     sexconfig.seeing_fwhm=1.00
     sexconfig.PARAMETERS_NAME=cgSourceDir()+'../etc/xlib.sex.param_psfex'
@@ -127,7 +132,7 @@ if  ~strmatch(skip,'*se*',/f) then begin
     
     ;   EXTRACT CAT FOR USEFULL OBJECTS WITH VIGNET
     cmd='ldacfilter -i tmp.cat -o '+name+'.cat '+$ 
-        '-t LDAC_OBJECTS -c "((ELONGATION<'+strtrim(elong,2)+')AND(SNR_WIN>'+strtrim(snr,2)+'));"'
+        '-t LDAC_OBJECTS -c "(((ELONGATION<'+strtrim(elong,2)+')AND(SNR_WIN>'+strtrim(snr,2)+'))AND(IMAFLAGS_ISO=0));"'
     spawn,cmd
     ;   EXTRACT CAT FOR ALL OBJECTS WITHOUT VIGNET
     cmd='ldacdelkey -i tmp.cat -o '+name+'_all.cat '+$
@@ -226,26 +231,60 @@ endif
 ;   DO PLOTTING
 
 if  ~strmatch(skip,'*pl*',/f) then begin
-
-
+    
+    
     tb=mrdfits(name+'_all.cat',1)
     psize=sxpar(tb.field_header_card,'SEXPXSCL')
     ;print,tb.field_header_card
-    tb=mrdfits(name+'_all.cat',2)
-    taginput=where(tb.SNR_WIN gt snr and tb.elongation le elong)
     
-    tagflag1 =where(tb.flags le 0.0 and tb.SNR_WIN gt snr and tb.elongation le elong)
-    tagflag2 =where(tb.flags le 0.0 and tb.SNR_WIN gt snr/2.0 and tb.elongation le elong)
-    tagflag3 =where(tb.flags le 0.0 and tb.SNR_WIN gt 7.0 and tb.elongation le elong)
+    tb=mrdfits(name+'_all.cat',2)
+    taginput=where(tb.SNR_WIN gt snr and tb.elongation le elong and tb.IMAFLAGS_ISO eq 0)
+    print,tag_names(tb)
+    
+    tagflag1 =where(tb.flags le 0.0 and tb.SNR_WIN gt snr and tb.elongation le elong and tb.IMAFLAGS_ISO eq 0)
+    tagflag2 =where(tb.flags le 0.0 and tb.SNR_WIN gt snr/2.0 and tb.elongation le elong and tb.IMAFLAGS_ISO eq 0)
+    tagflag3 =where(tb.flags le 0.0 and tb.SNR_WIN gt 7.0 and tb.elongation le elong and tb.IMAFLAGS_ISO eq 0)
     print,replicate('+',20)
 ;    print,'Good Objs:           ',n_elements(tb.flags)
 ;    print,'Bad  Objs:              ',n_elements(tag2)
-    print,'N.Objs (>SNR<ELONG):          ',n_elements(taginput)
-    print,'N.Objs (>SNR<ELONG;flag=0):   ',n_elements(tagflag1)
+    print,'N.Objs (>SNR;<ELONG;IMAflag=0):                  ',n_elements(taginput)
+    print,'N.Objs (>SNR;<ELONG;IMAflag=0;CATflag=0):        ',n_elements(tagflag1)
+    
     psf=mrdfits(name+'.psf',1,psfhd,/silent)
-    print,'N.Objs (Loaded):              ',sxpar(psfhd,'LOADED')
-    print,'N.Objs (ACCEPTED):            ',sxpar(psfhd,'ACCEPTED')
+    print,'N.Objs (Loaded):                                 ',sxpar(psfhd,'LOADED')
+    print,'N.Objs (ACCEPTED):                               ',sxpar(psfhd,'ACCEPTED')
     print,replicate('+',20)
+    
+    ;   IMAFLAGS_ISO:   the flag image in sextractor run
+
+    temp = {ds9reg, $
+        shape:'circle', $         ;- shape of the region
+        x:0., $             ;- center x position
+        y:0., $             ;- center y position
+        radius:10., $        ;- radius (if circle). Assumed to be arcsec
+        angle:0., $         ;- angle, if relevant. Degrees.
+        text:'', $          ;- text label
+        color:'red', $         ;- region color
+        width:10., $         ;- width (if relevant)
+        height:10., $        ;- height (if relevant)
+        font:'', $          ;- font for label
+        select:1B, $        ;- is selected?
+        fixed:0B, $         ;- is fixed?
+        edit:1B, $          ;- is editable?
+        move:1B, $          ;- is moveable?
+        rotate:0B, $        ;- can be rotated?
+        delete:1B}          ;- can be deleted?
+        
+    st=replicate(temp,n_elements(tagflag1))
+    st.color='blue'
+    st.x=tb[tagflag1].x_world
+    st.y=tb[tagflag1].y_world
+    st1=st
+    st2=st
+    st2.radius=1.0
+    st=[st1,st2]
+    write_ds9reg,name+'_psfex.reg',st,'FK5'
+    write_csv,name+'_psfex.csv',double(tb[tagflag1].x_world),double(tb[tagflag1].y_world)
     
     ;   PLOT PSFEX SNAPSHOT
     set_plot,'ps'
@@ -275,7 +314,7 @@ if  ~strmatch(skip,'*pl*',/f) then begin
     oplot,tb[tagflag1].flux_radius*psize,tb[tagflag1].mag_auto,psym=symcat(16),symsize=0.3,$
         color=cgcolor('red')
     
-    al_legend,name,/right,/bottom,box=0,/top
+    al_legend,name,/left,box=0,/top,charsize=0.7
     
     device,/close
     set_plot,'x'

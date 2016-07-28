@@ -80,7 +80,7 @@ xyad,hd,xc,yc,ac,dc
 xs=psize*sz[0]/60.
 ys=psize*sz[1]/60.
 
-cat = queryvizier(catalog,[ac,dc],[xs,ys]*1.25,/all,cons=constraint)
+cat = queryvizier(catalog,[ac,dc],[xs,ys]*1.1,/all,cons=constraint)
 
 if  size(cat,/tn) eq size({tmp:''},/tn) then begin 
 
