@@ -2,8 +2,8 @@ PRO PSFEX_ANALYZER,name,$
     im,flag_image=flag_image,$
     magzero=magzero,SATUR_LEVEL=SATUR_LEVEL,$
     WEIGHT_IMAGE=WEIGHT_IMAGE,WEIGHT_TYPE=WEIGHT_TYPE,$
-    BACK_SIZE=BACK_SIZE,$
-    ELONGATION=elongation,SNR_WIN=SNR_WIN,FWHMRANGE=FWHMRANGE,$
+    BACK_SIZE=BACK_SIZE,THRESH=THRESH,$
+    ELONGATION=elongation,SNR_WIN=SNR_WIN,FWHMRANGE=FWHMRANGE,BADPIXEL_FRAC=BADPIXEL_FRAC,$
     HOMOPSF_PARAMS=HOMOPSF_PARAMS,$
     PSFSIZE=PSFSIZE,VIGSIZE=VIGSIZE,$
     skip=skip
@@ -91,14 +91,14 @@ if  keyword_set(elongation) then elong=elongation else elong=1.25
 if  keyword_set(snr_win) then snr=snr_win else snr=20
 if  ~keyword_set(fwhmrange) then fwhmrange='2,10'
 if  ~keyword_set(SATUR_LEVEL) then SATUR_LEVEL=50000.0
-if  ~keyword_set(HOMOPSF_PARAMS) then HOMOPSF_PARAMS='5.0,3.0'
 if  ~keyword_set(psfsize) then psfsize=101
 if  ~keyword_set(vigsize) then vigsize=121
 if  ~keyword_set(skip) then skip=''
 if  ~keyword_set(WEIGHT_IMAGE) then weight_image='weight.fits'  ;   rms.fits
 if  ~keyword_set(WEIGHT_TYPE) then weight_type='NONE'           ;   'MAP_RMS'
 if  ~keyword_set(BACK_SIZE) then back_size=30.0 ; in arcsec
-
+if  ~keyword_set(THRESH) then THRESH=1.50
+if  ~keyword_set(BADPIXEL_FRAC) then BADPIXEL_FRAC=0.25
 
 ;   HEADER
 
@@ -108,6 +108,8 @@ psize=abs(cdelt[0])*60.0*60.0
 if  ~keyword_set(magzero) then begin
     magzero=sxpar(imkhd,'MAGZERO')
 endif
+;   Moffat FWHM (in pixels) and Beta parameters
+if  ~keyword_set(HOMOPSF_PARAMS) then HOMOPSF_PARAMS=strtrim(1.5/psize,2)+',3.0'
 
 ;   SETUP OUTOUT DIR
 
@@ -127,7 +129,7 @@ if  ~strmatch(skip,'*se*',/f) then begin
     print,''
     
     print,replicate('+',20)
-    psfsize_str=strtrim(round(psfsize),2)
+    psfsize_str=strtrim(round(vigsize),2)
     sex_para=$
         ['VIGNET('+psfsize_str+','+psfsize_str+')',$
         'ALPHAWIN_J2000',$
@@ -149,8 +151,8 @@ if  ~strmatch(skip,'*se*',/f) then begin
         'FLUX_RADIUS',$
         'ELONGATION',$
         'FLAGS',$
-        '#FLAGS_WEIGHT',$
-        '#IMAFLAGS_ISO',$
+        'FLAGS_WEIGHT',$
+        'IMAFLAGS_ISO',$
         'SNR_WIN',$
         'MAG_AUTO',$
         'MAGERR_AUTO',$
@@ -165,8 +167,7 @@ if  ~strmatch(skip,'*se*',/f) then begin
         'ERRBWIN_WORLD',$
         'ERRTHETAWIN_J2000',$
         'MAG_ISO',$
-        'MAGERR_ISO',$
-        'IMAFLAGS_ISO']
+        'MAGERR_ISO']
     sex_para=transpose(sex_para)
     OpenW, lun, name+'.sex.param', /Get_LUN, WIDTH=250
     PrintF, lun, sex_para
@@ -182,18 +183,18 @@ if  ~strmatch(skip,'*se*',/f) then begin
     sexconfig.flag_image=''
     if  keyword_set(flag_image) then sexconfig.flag_image=flag_image
     sexconfig.DETECT_MINAREA=5.0
-    sexconfig.seeing_fwhm=1.00
+    sexconfig.seeing_fwhm=1.20
     sexconfig.PARAMETERS_NAME=name+'.sex.param'
     sexconfig.FILTER_NAME=cgSourceDir()+'../etc/default.conv'
     sexconfig.STARNNW_NAME=cgSourceDir()+'../etc/default.nnw'
     sexconfig.BACK_SIZE=round(back_size/psize)    ; in pixels
     sexconfig.catalog_name=name+'_sex.cat'
     sexconfig.CATALOG_TYPE='FITS_LDAC'
-    sexconfig.DEBLEND_NTHRESH=64
+    sexconfig.DEBLEND_NTHRESH=32
     sexconfig.DEBLEND_MINCONT=0.001     ;   smaller values will create larger number of segmentations
     sexconfig.mag_zeropoint=magzero
-    sexconfig.DETECT_THRESH=1.25
-    sexconfig.ANALYSIS_THRESH=1.25
+    sexconfig.DETECT_THRESH=THRESH
+    sexconfig.ANALYSIS_THRESH=THRESH
     sexconfig.checkimage_type='SEGMENTATION'
     sexconfig.checkimage_name=name+'_seg.fits'
     sexconfig.SATUR_LEVEL=SATUR_LEVEL
@@ -278,8 +279,8 @@ endif
 
 ;   RUN PSFEX
 
-checkplot_type='FWHM,ELLIPTICITY,COUNTS,COUNT_FRACTION,CHI2,MOFFAT_RESIDUALS,ASYMMETRY'
-checkplot_name='fwhm,ellipticity,counts,countfrac,chi2,moffatres,asymmetry'
+checkplot_type='SELECTION_FWHM,FWHM,ELLIPTICITY,COUNTS,COUNT_FRACTION,CHI2,MOFFAT_RESIDUALS,ASYMMETRY'
+checkplot_name='selfwhm,fwhm,ellipticity,counts,countfrac,chi2,moffatres,asymmetry'
 
 CHECKIMAGE_TYPE='CHI,PROTOTYPES,SAMPLES,RESIDUALS,SNAPSHOTS,MOFFAT,-MOFFAT,-SYMMETRICAL'
 CHECKIMAGE_NAME='chi.fits,proto.fits,samp.fits,resi.fits,snap.fits,moffat.fits,moffatsub.fits,symsub.fits'
@@ -295,15 +296,31 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     psfexconfig.SAMPLE_MINSN=snr
     psfexconfig.SAMPLE_FWHMRANGE=fwhmrange
     psfexconfig.SAMPLE_VARIABILITY=0.2
+    
+    psfexconfig.PSFVAR_DEGREES=2
+    
     psfexconfig.HOMOBASIS_TYPE='GAUSS-LAGUERRE'
     psfexconfig.HOMOPSF_PARAMS=HOMOPSF_PARAMS
+    psfexconfig.HOMOBASIS_NUMBER=10     ;  larger basis vectors for non-Gaussian profile?
     psfexconfig.HOMOKERNEL_SUFFIX='_homo.fits'
+    
+    
+    
     psfexconfig.CHECKPLOT_DEV='PSC'
     psfexconfig.CHECKPLOT_TYPE=checkplot_type
     psfexconfig.CHECKPLOT_NAME=checkplot_name
     psfexconfig.CHECKIMAGE_TYPE=checkimage_type
     psfexconfig.CHECKIMAGE_NAME=checkimage_name
-    psfexconfig.CHECKIMAGE_CUBE='N'
+    psfexconfig.CHECKIMAGE_CUBE='Y'
+    
+    if  BADPIXEL_FRAC gt 0 and BADPIXEL_FRAC lt 1 then begin
+        psfexconfig.BADPIXEL_FILTER='Y'
+        psfexconfig.BADPIXEL_NMAX=round(BADPIXEL_FRAC*vigsize*vigsize)
+    endif
+    
+    psfexconfig=CREATE_STRUCT(psfexconfig,'OUTCAT_TYPE','FITS_LDAC')
+    psfexconfig=CREATE_STRUCT(psfexconfig,'OUTCAT_NAME',name+'_psfex.cat')
+    
     im_psfex,name+'.cat',psfexconfig,configfile=name+'.psfex.config'
     
     ;   BETTER NAME
@@ -357,6 +374,9 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     tb=mrdfits(name+'.cat',2)
     writefits,name+'_vignet.fits',tb.VIGNET
 
+    tb=mrdfits(name+'_psfex.cat',2)
+    print_struct,tb
+    
 endif
 
 ;   DO PLOTTING
