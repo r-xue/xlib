@@ -136,160 +136,274 @@ if  select eq 'subaru-ia445' then begin
     vega2ab=!values.f_nan
 endif
 
+
+
+;----------------------------------------------------------------------------------
+
+
+if  strmatch(select,'cfht-up',/f) then begin
+    name='CFHT-up'
+    namef='CFHT-up'
+    ew=868.
+    effwave=3823.29
+    readcol,/silent,path+'/cosmos/u_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cfht-gp',/f) then begin
+    name='CFHT-gp'
+    namef='CFHT-gp'
+    ew=1520.
+    effwave=4877.37
+    readcol,/silent,path+'/cosmos/g_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cfht-rp',/f) then begin
+    name='CFHT-rp'
+    namef='CFHT-rp'
+    ew=1480.0
+    effwave=6030.62
+    readcol,/silent,path+'/cosmos/r_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cfht-ip',/f) then begin
+    name='CFHT-ip'
+    namef='CFHT-ip'
+    ew=1554.
+    effwave=7617.66
+    readcol,/silent,path+'/cosmos/i_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cfht-zp',/f) then begin
+    name='CFHT-zp'
+    namef='CFHT-zp'
+    ew=1538.0
+    effwave=8827.98
+    readcol,/silent,path+'/cosmos/z_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+;----------------------------------------------------------------------------------
+           
 ;   from CpackP SUBARU_IA filters
 
-if  select eq 'subaru-ib427' then begin
+if  strmatch(select,'subaru-i?427',/f) then begin
     name='Subaru-IB427'
     namef='Subaru-!8IB427!6'
     ew=207.3
     effwave=4263.5
-    readcol,/silent,path+'/cosmos/IB427.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB427.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib464' then begin
+if  strmatch(select,'subaru-i?464',/f) then begin
     name='Subaru-IB464'
     namef='Subaru-!8IB464!6'
     ew=218.1
     effwave=4635.1
-    readcol,/silent,path+'/cosmos/IB464.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB464.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib484' then begin
+if  strmatch(select,'subaru-i?484',/f) then begin
     name='Subaru-IB484'
     namef='Subaru-!8IB484!6'
     ew=229.1
     effwave=4849.2
-    readcol,/silent,path+'/cosmos/IB484.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB484.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib505' then begin
+if  strmatch(select,'subaru-i?505',/f) then begin
     name='Subaru-IB505'
     namef='Subaru-!8IB505!6'
     ew=231.5
     effwave=5062.5
-    readcol,/silent,path+'/cosmos/IB505.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB505.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib527' then begin
+if  strmatch(select,'subaru-i?527',/f) then begin
     name='Subaru-IB527'
     namef='Subaru-!8IB527!6'
     ew=242.7
     effwave=5261.1
-    readcol,/silent,path+'/cosmos/IB527.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB527.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib574' then begin
+if  strmatch(select,'subaru-i?574',/f) then begin
     name='Subaru-IB574'
     namef='Subaru-!8IB574!6'
     ew=272.8
     effwave=5764.8
-    readcol,/silent,path+'/cosmos/IB574.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB574.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib624' then begin
+if  strmatch(select,'subaru-i?624',/f) then begin
     name='Subaru-IB624'
     namef='Subaru-!8IB624!6'
     ew=299.9
     effwave=6232.9
-    readcol,/silent,path+'/cosmos/IB624.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB624.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib679' then begin
+if  strmatch(select,'subaru-i?679',/f) then begin
     name='Subaru-IB679'
     namef='Subaru-!8IB679!6'
     ew=335.8
     effwave=6781.1
-    readcol,/silent,path+'/cosmos/IB679.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB679.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib709' then begin
+if  strmatch(select,'subaru-i?709',/f) then begin
     name='Subaru-IB709'
     namef='Subaru-!8IB709!6'
     ew=316.3
     effwave=7073.6
-    readcol,/silent,path+'/cosmos/IB709.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB709.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib738' then begin
+if  strmatch(select,'subaru-i?738',/f) then begin
     name='Subaru-IB738'
     namef='Subaru-!8IB738!6'
     ew=323.8
     effwave=7361.5
-    readcol,/silent,path+'/cosmos/IB738.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB738.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib767' then begin
+if  strmatch(select,'subaru-i?767',/f) then begin
     name='Subaru-IB767'
     namef='Subaru-!8IB767!6'
     ew=365.0
     effwave=7684.9
-    readcol,/silent,path+'/cosmos/IB767.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB767.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ib827' then begin
+if  strmatch(select,'subaru-i?827',/f) then begin
     name='Subaru-IB827'
     namef='Subaru-!8IB824!6'
     ew=342.8
     effwave=8244.5
-    readcol,/silent,path+'/cosmos/IB827.SuprimeCam.pb.txt',wv,tf,format='(f,f)',comment='#'
+    readcol,/silent,path+'/cosmos/IB827.SuprimeCam.pb',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
-if  select eq 'subaru-ip' then begin
+
+;----------------------------------------------------------------------------------
+
+if  strmatch(select,'subaru-ip',/f) then begin
     name='Subaru-IP'
     namef='Subaru-!8I+!6'
     ew=!values.f_nan
-    effwave=!values.f_nan
+    effwave=7683.88
     readcol,/silent,path+'/cosmos/i_subaru.res',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
 
-if  select eq 'subaru-rp' then begin
+if  strmatch(select,'subaru-rp',/f) then begin
     name='Subaru-RP'
     namef='Subaru-!8R+!6'
     ew=!values.f_nan
-    effwave=!values.f_nan
+    effwave=6288.71
     readcol,/silent,path+'/cosmos/r_subaru.res',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
 
-if  select eq 'subaru-gp' then begin
+if  strmatch(select,'subaru-gp',/f) then begin
     name='Subaru-GP'
     namef='Subaru-!8g+!6'
     ew=!values.f_nan
-    effwave=!values.f_nan
+    effwave=4777.07
     readcol,/silent,path+'/cosmos/g_subaru.res',wv,tf,format='(f,f)',comment='#'
     wave=wv*1.
     tran=tf/max(tf)>0.0
     vega2ab=!values.f_nan
 endif
+
+
+if  strmatch(select,'subaru-v',/f) then begin
+    name='Subaru-V'
+    namef='Subaru-V'
+    ew=!values.f_nan
+    effwave=5477.83
+    readcol,/silent,path+'/cosmos/V_subaru.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'subaru-b',/f) then begin
+    name='Subaru-B'
+    namef='Subaru-B'
+    ew=!values.f_nan
+    effwave=4458.32
+    readcol,/silent,path+'/cosmos/B_subaru.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+;----------------------------------------------------------------------------------
+
+if  strmatch(select,'cosmos-acs-i',/f) then begin
+    name='ACS-i'
+    namef='ACS-i'
+    ew=!values.f_nan
+    effwave=8073.43
+    readcol,/silent,path+'/cosmos/ACS_F814W.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cosmos-acs-g',/f) then begin
+    name='ACS-g'
+    namef='ACS-g'
+    ew=!values.f_nan
+    effwave=4766.41
+    readcol,/silent,path+'/cosmos/ACS_F475W.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+;----------------------------------------------------------------------------------
 
 
 if  select eq 'kpno-newfirm-j' then begin
