@@ -93,7 +93,7 @@ note=name
 if  keyword_set(label) then note=[label,note]
 ;oplot,[0,100],2.0*rp.skysig/ns*[1,1]
 oplot,rp.center,2.0*rp.unc/ns,linestyle=2
-al_legend,[note,'!6FWHM!dOBJ!n='+string(rp.fwhma,format='(f4.2)')+'"'],box=0,/top,/right
+al_legend,[note,'!6FWHM!dOBJ!n='+string(rp.fwhmi,format='(f4.2)')+'"'],box=0,/top,/right
 
 
 plot,[1],[1],psym=cgsymcat(1),$
