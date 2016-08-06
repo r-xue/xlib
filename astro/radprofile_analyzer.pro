@@ -114,6 +114,8 @@ rp={center:ri,$                             ;   ring radius center
     ;------                                 ;   image properties
     psigma:!values.f_nan,$                  ;   sigma value for the image
     fwhma:!values.f_nan,$                   ;   aperture defined fwhm
+    fwhmi:!values.f_nan,$                   ;   aperture defined fwhm
+    fwhmd:!values.f_nan,$                   ;   aperture defined fwhm
     bin:rbin,$                              ;   radius bin size
     psize:psize,$                           ;   pixel size
     skysig:rms_scale.rms_width,$            ;   large-scale sky uncernatines
@@ -171,7 +173,9 @@ for i=0,n_elements(ri)-1 do begin
     
 endfor
 
-imhalf=(im gt max(im[xcen-20:xcen+20,ycen-20:ycen+20])*0.5)
+
+
+imhalf=(im ge max(im[xcen-20:xcen+20,ycen-20:ycen+20])*0.5)
 seg=label_region(imhalf)
 tag=where(seg eq seg[xcen,ycen])
 fwhm=(n_elements(tag)*psize^2.0/!dpi)^0.5*2.0
@@ -179,10 +183,34 @@ rp.fwhma=fwhm
 if  ~keyword_set(silent) then begin
     print,'fwhma:',fwhm
 endif
+
+
+sampling=10.0
+nxy=size(im,/d)
+im_samp=congrid(im,nxy[0]*sampling,nxy[1]*sampling,center=0,cubic=-0.5)
+imhalf=(im_samp ge max(im[xcen-20:xcen+20,ycen-20:ycen+20])*0.5)
+seg=label_region(imhalf)
+xcen_new=xcen*sampling+(1-(sampling mod 2))*0.5
+ycen_new=ycen*sampling+(1-(sampling mod 2))*0.5
+tag=where(seg eq seg[xcen_new,ycen_new])
+fwhm=(n_elements(tag)*(psize/sampling)^2.0/!dpi)^0.5*2.0
+rp.fwhmi=fwhm
+if  ~keyword_set(silent) then begin
+    print,'fwhma:',fwhm
+endif
+
 if  keyword_set(outname) then begin
     print,'radprofile_analyzer: save ',outname    
     save,rp,filename=outname
 endif
+
+
+fwhmd=2.0*interpol(rp.center,rp.mean,0.5*max(rp.mean,/nan),/spline)
+rp.fwhmd=fwhmd
+if  ~keyword_set(silent) then begin
+    print,'fwhmd:',fwhmd
+endif
+
 
 return,rp
 
