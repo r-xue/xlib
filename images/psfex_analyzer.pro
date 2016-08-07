@@ -76,6 +76,7 @@ PRO PSFEX_ANALYZER,name,$
 ;                    can be much worse on profiles where a larger fraction of the flux lies in the wings."
 ;   
 ;   psf man:    http://psfex.readthedocs.io
+;   sex -dd / psfex -dd for the up-to-date config parameters
 ;   
 ; HISTORY:
 ;
@@ -297,7 +298,11 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     psfexconfig.SAMPLE_FWHMRANGE=fwhmrange
     psfexconfig.SAMPLE_VARIABILITY=0.2
     
+    psfexconfig.BASIS_TYPE='PIXEL_AUTO' ; 'GAUSS-LAGUERRE';'NONE','PIXEL','PIXEL_AUTO' 
     psfexconfig.PSFVAR_DEGREES=2
+    psfexconfig.PSFVAR_NSNAP=9
+    psfexconfig.NEWBASIS_TYPE='NONE' ; NONE, PCA_INDEPENDENT or PCA_COMMON
+    psfexconfig.NEWBASIS_NUMBER=8
     
     psfexconfig.HOMOBASIS_TYPE='GAUSS-LAGUERRE'
     psfexconfig.HOMOPSF_PARAMS=HOMOPSF_PARAMS
@@ -440,6 +445,7 @@ if  ~strmatch(skip,'*pl*',/f) then begin
     !y.gridstyle = 0
     xyouts,'!6'
     
+    
     plot,tb.flux_radius*psize,tb.mag_auto,psym=3,xrange=[-0.25,2.5],$
         yrange=[28,12],xstyle=1,ystyle=1,$
         xtitle='FLUX_RADIUS ["]',ytitle='MAG_AUTO',/nodata
@@ -464,10 +470,40 @@ if  ~strmatch(skip,'*pl*',/f) then begin
     endfor
     print,replicate('+',20)
     
+    
+    ftab_ext,name+'.cat','FLUX_RADIUS,MAG_AUTO',FLUX_RADIUS,MAG_AUTO,ext=2
+    ftab_ext,name+'_psfex.cat','FLAGS_PSF',FLAGS_PSF,ext=2
+    tag=where(FLAGS_PSF eq 0)
+    oplot,FLUX_RADIUS[tag]*psize,MAG_AUTO[tag],psym=cgsymcat(6),color=cgcolor('green'),symsize=0.3
+    
     al_legend,str,/right,box=0,/bot,charsize=0.7
 
     device,/close
     set_plot,'x'
+    
+    set_plot,'ps'
+    device,filename=name+'_psfex_checkmap.eps',bits=8,$
+        xsize=5.5,ysize=5.5,$
+        /inches,/encapsulated,/color
+    !p.thick=2.0
+    !x.thick = 2.0
+    !y.thick = 2.0
+    !z.thick = 2.0
+    !p.charsize=1.0
+    !p.charthick=2.0
+    !x.gridstyle = 0
+    !y.gridstyle = 0
+    xyouts,'!6'
+    
+    ftab_ext,name+'_psfex.cat','X_IMAGE,Y_IMAGE',X_IMAGE,Y_IMAGE,ext=2
+    
+    plot,x_image,y_image,$
+        xtitle='x_image',ytitle='y_image',$
+        psym=symcat(16),symsize=0.3,
+    oplot,x_image[tag],y_image[tag],psym=cgsymcat(6),color=cgcolor('green'),symsize=0.3
+    
+    device,/close
+    set_plot,'x' 
 
 endif
 
