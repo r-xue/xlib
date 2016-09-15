@@ -30,6 +30,8 @@ PRO PSFEX_ANALYZER,name,$
 ;   elongation  max elong for psfex input objects (default elong=1.25 or elli=0.25
 ;   snr_win     min snr for psfex input objects
 ;   back_size   in arcsec
+;   skip        *se*;*ft*;*pe"
+;   WEIGHT_TYPE/TYPE are usually not used because a image with well described PSF should have a stable rms anyway.
 ;   
 ; OUTPUTS:  if name='prefix'
 ;
@@ -98,8 +100,8 @@ if  ~keyword_set(skip) then skip=''
 if  ~keyword_set(WEIGHT_IMAGE) then weight_image='weight.fits'  ;   rms.fits
 if  ~keyword_set(WEIGHT_TYPE) then weight_type='NONE'           ;   'MAP_RMS'
 if  ~keyword_set(BACK_SIZE) then back_size=30.0 ; in arcsec
-if  ~keyword_set(THRESH) then THRESH=1.50
-if  ~keyword_set(BADPIXEL_FRAC) then BADPIXEL_FRAC=0.25
+if  ~keyword_set(THRESH) then THRESH=2.00
+if  ~keyword_set(BADPIXEL_FRAC) then BADPIXEL_FRAC=0.20
 
 ;   HEADER
 
@@ -110,7 +112,12 @@ if  ~keyword_set(magzero) then begin
     magzero=sxpar(imkhd,'MAGZERO')
 endif
 ;   Moffat FWHM (in pixels) and Beta parameters
-if  ~keyword_set(HOMOPSF_PARAMS) then HOMOPSF_PARAMS=strtrim(1.5/psize,2)+',3.0'
+if  ~keyword_set(HOMOPSF_PARAMS) then begin
+    HOMOBASIS_TYPE='NONE'
+    HOMOPSF_PARAMS='2.0,3.0' ;strtrim(1.75/psize,2)+',3.0'
+endif else begin
+    HOMOBASIS_TYPE='GAUSS-LAGUERRE'
+endelse
 
 ;   SETUP OUTOUT DIR
 
@@ -130,9 +137,9 @@ if  ~strmatch(skip,'*se*',/f) then begin
     print,''
     
     print,replicate('+',20)
-    psfsize_str=strtrim(round(vigsize),2)
+    vigsize_str=strtrim(round(vigsize),2)
     sex_para=$
-        ['VIGNET('+psfsize_str+','+psfsize_str+')',$
+        ['VIGNET('+vigsize_str+','+vigsize_str+')',$
         'ALPHAWIN_J2000',$
         'DELTAWIN_J2000',$
         'XWIN_IMAGE',$
@@ -201,14 +208,20 @@ if  ~strmatch(skip,'*se*',/f) then begin
     sexconfig.SATUR_LEVEL=SATUR_LEVEL
     sexconfig.WEIGHT_IMAGE=WEIGHT_IMAGE
     sexconfig.WEIGHT_TYPE=WEIGHT_TYPE
+    sexconfig.MEMORY_PIXSTACK=300000;*2
+    sexconfig.MEMORY_OBJSTACK=3000;*2
+    sexconfig.MEMORY_BUFSIZE=1024;*2
+    
     tname=tag_names(sexconfig)
     sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'PSFDISPLAY_TYPE',/f)))
-    sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'NTHREADS',/f)))
+    ;sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'NTHREADS',/f)))
     sexconfig.PHOT_APERTURES=strtrim(round(4.0/psize),2)
-    
+    sexconfig.NTHREADS=1
     spawn,'rm -rf '+name+'_sex.cat'
     print,''
+    
     im_sex,im,sexconfig,configfile=name+'.sex.config'
+    
     print,''
     print,'output catalogs:'
     print,'-->',name+'_sex.cat'
@@ -304,7 +317,7 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     psfexconfig.NEWBASIS_TYPE='NONE' ; NONE, PCA_INDEPENDENT or PCA_COMMON
     psfexconfig.NEWBASIS_NUMBER=8
     
-    psfexconfig.HOMOBASIS_TYPE='GAUSS-LAGUERRE'
+    psfexconfig.HOMOBASIS_TYPE=HOMOBASIS_TYPE
     psfexconfig.HOMOPSF_PARAMS=HOMOPSF_PARAMS
     psfexconfig.HOMOBASIS_NUMBER=10     ;  larger basis vectors for non-Gaussian profile?
     psfexconfig.HOMOKERNEL_SUFFIX='_homo.fits'
@@ -356,7 +369,8 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     print,replicate('+',20)
     
     ;   COMBINE PS FILE
-    
+    print,name+'_psfex_checkplot'
+    print,repstr(checkplot,'.ps','')
     pineps,name+'_psfex_checkplot',repstr(checkplot,'.ps',''),/ps,/landscape,/clean
     
     ;   EXTRACT PSF MODEL
@@ -499,12 +513,25 @@ if  ~strmatch(skip,'*pl*',/f) then begin
     
     plot,x_image,y_image,$
         xtitle='x_image',ytitle='y_image',$
-        psym=symcat(16),symsize=0.3,
+        psym=symcat(16),symsize=0.3
     oplot,x_image[tag],y_image[tag],psym=cgsymcat(6),color=cgcolor('green'),symsize=0.3
     
     device,/close
     set_plot,'x' 
 
+endif
+
+
+if  ~strmatch(skip,'*rc*',/f) then begin
+    if  file_test(name+'_sex.cat') then spawn,'rm -rf '+name+'_sex.cat'
+    if  file_test(name+'.cat') then spawn,'rm -rf '+name+'.cat'
+endif
+if  ~strmatch(skip,'*rd*',/f) then begin
+    if  file_test(name+'_vignet.fits') then spawn,'rm -rf '+name+'_vignet.fits'
+    if  file_test(name+'_seg.fits') then spawn,'rm -rf '+name+'_seg.fits'
+    if  file_test(name+'_resi.fits') then spawn,'rm -rf '+name+'_resi.fits'
+    if  file_test(name+'_samp.fits') then spawn,'rm -rf '+name+'_samp.fits'
+    if  file_test(name+'_chi.fits') then spawn,'rm -rf '+name+'_chi.fits'
 endif
 
 END
