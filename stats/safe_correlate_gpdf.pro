@@ -1,7 +1,7 @@
 
 FUNCTION SAFE_CORRELATE_GPDF,center,sigma_high,sigma_low
 
-    temp=fltarr(n_elements(center),2,100)
+    temp=fltarr(n_elements(center),2,1000)
 
     xnorm=randomn(seed,10000)
     tagp=where(xnorm gt 0.0)
@@ -13,7 +13,7 @@ FUNCTION SAFE_CORRELATE_GPDF,center,sigma_high,sigma_low
         x[tagp]=xnorm[tagp]*sigma_high[i]
         x[tagn]=xnorm[tagn]*sigma_low[i]
         x=x+center[i]
-        pdf_den=histogram(x,nbins=100,location=locs)
+        pdf_den=histogram(x,nbins=1000,location=locs)
         pdf_val=locs+abs(locs[1]-locs[0])*0.5
 
         temp[i,0,*]=pdf_val
