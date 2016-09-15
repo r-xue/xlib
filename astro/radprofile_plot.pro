@@ -43,15 +43,7 @@ plot,[1],[1],psym=cgsymcat(1),$
     ;title=csv+'_'+band+'_'+gtag+'_'+stag+'.dat'$
     /nodata,pos=[0.15,0.40,0.9,0.95]
 
-if  n_elements(moffat) eq 2 then begin
-    m_fwhm=moffat[0]
-    m_beta=moffat[1]
-    m_x=rp.center
-    a=m_fwhm/2.0/((0.5^(-1/m_beta)-1)^0.5)
-    u=m_x/a
-    m_y=(1.+u^2.0)^(-m_beta)
-    oplot,m_x,m_y
-endif
+
 
 
 ns=max(rp.median,/nan)
@@ -82,7 +74,7 @@ if  n_elements(extrafun) ne 0 then begin
 endif
 
 for i=0,n_elements(rp.center)-1 do begin
-    limits=rp.median[i]+rp.unc[i]*2.0*[-1,1]
+    limits=rp.median[i]>0.0+rp.unc[i]*2.0*[-1,1]
     limits=limits/ns
     limits=limits>(min(yrange)*0.1)
     cgplots,[rp.center[i],rp.center[i]],limits,thick=5,color=cgcolor('dark gray'),noclip=0
@@ -95,6 +87,17 @@ if  keyword_set(label) then note=[label,note]
 oplot,rp.center,2.0*rp.unc/ns,linestyle=2
 al_legend,[note,'!6FWHM!dOBJ!n='+string(rp.fwhmi,format='(f4.2)')+'"'],box=0,/top,/right
 
+
+
+if  n_elements(moffat) eq 2 then begin
+    m_fwhm=moffat[0]
+    m_beta=moffat[1]
+    m_x=rp.center
+    a=m_fwhm/2.0/((0.5^(-1/m_beta)-1)^0.5)
+    u=m_x/a
+    m_y=(1.+u^2.0)^(-m_beta)
+    oplot,m_x,m_y,color=cgcolor('cyan')
+endif
 
 plot,[1],[1],psym=cgsymcat(1),$
     xrange=xrange,xstyle=1,$
@@ -123,6 +126,7 @@ endif
 tmp=min(abs(rp.center-rscale),tag)
 ns=(rp.cflux)[tag]
 oploterror,rp.center,rp.cflux/ns,rp.cflux_sig/ns,psym=symcat(16),/nohat
+
 
 ;
 ;tag=where(rp.center gt 1.75 and rp.center le 4.0)

@@ -151,7 +151,7 @@ for i=0,n_elements(ri)-1 do begin
 
     tagcflux=where(temp lt ri[i] and im eq im)    
     if  tagcflux[0] ne -1 then begin
-        rp.cflux[i]=total(im[tagcflux],/nan)*!dpi*(ri[i])^2.0/(n_elements(tagcflux)*1.0*psize^2.0)
+        rp.cflux[i]=total(im[tagcflux],/nan);*!dpi*(ri[i])^2.0/(n_elements(tagcflux)*1.0*psize^2.0)
         rp.rc_np[i]=n_elements(tagcflux)
         circlespace=!dpi*(ri[i])^2.0
         circlepix=circlespace/(psize)^2.0
