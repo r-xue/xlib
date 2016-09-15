@@ -75,7 +75,7 @@ print,''
 
 if  n_elements(extract_method) eq 0 then extract_method='hextractx'
 if  n_elements(export_method) eq 0 then export_method='mef'
-if  n_elements(output) eq 0 then output=''
+if  n_elements(output) eq 0 then output='test'
 
 ;   FIND OUT A LIST OF UNIQ FITS/EXTENSION COMBINATIONS
 
@@ -85,7 +85,7 @@ temp1=rem_dup(imlist)
 temp2=where((objs.image)[temp1] ne '' and (objs.proc)[temp1] ne 0,/null)
 ulist=imlist[temp1[temp2]]
 print,''
-print,'Hold on..To examine these files:'
+print,'Hold on..Going through these files:'
 print,''
 foreach filename,ulist do begin
     print,'    ',filename,'  counts:',strtrim(n_elements(where(imlist eq filename)),2)
@@ -100,12 +100,12 @@ if  strmatch(export_method,'mef',/f) or strmatch(export_method,'stamps',/f) then
     file_mkdir,dir
     ;,/create
     ;mwrfits,'',output,/create
-    writefits,output,'',h
+    writefits,output+'.fits','',h
     ;mwrfits,objs,output
-    print,''
-    print,'setup to a multi-extension fits with a dummy primary image/header'
-    print,'     ',output
-    print,''
+;    print,''
+;    print,'setup to a multi-extension fits with a dummy primary image/header'
+;    print,'     ',output
+;    print,''
 endif
 
 if  strmatch(export_method,'list',/f) then begin
@@ -212,8 +212,8 @@ foreach filename,ulist do begin
         if  strmatch(export_method,'mef',/f) then begin
             key="XTENSION= 'IMAGE   '           / IMAGE extension                                "
             subhd=[key,subhd]
-            writefits,output,subim,subhd,/append
-            print,'>>>>> append ',output
+            writefits,output+'.fits',subim,subhd,/append
+            print,'>>>>> append ',output+'.fits'
             objs_sort[cc]=objs[iobj]
             cc=cc+1
         endif
@@ -232,11 +232,12 @@ foreach filename,ulist do begin
 endforeach
 
 if  strmatch(export_method,'mef',/f) or strmatch(export_method,'stamps',/f) then begin
-    print,'++'
-    print,'write the database catalog'
     print,''
-    mwrfits,objs_sort,output
-    print,'++'
+    print,replicate('+',40)
+    print,'write the database catalog'
+    mwrfits,objs_sort,output+'.fits'
+    print,replicate('+',40)
+    print,''
 endif
 
 ;fits_write,output,objs_sort,extname='OBJECTS',XTENSION='BINTABLE'
