@@ -15,6 +15,9 @@ SUBARU:
     http://www.mattiavaccari.net/df/filters
     http://www.astro.caltech.edu/~capak/filters/index.html
 
+COSMOS:
+    http://cosmos.astro.caltech.edu/page/filterset
+
 atmospheric absorption -> mirror reflectivity -> filter response/curve -> quantum efficiency -> detector throughput
 
 impro/pro/galaxy/im_absolute_magnitudes.pro
