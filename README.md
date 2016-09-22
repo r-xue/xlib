@@ -51,7 +51,7 @@ Some original IDL-xlib codes I wrote have been moved into an co-developed indepe
 
     https://github.com/tonywong94/idl_mommaps
 
-I still keep maintaining them, but retired them from IDL-xlib to avoid duplications. Some of those useful IDL routines includes:
+I retired them from IDL-xlib to avoid duplications. Some of those useful IDL routines includes:
 
 * idl_mommaps/smooth3d.pro
 
