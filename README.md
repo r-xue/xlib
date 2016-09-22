@@ -49,7 +49,7 @@ This repository contains various IDL routines written in IDL for my astronomy re
 
 Some original IDL-xlib codes I wrote have been moved into an co-developed independent IDL package for generating moments maps from 3D radio spectral line cubes:
 
-    https://github.com/tonywong94/idl_mommaps)
+    https://github.com/tonywong94/idl_mommaps
 
 I still keep maintaining them, but retired them from IDL-xlib to avoid duplications. Some of those useful IDL routines includes:
 
