@@ -1,60 +1,83 @@
-xlib
-====
+### IDL-xlib
 
-Here is a list of IDL libraries I borrow:
+This repository contains various IDL routines written in IDL for my astronomy research projects. Most IDL procedures/functions in this collection were written as library codes for "general" purposes, but motivated by specific projects. Some highlights include:
 
-  IDL Astronomy Libarary:   http://idlastro.gsfc.nasa.gov/ftp/astron.dir.tar.gz  <web>
-                            https://github.com/wlandsman/IDLAstro <web>
+* astro/calc_igmtau.pro
 
-  Markwardt IDL Programs:   http://cow.physics.wisc.edu/~craigm/idl <web>
-  
-  idl-low-sky:              https://github.com/low-sky/idl-low-sky  <github>
-  
-  cprops:                   https://github.com/low-sky/cprops  <github>
-  
-  idl-coyote:               https://github.com/idl-coyote  <github>
-  
-  impro:                    http://idl-moustakas.googlecode.com/svn/trunk/impro <svn>
-  
-  textoidl:                 http://physics.mnstate.edu/craig/textoidl <web>
-  
-  IRSA idl:                 http://irsa.ipac.caltech.edu/tools/irsa_idl.html <web>
-  
-  BuieIDL library:          http://www.boulder.swri.edu/~buie/idl <web>
-  
-  GBTIDL:                   http://gbtidl.nrao.edu <web>
-  
-  idlutils:                 http://www.sdss3.org/svn/repo/idlutils/trunk/pro <svn>
-  
-  idlspec2d:                http://www.sdss3.org/svn/repo/idlspec2d/trunk/pro <svn>
-  
-  PINTofALE:                http://hea-www.harvard.edu/PINTofALE <web>
-  
-  AITLIB:                   http://astro.uni-tuebingen.de/software/idl/aitlib <web>
-  
-  IDLdep:                   https://github.com/ChrisBeaumont/IDLdep <github>
-  
-  beaumont-idl-library      https://github.com/ChrisBeaumont/beaumont-idl-library <github>
-  
-  SDSSIDL                   http://sdssidl.googlecode.com/svn/trunk <svn>
-  
-  DUSTEM_WRAP               http://dustemwrap.irap.omp.eu <web>
-  
-  LaTexify                  http://slugidl.pbworks.com/w/page/37657460/latexify%20tutorial <web>
-  
-  Marshall Perrin           http://www.stsci.edu/~mperrin/software/idl_sources.shtml
-  
-  MGlib                     https://github.com/mgalloy/mglib <github>
-  
-  SALVAGGIO                 https://www.cis.rit.edu/~cnspci/software.php <web>
-  
-  windt                     http://www.rxollc.com/idl/windt.html <web>
-  
-  JHU/APL/S1R IDL library   http://fermi.jhuapl.edu/idl/ <web>
-  
-  JBIU IDL Utilities        http://www.simulated-galaxies.ua.edu/jbiu/ <web>
-  
-  Kcorrect                  http://kcorrect.org/ <web>
-                            http://cosmo.nyu.edu/blanton/kcorrect/kcorrect.v4_3.tar.gz <web>
-                            https://github.com/blanton144/kcorrect <github>
-                            
+* astro/calc_qb.pro
+
+* astro/deproj_beam.pro
+
+* astro/deproj_im.pro
+
+* astro/fxreadx.pro
+
+* astro/get_filter.pro
+
+* astro/map_fits.pro
+
+* astro/map_boundary.pro
+
+* astro/map_fits.pro
+
+* astro/mk_hd.pro
+
+* astro/radprofile_analyzer.pro
+
+* astro/radprofile_grow.pro
+
+* astro/query_refobj.pro
+
+* htau/
+
+* images/check_point.pro
+
+* images/im_circularize.pro
+
+* images/ims_sexfind.pro
+
+* images/make_charts.pro
+
+* images/match_astro.pro
+
+* images/psfex_analyzer.pro
+
+* misc/pineps.pro
+
+* misc/read_table.pro
+
+
+Some original IDL-xlib codes I wrote have been moved into an co-developed independent IDL package for generating moments maps from 3D radio spectral line cubes:
+
+    https://github.com/tonywong94/idl_mommaps)
+
+I still keep maintaining them, but retired them from IDL-xlib to avoid duplications. Some of those useful IDL routines includes:
+
+* idl_mommaps/smooth3d.pro
+
+* idl_mommaps/pltmom_pv.pro
+
+* idl_mommaps/pltmom.pro
+
+* idl_mommaps/maskmoment_pv.pro
+
+* idl_mommaps/hrot3d.pro
+
+* idl_mommaps/err_cube.pro
+
+* idl_mommaps/gkernel.pro
+
+
+There is no guarantee for 100% accuracy / correct. But any feedback or correction is welcome. I tend to borrow pre-existing library codes from other people rather than reinventing the wheel, so the collection here represents the optimized version of pre-existing codes or something missed out by other mature IDL libraries. This increases the complexity of code dependency, but reduce duplicated coding works. The IDL libraries I borrowed (from other hard-working people!) are listed in the folder /borrow/README.md .
+
+
+### Install
+
+
+Download the update-to-date version of this library using the following command:
+
+    git clone http://github.com/r-xue/xlib.git
+
+Add the library path to your IDL environment.
+
+If a code complains something (functions/procedures) missing, most likely I have borrowed some library codes not in your IDL setup. Please check README.md in /borrow/ for their information. Also different IDL libraries may have duplicated code pieces in various versions (same file names!). This creates a common headache for IDL users. I recommend to have a look at the /system/xstartup.pro for prioritizing different libraries. The strategy I prefer is putting the bleeding-edge version of "low-level" libraries (eg. IDLAstro/idl-coyote) at the beginning of your IDL_path.

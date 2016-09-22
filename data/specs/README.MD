@@ -1,4 +1,5 @@
 
+http://www.astro.ucla.edu/~aes/lbgspec/
 
 all.fits: the composite spectrum of 811 LBGs with good z's
 
