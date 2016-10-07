@@ -103,24 +103,28 @@ ncol=0
 
 sens=cn*0.0+10.0 ; presudo values (mJy)
 if  keyword_set(sumwtlog)  then begin
-    ncol=count_columns(sumwtlog)
-    if  ncol eq 1 then begin
-        print,'oldstyle sumwt log:'
-        print,sumwtlog
-        readcol,sumwtlog,vs,format='(f)'
+    if  file_test(sumwtlog) then begin
+        ncol=count_columns(sumwtlog)
+        if  ncol eq 1 then begin
+            print,'oldstyle sumwt log:'
+            print,sumwtlog
+            readcol,sumwtlog,vs,format='(f)'
+        endif
+        if  ncol eq 3 then begin
+            print,'newstyle sumwt log:'
+            print,sumwtlog
+            readcol,sumwtlog,ich,iv,vs,format='(f,f,f)'
+        endif
+        sens=(1./vs)^0.5/1.414*1000.0
     endif
-    if  ncol eq 3 then begin
-        print,'newstyle sumwt log:'
-        print,sumwtlog
-        readcol,sumwtlog,ich,iv,vs,format='(f,f,f)'
-    endif
-    sens=(1./vs)^0.5/1.414*1000.0
 endif
 if  keyword_set(senslog)  then begin
-    print,'sens log:'
-    print,senslog
-    readcol,senslog,sens,senscale
-    sens=sens*1000.0
+    if  file_test(senslog) then begin
+        print,'sens log:'
+        print,senslog
+        readcol,senslog,sens,senscale
+        sens=sens*1000.0
+    endif
 endif
 
 for i=0,nchan-1 do begin

@@ -21,9 +21,12 @@ endif
 if  mode eq 'cont' then begin
     ;   wave:   reference wavelength
     ;   zigm:   redshift for IGM absorption
+    if  n_elements(beta) eq 0 then beta=-2.0
+    
     w=ft.wave
     g=(ft.tran>0.0)
     qb=g/w
+    ;print,qb
     qb=qb*(w/wave)^(2.+beta)
     if  keyword_set(zigm) then qb=qb*exp(-calc_IGMTAU(w,zigm,model='I14'))
     qb=tsum(w,qb)
