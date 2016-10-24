@@ -6,6 +6,7 @@ PRO PSFEX_ANALYZER,name,$
     ELONGATION=elongation,SNR_WIN=SNR_WIN,FWHMRANGE=FWHMRANGE,BADPIXEL_FRAC=BADPIXEL_FRAC,$
     HOMOPSF_PARAMS=HOMOPSF_PARAMS,$
     PSFSIZE=PSFSIZE,VIGSIZE=VIGSIZE,$
+    usetheli=usetheli,$
     skip=skip
 ;+
 ; NAME:
@@ -16,7 +17,7 @@ PRO PSFEX_ANALYZER,name,$
 ;   
 ; REQUIREMENTS:
 ;   impro (J.M.)/astrolib(GSFC)
-;   theli (https://www.astro.uni-bonn.de/theli/gui/)
+;   theli (https://www.astro.uni-bonn.de/theli/gui/) : only when usetheli=1
 ; 
 ; INPUTS:
 ;   name:       prefix for the output files  
@@ -243,36 +244,33 @@ if  ~strmatch(skip,'*ft*',/f) then begin
 
     print,'create >>>>>>> vig.cat'
     ;tic
-    cmd='ldacfilter -i '+name+'_sex.cat -o '+name+'.cat '+$
-        '-t LDAC_OBJECTS -c "(((ELONGATION<'+strtrim(elong,2)+')AND(SNR_WIN>'+strtrim(snr,2)+'))AND(IMAFLAGS_ISO=0))AND(FLAGS<2);" '
+    if  keyword_set(usetheli) then
+        ;LADCFILTER is ~2-3x faster for large catalogs
+        cmd='ldacfilter -i '+name+'_sex.cat -o '+name+'.cat '+$
+            '-t LDAC_OBJECTS -c "(((ELONGATION<'+strtrim(elong,2)+')AND(SNR_WIN>'+strtrim(snr,2)+'))AND(IMAFLAGS_ISO=0))AND(FLAGS<2);" '
+        print,''
+        spawn,cmd
+    endif else begin
+        ftab_ext,name+'_sex.cat','IMAFLAGS_ISO,ELONGATION,SNR_WIN,FLAGS',SEL_IMAFLAGS_ISO,SEL_ELONGATION,SEL_SNR_WIN,SEL_FLAGS,ext=2
+        badpix=where(~(SEL_elongation lt elong and SEL_snr_win gt snr and SEL_imaflags_iso eq 0 and SEL_flags lt 2))
+        ftab_delrow,name+'_sex.cat',badpix,new=name+'.cat',ext=2
+    endelse
+    ;toc    
     print,''
-    spawn,cmd
-    print,''
-    ;toc
-    ;   LADCFILTER is ~2-3x faster for large catalogs
-    ;print,'create >vig.cat'
-    ;print,''
-    ;tic
-    ;ftab_ext,name+'_sex.cat','IMAFLAGS_ISO,ELONGATION,SNR_WIN,FLAGS',SEL_IMAFLAGS_ISO,SEL_ELONGATION,SEL_SNR_WIN,SEL_FLAGS,ext=2
-    ;badpix=where(~(SEL_elongation lt elong and SEL_snr_win gt snr and SEL_imaflags_iso eq 0 and SEL_flags lt 2))
-    ;ftab_delrow,name+'_sex.cat',badpix,new=name+'.cat',ext=2
-    ;toc
 
     print,'create >>>>>>> all.cat'
     ;tic
     ;   EXTRACT CAT FOR ALL OBJECTS WITHOUT VIGNET
-    cmd='ldacdelkey -i '+name+'_sex.cat -o '+name+'_all.cat '+'-k VIGNET -t LDAC_OBJECTS'
+    if  keyword_set(usetheli) then 
+        ;LADCFILTER is way faster for large catalogs
+        cmd='ldacdelkey -i '+name+'_sex.cat -o '+name+'_all.cat '+'-k VIGNET -t LDAC_OBJECTS'
+        spawn,cmd
+    endif else begin
+        sel_tab=readfits(name+'_sex.cat',sel_hd,exten_no=2,/silent)
+        tbdelcol,sel_hd,sel_tab,'VIGNET'
+        modfits,name+'_all.cat',sel_tab,sel_hd,exten_no=2
+    endelse
     print,''
-    spawn,cmd
-    print,''
-    ;toc
-    ;   LADCFILTER is way faster for large catalogs
-    ;print,'create >all.cat'
-    ;tic
-    ;sel_tab=readfits(name+'_sex.cat',sel_hd,exten_no=2,/silent)
-    ;tbdelcol,sel_hd,sel_tab,'VIGNET'
-    ;modfits,name+'_all.cat',sel_tab,sel_hd,exten_no=2
-    ;toc
 
     ;spawn,'rm -rf '+name+'_sex.cat'
 
