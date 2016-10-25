@@ -244,7 +244,7 @@ if  ~strmatch(skip,'*ft*',/f) then begin
 
     print,'create >>>>>>> vig.cat'
     ;tic
-    if  keyword_set(usetheli) then
+    if  keyword_set(usetheli) then begin
         ;LADCFILTER is ~2-3x faster for large catalogs
         cmd='ldacfilter -i '+name+'_sex.cat -o '+name+'.cat '+$
             '-t LDAC_OBJECTS -c "(((ELONGATION<'+strtrim(elong,2)+')AND(SNR_WIN>'+strtrim(snr,2)+'))AND(IMAFLAGS_ISO=0))AND(FLAGS<2);" '
@@ -261,7 +261,7 @@ if  ~strmatch(skip,'*ft*',/f) then begin
     print,'create >>>>>>> all.cat'
     ;tic
     ;   EXTRACT CAT FOR ALL OBJECTS WITHOUT VIGNET
-    if  keyword_set(usetheli) then 
+    if  keyword_set(usetheli) then begin
         ;LADCFILTER is way faster for large catalogs
         cmd='ldacdelkey -i '+name+'_sex.cat -o '+name+'_all.cat '+'-k VIGNET -t LDAC_OBJECTS'
         spawn,cmd
