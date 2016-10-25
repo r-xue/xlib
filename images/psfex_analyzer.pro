@@ -7,7 +7,7 @@ PRO PSFEX_ANALYZER,name,$
     HOMOPSF_PARAMS=HOMOPSF_PARAMS,$
     PSFSIZE=PSFSIZE,VIGSIZE=VIGSIZE,$
     usetheli=usetheli,$
-    skip=skip
+    skip=skip,verbose=verbose
 ;+
 ; NAME:
 ;   psfex_analyzer
@@ -268,6 +268,7 @@ if  ~strmatch(skip,'*ft*',/f) then begin
     endif else begin
         sel_tab=readfits(name+'_sex.cat',sel_hd,exten_no=2,/silent)
         tbdelcol,sel_hd,sel_tab,'VIGNET'
+        spawn,'cp -rf '+name+'_sex.cat'+' '+name+'_all.cat'
         modfits,name+'_all.cat',sel_tab,sel_hd,exten_no=2
     endelse
     print,''
@@ -392,7 +393,7 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     writefits,name+'_vignet.fits',tb.VIGNET
 
     tb=mrdfits(name+'_psfex.cat',2)
-    print_struct,tb
+    if  keyword_set(verbose) then print_struct,tb
     
 endif
 
