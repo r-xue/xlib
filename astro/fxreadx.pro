@@ -9,6 +9,7 @@ PRO FXREADX, FILENAME, DATA, HEADER, P1, P2, P3, P4, P5,     $
 ;   if you're analyzing small parts of a big image, <fxreadx> will be signifcantly 
 ;   faster and save some memory, compared with readfits().
 ;   It only works for 2D images...
+;   note that you'd better check P1/P2/P3/P4 to be integer
 ;--
 
 ;+
@@ -486,7 +487,7 @@ DATA = MAKE_ARRAY(DIMENSION=DIMS,TYPE=IDLTYPE,/NOZERO)
 POINT_LUN,-UNIT,OFFSET      ;Current position
 DELTA = N1*ABS(BITPIX)/8
 IF J1 NE 0 THEN BEGIN
-    OFFSET = OFFSET + J1*DELTA
+    OFFSET = OFFSET + long64(J1)*DELTA
     POINT_LUN,UNIT,OFFSET
 ENDIF
 ;
