@@ -1,7 +1,7 @@
 FUNCTION CALC_ZCOLORS,band,$
     z=z,beta=beta,ew=ew,$
     doplot=doplot,verbose=verbose,$
-    sed=sed
+    sed=sed,igmtau_scale=igmtau_scale
 ;+
 ;   simulated high-z galaxy optical (rest-frame UV) colors (M-M_1700)
 ;   the simulated galaxy SED includes:
@@ -46,7 +46,10 @@ flux_lya=flam[tag_lya]*ew_obs
 if  tag[0] ne -1 then begin
     flam[tag_lya]=flam[tag_lya]+flux_lya/(abs(w[tag_lya-1]-w[tag_lya+1])/2.0)
 endif
-flam=flam*exp(-calc_igmtau(w,z,model='I14'))
+
+if  n_elements(igmtau_scale) eq 0 then igmtau_scale=1.0
+igmtau_scale=igmtau_scale>0.0
+flam=flam*exp(-calc_igmtau(w,z,model='I14')*igmtau_scale)
 
 sed={   flam_1220:flam_1220,$               ;   erg s^-1 cm^-2 AA-1
         flam_1700:flam_1700,$               ;   erg s^-1 cm^-2 AA-1        
@@ -62,6 +65,7 @@ clam_ab=flam_ab/(1.0/w)
 ; don't use int_tabulated here..
 
 r=TSUM(ft.wave,y*clam)/TSUM(ft.wave,y*clam_ab)
+
 color=-2.5*alog10(r)
 
 if  keyword_set(doplot) then begin
