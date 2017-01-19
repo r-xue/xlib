@@ -2,6 +2,7 @@ PRO CASA_MOSSEN,prefix,$
     pattern=pattern,$
     sumwtlog=sumwtlog,$
     senslog=senslog,$
+    mossenlog=mossenlog,$
     pbstat=pbstat,pbkeep=pbkeep,$
     mask0=mask0,_EXTRA=extra
 
@@ -126,10 +127,34 @@ if  keyword_set(senslog)  then begin
         sens=sens*1000.0
     endif
 endif
+if  keyword_set(mossenlog) then begin
+    readcol,mossenlog,ich,iv,spw,sens,format='(i,f,a,f)',comment='#'
+endif
+
+print,$
+    string('im-chan',format='(A10)'),$
+    string('f-peak',format='(A10)'),$
+    string('p-peak',format='(A10)'),$
+    string('mossen',format='(A10)'),$
+    string('ms-chan',format='(A10)'),$
+    string('sig2rms',format='(A12)'),$
+    string('sig2rms',format='(A12)')
+
+print,$
+    string('--',format='(A10)'),$
+    string('--',format='(A10)'),$
+    string('--',format='(A10)'),$
+    string('mJy',format='(A10)'),$
+    string('--',format='(A10)'),$
+    string('Jy->Jy/bm',format='(A12)'),$
+    string('Jy->Jy/bm',format='(A12)')
+
+print,strjoin(replicate('-',74),'')
 
 for i=0,nchan-1 do begin
+    
     ipick=nchan-i-1
-    if  ncol eq 3 then tmp=min(abs(sgrid[i]-iv),ipick)
+    if  ncol eq 3 or keyword_set(mossenlog) then tmp=min(abs(sgrid[i]-iv),ipick)
     tmp1=max(flux[*,*,i],/nan,floc)
     tmp2=max(psf[*,*,i],/nan,ploc)
     indflux=array_indices(flux[*,*,i],floc)
@@ -138,21 +163,24 @@ for i=0,nchan-1 do begin
     ;spsf=shift(psf[*,*,i],indflux[0]-indpsf[0],indflux[1]-indpsf[1])
     spsf=psf[*,*,i]
     ipsf=spsf+(flux[*,*,i])-(flux[*,*,i])
-    ipsf=ipsf/max(ipsf,/nan)
-    ;ipsf=ipsf>0.0
-    ipsf=ipsf<0.0
+    ;ipsf=ipsf/max(ipsf,/nan)
+    ipsf=ipsf>0.0
+    ;ipsf=ipsf<0.0
     srms=sig2rms(psf=ipsf,/non)
     if  n_elements(cpsf) ne 0 then begin
         crms=sig2rms(psf=cpsf[*,*,i]/max(cpsf[*,*,i]),/non)
         ;crms=sig2rms(psf=cpsf[*,*,i],/non)
-        print,  'im-chan:',string(i,format='(i3)'),$
-            ' .f-peak:',string(max(flux[*,*,i],/nan,floc),format='(f5.2)'),$
-            ' .p-peak:',string(max(psf[*,*,i],/nan,ploc),format='(f5.2)'),$
-            ' .sens:',string(sens[ipick],format='(f8.2)')+'mJy',$
-            ' .ipick:',string(ipick,format='(i3)'),$
-            '  sig2rms (1jy->1jy/dirtybeam),',string(srms,format='(f0.2)'),$
-            '  sig2rms (1jy->1jy/cleanbeam),',string(crms,format='(f0.2)')
-        cn[i]=sens[ipick]/srms;*crms
+        print,$
+            string(i,format='(i10)'),$
+            string(max(flux[*,*,i],/nan,floc),format='(f10.2)'),$
+            string(max(psf[*,*,i],/nan,ploc),format='(f10.2)'),$
+            string(sens[ipick],format='(f10.2)'),$
+            string(ipick,format='(i10)'),$
+            string(srms,format='(f12.2)'),$
+            string(crms,format='(f12.2)')
+            ;'  sig2rms (1jy->1jy/dirtybeam),',string(srms,format='(f0.2)'),$
+            ;'  sig2rms (1jy->1jy/cleanbeam),',string(crms,format='(f0.2)')
+        cn[i]=sens[ipick];/srms;*crms
     endif else begin
         print,  'im-chan:',string(i,format='(i3)'),$
             ' .f-peak:',string(max(flux[*,*,i],/nan,floc),format='(f5.2)'),$
@@ -160,9 +188,10 @@ for i=0,nchan-1 do begin
             ' .sens:',string(sens[ipick],format='(f8.2)')+'mJy',$
             ' .ipick:',string(ipick,format='(i3)'),$
             '  sig2rms (1jy->1jy/dirtybeam),',string(srms,format='(f0.2)')
-        cn[i]=sens[ipick]/srms
+        cn[i]=sens[ipick]
     endelse
     pattern[*,*,i]=cn[i]*pattern[*,*,i]
+    
 endfor
 pattern=pattern/min(pattern,/nan)
 

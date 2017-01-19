@@ -138,65 +138,9 @@ endif
 
 
 
-;----------------------------------------------------------------------------------
-
-
-if  strmatch(select,'cfht-up',/f) then begin
-    name='CFHT-up'
-    namef='CFHT-up'
-    ew=868.
-    effwave=3823.29
-    readcol,/silent,path+'/cosmos/u_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
-    wave=wv*1.
-    tran=tf/max(tf)>0.0
-    vega2ab=!values.f_nan
-endif
-
-if  strmatch(select,'cfht-gp',/f) then begin
-    name='CFHT-gp'
-    namef='CFHT-gp'
-    ew=1520.
-    effwave=4877.37
-    readcol,/silent,path+'/cosmos/g_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
-    wave=wv*1.
-    tran=tf/max(tf)>0.0
-    vega2ab=!values.f_nan
-endif
-
-if  strmatch(select,'cfht-rp',/f) then begin
-    name='CFHT-rp'
-    namef='CFHT-rp'
-    ew=1480.0
-    effwave=6030.62
-    readcol,/silent,path+'/cosmos/r_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
-    wave=wv*1.
-    tran=tf/max(tf)>0.0
-    vega2ab=!values.f_nan
-endif
-
-if  strmatch(select,'cfht-ip',/f) then begin
-    name='CFHT-ip'
-    namef='CFHT-ip'
-    ew=1554.
-    effwave=7617.66
-    readcol,/silent,path+'/cosmos/i_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
-    wave=wv*1.
-    tran=tf/max(tf)>0.0
-    vega2ab=!values.f_nan
-endif
-
-if  strmatch(select,'cfht-zp',/f) then begin
-    name='CFHT-zp'
-    namef='CFHT-zp'
-    ew=1538.0
-    effwave=8827.98
-    readcol,/silent,path+'/cosmos/z_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
-    wave=wv*1.
-    tran=tf/max(tf)>0.0
-    vega2ab=!values.f_nan
-endif
-
-;----------------------------------------------------------------------------------
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
            
 ;   from CpackP SUBARU_IA filters
 
@@ -379,6 +323,155 @@ if  strmatch(select,'subaru-b',/f) then begin
     vega2ab=!values.f_nan
 endif
 
+if  strmatch(select,'subaru-zpp',/f) then begin
+    name='Subaru-zp'
+    namef='Subaru-zp'
+    ew=!values.f_nan
+    effwave=4458.32
+    readcol,/silent,path+'/cosmos/z_subaru.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+
+if  strmatch(select,'subaru-y',/f) then begin
+    name='Subaru-y'
+    namef='Subaru-y'
+    ew=!values.f_nan
+    effwave=9791.48
+    readcol,/silent,path+'/cosmos/yHSC.pb',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+;----------------------------------------------------------------------------------
+
+if  strmatch(select,'vista-y',/f) then begin
+    name='vista-y'
+    namef='vista-y'
+    ew=!values.f_nan
+    effwave=10214.19
+    readcol,/silent,path+'/cosmos/Y_uv.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'vista-j',/f) then begin
+    name='vista-j'
+    namef='vista-j'
+    ew=!values.f_nan
+    effwave=12534.65
+    readcol,/silent,path+'/cosmos/J_uv.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'vista-h',/f) then begin
+    name='vista-h'
+    namef='vista-h'
+    ew=!values.f_nan
+    effwave=16453.41
+    readcol,/silent,path+'/cosmos/H_uv.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'vista-ks',/f) then begin
+    name='vista-ks'
+    namef='vista-ks'
+    ew=!values.f_nan
+    effwave=21539.88
+    readcol,/silent,path+'/cosmos/K_uv.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+;----------------------------------------------------------------------------------
+
+
+if  strmatch(select,'cfht-up',/f) then begin
+    name='CFHT-up'
+    namef='CFHT-up'
+    ew=868.
+    effwave=3823.29
+    readcol,/silent,path+'/cosmos/u_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cfht-gp',/f) then begin
+    name='CFHT-gp'
+    namef='CFHT-gp'
+    ew=1520.
+    effwave=4877.37
+    readcol,/silent,path+'/cosmos/g_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cfht-rp',/f) then begin
+    name='CFHT-rp'
+    namef='CFHT-rp'
+    ew=1480.0
+    effwave=6030.62
+    readcol,/silent,path+'/cosmos/r_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cfht-ip',/f) then begin
+    name='CFHT-ip'
+    namef='CFHT-ip'
+    ew=1554.
+    effwave=7617.66
+    readcol,/silent,path+'/cosmos/i_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cfht-zp',/f) then begin
+    name='CFHT-zp'
+    namef='CFHT-zp'
+    ew=1538.0
+    effwave=8827.98
+    readcol,/silent,path+'/cosmos/z_megaprime_sagem.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cfht-h',/f) then begin
+    name='CFHT-h'
+    namef='CFHT-h'
+    ew=1538.0
+    effwave=16311.41
+    readcol,/silent,path+'/cosmos/wircam_H.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
+if  strmatch(select,'cfht-ks',/f) then begin
+    name='CFHT-ks'
+    namef='CFHT-ks'
+    ew=1538.0
+    effwave=21590.44    
+    readcol,/silent,path+'/cosmos/wircam_Ks.res',wv,tf,format='(f,f)',comment='#'
+    wave=wv*1.
+    tran=tf/max(tf)>0.0
+    vega2ab=!values.f_nan
+endif
+
 ;----------------------------------------------------------------------------------
 
 if  strmatch(select,'cosmos-acs-i',/f) then begin
@@ -403,7 +496,11 @@ if  strmatch(select,'cosmos-acs-g',/f) then begin
     vega2ab=!values.f_nan
 endif
 
-;----------------------------------------------------------------------------------
+
+
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 if  select eq 'kpno-newfirm-j' then begin
