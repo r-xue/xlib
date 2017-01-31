@@ -62,6 +62,7 @@ xbox=[xbox[0],xbox[1],xbox[1],xbox[0]]
 ybox=[ybox[0],ybox[0],ybox[1],xbox[1]]
 
 if  n_elements(radec) eq 2 then begin
+    ; assume the image is in a tangent-plane
     u2d=3600
     if  keyword_set(arcmin) then u2d=60.0
     xbox=radec[0]+xbox/u2d/cos(!const.DtoR*radec[1])
@@ -80,6 +81,7 @@ if  xmin le nxy[0]-1 and xmax ge 0 and ymin le nxy[1]-1 and ymax ge 0 then begin
     if  size(im,/tn) ne size('',/tn) then begin
         hextract,im,hd,subim,subhd,xmin,xmax,ymin,ymax,silent=silent
     endif else begin
+        ; note that xmin/xmax/ymin/ymax must be integer
         fxreadx,im,subim,subhd,xmin,xmax,ymin,ymax,extension=extension
     endelse
 endif

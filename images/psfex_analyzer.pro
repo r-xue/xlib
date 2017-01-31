@@ -14,6 +14,7 @@ PRO PSFEX_ANALYZER,name,$
 ; 
 ; PURPOSE:
 ;   perform <psfex> analysis on a single-pointing image
+;   psfex:  https://github.com/astromatic/psfex
 ;   
 ; REQUIREMENTS:
 ;   impro (J.M.)/astrolib(GSFC)
@@ -410,7 +411,7 @@ if  ~strmatch(skip,'*pl*',/f) then begin
     
     ;   INPUT CAT FOR PSFEX
     taginput=where(tb.SNR_WIN gt snr and tb.elongation le elong and tb.IMAFLAGS_ISO eq 0 and tb.flags lt 2)    
-    tagflag1=where(tb.SNR_WIN gt 10.0 and tb.elongation le elong and tb.IMAFLAGS_ISO eq 0 and tb.flags lt 2)
+    ;tagflag1=where(tb.SNR_WIN gt 10.0 and tb.elongation le elong and tb.IMAFLAGS_ISO eq 0 and tb.flags lt 2)
     
     ;   IMAFLAGS_ISO:   the flag image in sextractor run
 
@@ -465,8 +466,8 @@ if  ~strmatch(skip,'*pl*',/f) then begin
     
     oplot,tb.flux_radius*psize,tb.mag_auto,psym=symcat(16),symsize=0.1,$
         color=cgcolor('slate gray')
-    oplot,tb[tagflag1].flux_radius*psize,tb[tagflag1].mag_auto,psym=symcat(16),symsize=0.15,$
-        color=cgcolor('blue')
+    ;oplot,tb[tagflag1].flux_radius*psize,tb[tagflag1].mag_auto,psym=symcat(16),symsize=0.15,$
+    ;    color=cgcolor('blue')
     oplot,tb[taginput].flux_radius*psize,tb[taginput].mag_auto,psym=symcat(16),symsize=0.3,$
         color=cgcolor('red')
     
@@ -521,11 +522,11 @@ if  ~strmatch(skip,'*pl*',/f) then begin
 endif
 
 
-if  ~strmatch(skip,'*rc*',/f) then begin
+if  ~strmatch(skip,'*rmcat*',/f) then begin
     if  file_test(name+'_sex.cat') then spawn,'rm -rf '+name+'_sex.cat'
     if  file_test(name+'.cat') then spawn,'rm -rf '+name+'.cat'
 endif
-if  ~strmatch(skip,'*rd*',/f) then begin
+if  ~strmatch(skip,'*rmdiag*',/f) then begin
     if  file_test(name+'_vignet.fits') then spawn,'rm -rf '+name+'_vignet.fits'
     if  file_test(name+'_seg.fits') then spawn,'rm -rf '+name+'_seg.fits'
     if  file_test(name+'_resi.fits') then spawn,'rm -rf '+name+'_resi.fits'

@@ -2,8 +2,6 @@ PRO MAKE_CUTOUTS,OBJS,$
     EXTRACT_METHOD=EXTRACT_METHOD,$
     EXPORT_METHOD=EXPORT_METHOD,$
     OUTPUT=OUTPUT
-    
-
 ;+
 ; NAME:
 ;   make_charts
@@ -12,23 +10,27 @@ PRO MAKE_CUTOUTS,OBJS,$
 ;   make finding charts
 ;
 ; INPUTS:
-;   obj:        check <make_objects.pro> for the defination of this structure
+;   objs:       check <make_objects.pro> for the defination of this structure
 ;               it could be a scale or vector of the predefined structure.
-;
-; OUTOUTS:
-;   output      file name for the MEF or fits catalog (method='mef'/'stamps')
-;               or 
-;               variable (in a LIST type) holding cutouts data (method='list')
 ;               
 ; KEYWORDS:
-;   export_method:      'mef'       muti-extension fits
-;                                   this is the default format for data analysis.
+;   export_method:      'mef'       default: muti-extension fits
 ;                                   the last extention is the cutout index;
-;                                   and the 1->n-1 extenstions are cutout stamps (im,hd);
-;                                   this option is actually fast then 'list' in some cases, 
-;                                   and more flexiable for none-IDL software.
+;                                   the 1->n-1-th extenstions are cutout stamps (im,hd);
+;                                   note:   this option is usually fast then export_method='list' and more 
+;                                           flexiable for none-IDL software.
+;                                   only export_mthod='mef' will work with make_charts.pro
 ;                       'list'      idl variable (list type)
-;                       'stamps'    save cutout as fits files named after objs.imout+'.fits'
+;                       'stamps'    save individual cutout images in FITS, named after objs.imout+'.fits'
+;
+;   extract_method:     'hextractx'         using hextractx.pro (hextract.pro-based)
+;                       'hextractx-fast'    using hextractx.pro (fxreadx.pro-based,memory saver)
+;                       'hastrom'           using hastrom.pro
+;                       'hextract'          using hextract.pro
+; OUTOUTS:
+;   output      file name for the MEF or fits catalog (export_method='mef'/'stamps')
+;               or
+;               idl-xdr file holding cutouts data (export_method='list')
 ;                       
 ;
 ; EXAMPLE:
@@ -36,23 +38,18 @@ PRO MAKE_CUTOUTS,OBJS,$
 ;
 ; NOTE:
 ; 
-;   The older version of make_charts.pro will load all input images at once to avoid repeatly 
-;   loading same images for individual objects, but this approach doesn't scale up well if the dataset
-;   is too large for the physical memory (e.g. the COSMOS data..)
+;   This procedure has been optimzed for large image sets and memory usages, and should scale up well
+;   for large catalogs. It will load input imges one by one: for each image, requested stamps inside will
+;   be produced using the specified extracting/sampling methods (extract_method)
 ;
+;   The output file (export_method='mef') could be used by make_charts.pro for producing finding chats. 
 ;   This new version will do the job with two steps:
-;       1.  load input image one by one; for each images, generate requested stamps and save them to mef
-;           (done by make_cutouts.pro)
-;       2.  plot charts, one object each time (done by make_charts.pro)
-;       3.  assemble eps to pdf (done by pineps.pro)
 ;
-;   *** make_*.pro are replacing gal_deproj*pro in xlib
-;   *** file/obejct metadata is defined as a "flat" structure now.
 ;   example:
 ;       make_cutouts,objs,export_method='list',output=cutouts
 ;       save,cutouts,filename='../cutouts/ibg_cutouts4charts.xdr'
-;       THIS also replace gal_deproj
-;       please note that some time you can get the cutouts images easily using webtools 
+;   
+;   please note that some time you can get the cutouts images easily using webtools 
 ;       (e.g. http://irsa.ipac.caltech.edu/data/COSMOS/index_cutouts.html)
 ;
 ; HISTORY:
@@ -60,9 +57,6 @@ PRO MAKE_CUTOUTS,OBJS,$
 ;   20160702    R.Xue   use the mutiple-extension fits as the default output format
 ;                       
 ;-
-
-
-
 
 print,''
 print,'---------'
@@ -247,20 +241,16 @@ endif
 ;cutouts_hd=mrdfits(output,'OBJECTS')
 ;print_struct,cutouts_hd
 ;print_struct,objs_sort
-;
 ;if  strmatch(export_method,'mef',/f) then begin
 ;    ;modfits,output,objs_sort[0:cc-1],exten_no=1
 ;    print,''
 ;    print,'>>>>> resort index ',output
 ;    print,cutouts_hd
 ;    print,''
-;
 ;endif
-;
 ;cutouts_hd=mrdfits(output,1)
 ;print,cutouts_hd.ra
 ;print,objs_sort[0:cc-1].ra
-;
 ;print,''
 
 END

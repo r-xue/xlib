@@ -156,7 +156,7 @@ if  (ext ne 'csv' and ext ne 'gsheet' and not isid) then begin
     if  keyword_set(refresh) or not file_test(csvfile) then begin
         ;cmd='unoconv -f csv -o '+csvfile+' '+file
         cmd='unoconv -f csv '+file
-        print,cmd
+        if  ~keyword_set(silent) then print,cmd
         spawn,cmd
     endif
 endif
@@ -188,7 +188,7 @@ if  ext eq 'gsheet' or isid then begin
     endif
 endif
 
-print,csvfile
+if  ~keyword_set(silent) then print,csvfile
 tab=READ_CSV(csvfile,header=header,types=types)
 nrow=n_elements(tab.(0))
 
