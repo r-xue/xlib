@@ -4,8 +4,10 @@ PRO PSFEX_ANALYZER,name,$
     WEIGHT_IMAGE=WEIGHT_IMAGE,WEIGHT_TYPE=WEIGHT_TYPE,$
     BACK_SIZE=BACK_SIZE,THRESH=THRESH,$
     ELONGATION=elongation,SNR_WIN=SNR_WIN,FWHMRANGE=FWHMRANGE,BADPIXEL_FRAC=BADPIXEL_FRAC,$
+    MAG_RANGE=MAG_RANGE,$
     HOMOPSF_PARAMS=HOMOPSF_PARAMS,$
     PSFSIZE=PSFSIZE,VIGSIZE=VIGSIZE,$
+    PSFVARD=PSFVARD,$
     usetheli=usetheli,$
     skip=skip,verbose=verbose
 ;+
@@ -82,28 +84,51 @@ PRO PSFEX_ANALYZER,name,$
 ;   psf man:    http://psfex.readthedocs.io
 ;   sex -dd / psfex -dd for the up-to-date config parameters
 ;   
+;   sextractor/psfex source code:
+;       http://astromatic.iap.fr/wsvn/public/  2.23.2
+;       https://github.com/astromatic/psfex    3.18.2
+;       
+;   * the ability to determine the PSF at large radii largely depends on the image dynamic range (if you don't risk using saturated-star wings)
+;   * you may decrease the model polynomial order (to <psfvard=0>) to enhance SNR in case only a few bright stars 
+;       are detected (e.g. small coverage / shallow images); but you will lose the capability of tracking PSF spatial variations.
+;   * double check if <fwhmrange> is suitable
+;   * psfsize:
+;       keep psfsize larger than the maximum radius we intent to proble, sugguest:
+;           psfsize=2.*fix(2.0*(max(radius)/psize))+1  
+;           Even larger values will do not change resulted PSF models (confirmed) 
+;           But smaller psfsize values will lead to the "edge" effect:
+;               the profile (in logscale) will drop sharply before reaching psfsize/2
+;   * vigsize:
+;           sugguest:
+;           vigsize=2.*fix(1.2*(max(radius)/psize))+1
+;           to recover the interested radius range
+;           A too large value will be wasteful (in terms of disk space / cpu)
+;   * back_size [arcsec]:   a value comparable with 2*max(radius) would be good.
+;   
 ; HISTORY:
 ;
 ;   20150401    RX      introduced
 ;   20151125    RX      add more comments
 ;   20160610    RX      combine checkplot to PDF
-;   20160725    RX      more comments
-;                   
-;       
+;   20170210    RX      add comments and parameter sugguestions
+;                       add options: mag_range,psfvard
+;                       
 ;-
 
 if  keyword_set(elongation) then elong=elongation else elong=1.25
 if  keyword_set(snr_win) then snr=snr_win else snr=20
-if  ~keyword_set(fwhmrange) then fwhmrange='2,10'
+if  ~keyword_set(fwhmrange) then fwhmrange='2,15'
 if  ~keyword_set(SATUR_LEVEL) then SATUR_LEVEL=50000.0
-if  ~keyword_set(psfsize) then psfsize=101
-if  ~keyword_set(vigsize) then vigsize=121
+if  ~keyword_set(psfsize) then psfsize=85
+if  ~keyword_set(vigsize) then vigsize=85
 if  ~keyword_set(skip) then skip=''
 if  ~keyword_set(WEIGHT_IMAGE) then weight_image='weight.fits'  ;   rms.fits
 if  ~keyword_set(WEIGHT_TYPE) then weight_type='NONE'           ;   'MAP_RMS'
-if  ~keyword_set(BACK_SIZE) then back_size=30.0 ; in arcsec
+if  ~keyword_set(BACK_SIZE) then back_size=16.0 ; in arcsec
 if  ~keyword_set(THRESH) then THRESH=2.00
 if  ~keyword_set(BADPIXEL_FRAC) then BADPIXEL_FRAC=0.20
+if  n_elements(mag_range) ne 2 then mag_range=[10,30]
+if  n_elements(psfvard) ne 1 then psfvard=2
 
 ;   HEADER
 
@@ -192,16 +217,17 @@ if  ~strmatch(skip,'*se*',/f) then begin
     ;   <IMAFLAGS_ISO> represents the flagging from images
     sexconfig.flag_image=''
     if  keyword_set(flag_image) then sexconfig.flag_image=flag_image
-    sexconfig.DETECT_MINAREA=5.0
-    sexconfig.seeing_fwhm=1.20
+    sexconfig.DETECT_MINAREA=3.0
+    sexconfig.seeing_fwhm=1.00
     sexconfig.PARAMETERS_NAME=name+'.sex.param'
     sexconfig.FILTER_NAME=cgSourceDir()+'../etc/default.conv'
     sexconfig.STARNNW_NAME=cgSourceDir()+'../etc/default.nnw'
     sexconfig.BACK_SIZE=round(back_size/psize)    ; in pixels
+    sexconfig.BACK_FILTERSIZE=5.0   ;   large value is better for small background mesh sizes or large artifacts
     sexconfig.catalog_name=name+'_sex.cat'
     sexconfig.CATALOG_TYPE='FITS_LDAC'
-    sexconfig.DEBLEND_NTHRESH=32
-    sexconfig.DEBLEND_MINCONT=0.001     ;   smaller values will create larger number of segmentations
+    sexconfig.DEBLEND_NTHRESH=64
+    sexconfig.DEBLEND_MINCONT=0.00001    ; better use a small value for debelending
     sexconfig.mag_zeropoint=magzero
     sexconfig.DETECT_THRESH=THRESH
     sexconfig.ANALYSIS_THRESH=THRESH
@@ -210,15 +236,15 @@ if  ~strmatch(skip,'*se*',/f) then begin
     sexconfig.SATUR_LEVEL=SATUR_LEVEL
     sexconfig.WEIGHT_IMAGE=WEIGHT_IMAGE
     sexconfig.WEIGHT_TYPE=WEIGHT_TYPE
-    sexconfig.MEMORY_PIXSTACK=300000;*2
-    sexconfig.MEMORY_OBJSTACK=3000;*2
-    sexconfig.MEMORY_BUFSIZE=1024;*2
+    sexconfig.MEMORY_PIXSTACK=300000*5
+    sexconfig.MEMORY_OBJSTACK=3000*5
+    sexconfig.MEMORY_BUFSIZE=1024*5
     
     tname=tag_names(sexconfig)
     sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'PSFDISPLAY_TYPE',/f)))
     ;sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'NTHREADS',/f)))
     sexconfig.PHOT_APERTURES=strtrim(round(4.0/psize),2)
-    sexconfig.NTHREADS=1
+    sexconfig.NTHREADS=0
     spawn,'rm -rf '+name+'_sex.cat'
     print,''
     
@@ -247,13 +273,25 @@ if  ~strmatch(skip,'*ft*',/f) then begin
     ;tic
     if  keyword_set(usetheli) then begin
         ;LADCFILTER is ~2-3x faster for large catalogs
+        lft='(((ELONGATION<'+strtrim(elong,2)+')AND(SNR_WIN>'+strtrim(snr,2)+'))AND(IMAFLAGS_ISO=0))AND(FLAGS<3)'
+        if  n_elements(mag_range) eq 2 then begin
+            lft='('+lft+')AND(MAG_AUTO<'+strtrim(max(mag_range),2)+')'
+            lft='('+lft+')AND(MAG_AUTO>'+strtrim(min(mag_range),2)+')'
+        endif
         cmd='ldacfilter -i '+name+'_sex.cat -o '+name+'.cat '+$
-            '-t LDAC_OBJECTS -c "(((ELONGATION<'+strtrim(elong,2)+')AND(SNR_WIN>'+strtrim(snr,2)+'))AND(IMAFLAGS_ISO=0))AND(FLAGS<2);" '
+            '-t LDAC_OBJECTS -c "'+lft+';" '
         print,''
+        print,cmd
         spawn,cmd
     endif else begin
-        ftab_ext,name+'_sex.cat','IMAFLAGS_ISO,ELONGATION,SNR_WIN,FLAGS',SEL_IMAFLAGS_ISO,SEL_ELONGATION,SEL_SNR_WIN,SEL_FLAGS,ext=2
-        badpix=where(~(SEL_elongation lt elong and SEL_snr_win gt snr and SEL_imaflags_iso eq 0 and SEL_flags lt 2))
+        ftab_ext,name+'_sex.cat','IMAFLAGS_ISO,ELONGATION,SNR_WIN,FLAGS,MAG_AUTO',SEL_IMAFLAGS_ISO,SEL_ELONGATION,SEL_SNR_WIN,SEL_FLAGS,SEL_MAG,ext=2
+        badpix=where(~( SEL_elongation lt elong and $
+                        SEL_snr_win gt snr and $
+                        SEL_imaflags_iso eq 0 and $
+                        SEL_flags lt 2 and $
+                        SEL_mag gt min(mag_range) and $
+                        SEL_mag le max(mag_range) ) )
+                        
         ftab_delrow,name+'_sex.cat',badpix,new=name+'.cat',ext=2
     endelse
     ;toc    
@@ -309,10 +347,10 @@ if  ~strmatch(skip,'*pe*',/f) then begin
     psfexconfig.SAMPLE_MAXELLIP=1.-1./elong
     psfexconfig.SAMPLE_MINSN=snr
     psfexconfig.SAMPLE_FWHMRANGE=fwhmrange
-    psfexconfig.SAMPLE_VARIABILITY=0.2
+    psfexconfig.SAMPLE_VARIABILITY=0.25
     
     psfexconfig.BASIS_TYPE='PIXEL_AUTO' ; 'GAUSS-LAGUERRE';'NONE','PIXEL','PIXEL_AUTO' 
-    psfexconfig.PSFVAR_DEGREES=2
+    psfexconfig.PSFVAR_DEGREES=psfvard
     psfexconfig.PSFVAR_NSNAP=9
     psfexconfig.NEWBASIS_TYPE='NONE' ; NONE, PCA_INDEPENDENT or PCA_COMMON
     psfexconfig.NEWBASIS_NUMBER=8
