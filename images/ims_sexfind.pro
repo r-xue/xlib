@@ -23,14 +23,8 @@ if  ~keyword_set(thresh) then thresh=2.0
 for i=0,n_elements(name)-1 do begin
     
     if  ~file_test(name[i]+'.fits') then continue
+    
     imk=readfits(name[i]+'.fits',imkhd,/silent)
-    
-    if  file_test(name[i]+'_flag.fits') then begin
-        imf=readfits(name[i]+'_flag.fits',imfhd,/silent)
-        imf[where(imk ne imk,/null)]=1.0
-        writefits,name[i]+'_flag.fits',imf,imfhd
-    endif
-    
     getrot,imkhd,ang,cdelt
     psize=abs(cdelt[0])*60.0*60.0
 
@@ -110,6 +104,7 @@ for i=0,n_elements(name)-1 do begin
     PrintF, lun, sex_para
     Free_LUN, lun
     
+    
     sexconfig=INIT_SEX_CONFIG()
     sexconfig.detect_thresh=thresh
     sexconfig.analysis_thresh=thresh
@@ -117,7 +112,10 @@ for i=0,n_elements(name)-1 do begin
     ;   <IMAFLAGS_ISO> or <NIMAFLAGS ISO> are present in the catalog parameter file
     ;   check out WeightWatcher for creating flag_image
     ;   <IMAFLAGS_ISO> represents the flagging from images
-    sexconfig.flag_image=name[i]+'_flag.fits'
+    sexconfig.flag_image=''
+    if  file_test(name[i]+'_flag.fits') then begin
+        sexconfig.flag_image=name[i]+'_flag.fits'
+    endif
     sexconfig.flag_type='OR'
     sexconfig.pixel_scale=psize
     sexconfig.DETECT_MINAREA=3.0
@@ -149,12 +147,13 @@ for i=0,n_elements(name)-1 do begin
     sexconfig.SATUR_LEVEL=50000.0
     
     im_raw=readfits(name[i]+'.fits',hd_raw)
-    im_flag=readfits(name[i]+'_flag.fits',hd_flag)
-    im_raw[where(im_raw ne im_raw or im_flag ne 0,/null)]=50000.0
-    writefits,name[i]+'_sat.fits',im_raw,hd_raw
     
     sexconfig.checkimage_type='SEGMENTATION,BACKGROUND,BACKGROUND_RMS'
     sexconfig.checkimage_name=name[i]+'_seg.fits'+','+name[i]+'_sbg.fits'+','+name[i]+'_sbgrms.fits'
+    
+    sexconfig.checkimage_type='SEGMENTATION,BACKGROUND'
+    sexconfig.checkimage_name=name[i]+'_seg.fits'+','+name[i]+'_sbg.fits'
+    
     sexconfig.DEBLEND_NTHRESH=64
     sexconfig.DEBLEND_MINCONT=0.00001    ; better use a small value for debelending
     
@@ -162,13 +161,12 @@ for i=0,n_elements(name)-1 do begin
     sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'PSFDISPLAY_TYPE',/f)))
     sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'NTHREADS',/f)))
     if  file_test(name[i]+'_rms.fits') then begin
-        im_raw=readfits(name[i]+'.fits',hd_raw)
-        im_flag=readfits(name[i]+'_flag.fits',hd_flag)
-        im_rms=readfits(name[i]+'_rms.fits',hd_rms)
-        im_rms[where(im_raw ne im_raw or im_flag ne 0 or im_rms ne im_rms,/null)]=0.0
-        writefits,name[i]+'_rms_sat.fits',im_rms,hd_rms
         sexconfig.WEIGHT_TYPE='MAP_RMS'
-        sexconfig.WEIGHT_IMAGE=name[i]+'_rms_sat.fits'
+        sexconfig.WEIGHT_IMAGE=name[i]+'_rms.fits'
+    endif
+    if  file_test(name[i]+'_wht.fits') then begin
+        sexconfig.WEIGHT_TYPE='MAP_WEIGHT'
+        sexconfig.WEIGHT_IMAGE=name[i]+'_wht.fits'
     endif
     
     ;sexconfig.VERBOSE_TYPE='QUIET'
@@ -179,7 +177,7 @@ for i=0,n_elements(name)-1 do begin
     dapar=strjoin(dapar,',')
     sexconfig.PHOT_APERTURES=dapar
     
-    im_sex,name[i]+'_sat.fits',sexconfig,silent=silent,configfile=name[i]+'.sex.config'
+    im_sex,name[i]+'.fits',sexconfig,silent=silent,configfile=name[i]+'.sex.config'
     print,replicate('-',40)
     
     if  keyword_set(edge) then begin
@@ -188,7 +186,7 @@ for i=0,n_elements(name)-1 do begin
         sexconfig.catalog_name=name[i]+'_edge.cat'
         sexconfig.checkimage_type='SEGMENTATION'    ;  BACKGROUND,BACKGROUND_RMS are the same as the thresh detection run
         sexconfig.checkimage_name=name[i]+'_seg_edge.fits'
-        im_sex,name[i]+'_sat.fits',sexconfig,silent=silent,configfile=name[i]+'_edge.sex.config'
+        im_sex,name[i]+'.fits',sexconfig,silent=silent,configfile=name[i]+'_edge.sex.config'
         print,replicate('-',40)
     endif
     

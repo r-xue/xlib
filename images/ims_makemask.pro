@@ -26,6 +26,13 @@ for io=0,n_elements(name)-1 do begin
     if  ~file_test(name[io]+'_sbg.fits') then continue
     if  ~file_test(name[io]+'_flag.fits') then continue
     
+    
+    if  ~keyword_set(silent) then begin
+        print,replicate('+',40)
+        print,'load:',name[io]+'.fits'
+        print,replicate('+',40)
+    endif
+    
     imk=readfits(name[io]+'.fits',imkhd,/silent)                ;   oimg image
     sbg=readfits(name[io]+'_sbg.fits',sbghd,/silent)       ;   sbkg image
     msk_edge=readfits(name[io]+'_seg_edge.fits',mskhd,/silent)  ;   segm image
@@ -56,7 +63,7 @@ for io=0,n_elements(name)-1 do begin
     ;                emsk=(emsk+shift(emsk,i,j)+shift(emsk,-i,j)+shift(emsk,i,-j)+shift(emsk,-i,-j))
     ;            endfor
     ;        endfor
-    writefits,name[io]+'_mask.fits',msk_best,flaghd
+    writefits,name[io]+'_mask.fits',msk_best,flghd
 
 
     ;   SUBTRACT LARGE-SCALE BACKGROUND
@@ -83,6 +90,8 @@ for io=0,n_elements(name)-1 do begin
         endif
 
         cat=mrdfits(name[io]+'_edge.cat',2,/silent)
+        objprop=cat[id-1]
+        save,objprop,filename=name[io]+'_objprop.xdr'
         objx=(cat.xpeak_image)[id-1]-1.0
         objy=(cat.ypeak_image)[id-1]-1.0
         obje=(cat.elongation)[id-1]
