@@ -23,7 +23,7 @@ device,filename=name+'_radprofile.eps',bits=8,$
 !x.thick = 2.0
 !y.thick = 2.0
 !z.thick = 2.0
-!p.charsize=0.8
+!p.charsize=1.0
 !p.charthick=2.0
 !x.gridstyle = 0
 !y.gridstyle = 0

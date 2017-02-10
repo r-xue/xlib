@@ -12,6 +12,11 @@ PRO IMS_SEXFIND,name,$
 ;   try to use name.fits; name_flag.fits; name_rms.fits
 ;   if bg_size is too small, the broad feature will be absorbed into the estimated background and not detected in segment map 
 ;   we fill the missing data with SATLEV values
+;   
+;   prep images required:
+;       bad pixel / blank pixels: 50000.0
+;       flag pixel: 0 / 1
+;       
 ;-
 
 
