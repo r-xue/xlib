@@ -26,7 +26,7 @@ END
 
 PRO TEST2_READ_TABLE
 
-tb=read_table('gsheet:hectospec2015:15urOlGHTHGrvjiHRpaUsTW2tIBsQMgFnqQGQn1JCkfk',header=hd)
+tb=read_table('gsheet:test:15szWdaoOAfAyTG15i0FpE_EE1TZ5-HombuuOE9koKjg',header=hd)
 window,1,xsize=500,ysize=500
 plot,tb.ra,tb.dec,psym=3,xrange=[37.1,36],yrange=[-5.1,-4.0],xstyle=1,ystyle=1,/nodata
 
@@ -34,6 +34,20 @@ tag=where(tb.sci_cal eq 1)
 oplot,tb[tag].ra,tb[tag].dec,psym=4
 tag=where(tb.comments_rx eq 'ignore=3.55')
 oplot,tb[tag].ra,tb[tag].dec,psym=4,color=cgcolor('blue')
+
+END
+
+
+PRO TEST3_READ_TABLE
+
+
+path=cgsourceDir()
+xlsfile='gsheet:test:15szWdaoOAfAyTG15i0FpE_EE1TZ5-HombuuOE9koKjg:1752870009'
+abs=read_table(xlsfile,header=hd,silent=silent,/refresh,/scalar,$
+    cname=cname,record_cname=0,$
+    ctype=ctype,record_ctype=1,$
+    cunit=cunit,record_cunit=1,$
+                record_start=2)
 
 END
 
@@ -48,7 +62,13 @@ FUNCTION READ_TABLE,file,header=header,$
     silent=silent,$
     refresh=refresh,$
     keeptags=keeptags,$
-    types=types
+    record_start=record_start,$
+    record_cname=record_cname,cname=cname,$
+    record_ctype=record_ctype,ctype=ctype,$
+    record_cunit=record_cunit,cunit=cunit,$
+    record_cnote=record_cnote,cnote=cnote
+    
+    
 
 ;+
 ; NAME:
@@ -104,11 +124,10 @@ FUNCTION READ_TABLE,file,header=header,$
 ;               /scalar will turn off this feature.
 ;               ** For large tables, the vector conversion can be slow, so you should use /scalar then. **
 ;   /keeptag    structure from read_csv have awkward tag names
-;               READ_TABLE() will rename tags to valid tagnames converted from header using idl_validname()
-;               /keeptag will turn off this feature
-;               but you have to maintain the converted valid tag is unique..  
-;               if you see "Conflicting or duplicate structure tag definition:", you have to adjuste your table
-;               header or use /keeptag 
+;               READ_TABLE() will validate/rename tags using idl_validname(), but one have to ensure the converted 
+;               valid tags are unique..
+;               if you see "Conflicting or duplicate structure tag definition:", then you have to adjuste your table
+;               header or use /keeptag to prevent renaming tag names
 ;               
 ; REQURIEMENT (for non-csv files):
 ;   unoconv     https://github.com/dagwieers/unoconv
@@ -128,6 +147,30 @@ FUNCTION READ_TABLE,file,header=header,$
 ;   A csv file with the same root name will be created in your spreasheet directory
 ;   
 ;   the google spreadsheet must be "shared" ("anyone with the link can view" option) in the online interface 
+;   
+;   gsheet is accessible via the drive/gsheet api:
+;   e.g.
+;   https://www.googleapis.com/drive/v3/files/{key}/export?mimeType=text/csv&alt=media&key={apikey}
+;   or
+;   https://docs.google.com/spreadsheets/d/{key}/export?format=csv&gid={gid}
+;   https://docs.google.com/spreadsheets/d/{key}/gviz/tq?tqx=out:csv&sheet={sheetname}
+;   
+;   more details:
+;   https://developers.google.com/drive/v3/web/manage-downloads
+;   
+;   some features require IDLv8.5 (e.g. read_csv(..types=types))
+;   accpetd types: 
+;       "" - An empty string indicates that IDL should automatically determine the data type for that column
+;       "Byte" - Byte data
+;       "Int" - 16-bit signed integer data
+;       "Long" - 32-bit signed integer data
+;       "Float" - 32-bit floating-point data
+;       "Double" - 64-bit floating-point data
+;       "Uint" - 16-bit unsigned integer data
+;       "Ulong"- 32-bit unsigned integer data
+;       "Long64"- 64-bit signed integer data
+;       "Ulong64"- 64-bit unsigned integer data
+;       "String", "Date", "Time", or "Datetime" - String data
 ;
 ; HISTORY:
 ;
@@ -137,19 +180,29 @@ FUNCTION READ_TABLE,file,header=header,$
 ;                                 output structure array rather than a structure
 ;                                 replace the tagnames using header names
 ;               RX  now it can read the .gsheet file from GoogleDrive!
-;                    
-;                                 
+;   20170220    RX  support sheet selections in the google spreadsheet (using key+gid)
+;                   extract datatype/units/note/name of each column using header rows
+;                   fix duplicated structure tags automatically by adding "_dupX"
+;                   
 ;
 ;-
+
+if  n_elements(record_cname) eq 0 then record_cname=0
+if  n_elements(record_ctype) eq 0 then record_ctype=0
+if  n_elements(record_cunit) eq 0 then record_cunit=0
+if  n_elements(record_cnote) eq 0 then record_cnote=0
 
 rootname=cgrootname(file,dir=dir,ext=ext)
 csvfile=file
 isid=strmatch(file,'gsheet:*',/f)
+gid=''
+    
 if  isid then begin
     tmp=strsplit(file,':',/ext)
     rootname=tmp[1]
     id=tmp[2]
     dir=repstr(dir,'gsheet:','')
+    if  n_elements(tmp) gt 3 then gid=tmp[3]
 endif
 if  (ext ne 'csv' and ext ne 'gsheet' and not isid) then begin
     csvfile=dir+rootname+'.csv'
@@ -174,12 +227,14 @@ if  ext eq 'gsheet' or isid then begin
         ourl = obj_new('IDLnetURL')
         oUrl->SetProperty, url_scheme='https'
         oUrl->SetProperty, URL_HOST='docs.google.com'
-        oUrl->SetProperty, URL_PATH='/spreadsheets/d/'+id+'/export?format=csv'
+        url_path='/spreadsheets/d/'+id+'/export?format=csv'
+        if  gid ne '' then url_path=url_path+'&gid='+gid
+        oUrl->SetProperty, URL_PATH=url_path
         if  ~keyword_set(silent) then begin
             print,''
             print,replicate('-',50)
             print,''
-            print,'fetch: docs.google.com/spreadsheets/d/'+id+'/export?format=csv'
+            print,'fetch: docs.google.com/'+url_path
             print,'save: ',csvfile
             print,''
         endif
@@ -188,9 +243,35 @@ if  ext eq 'gsheet' or isid then begin
     endif
 endif
 
-if  ~keyword_set(silent) then print,csvfile
-tab=READ_CSV(csvfile,header=header,types=types)
-nrow=n_elements(tab.(0))
+if  ~keyword_set(silent) then begin
+    print,replicate('-',50)
+    print,''
+    print,'import data from: ',csvfile
+    print,''
+endif
+
+
+if  keyword_set(record_start) then begin
+    chead=read_csv(csvfile,num_records=max([record_cname,record_ctype,record_cunit,record_cnote])+1)
+    num_cols=n_elements(tag_names(chead))
+    cname=[]
+    ctype=[]
+    cunit=[]
+    cnote=[]
+    for i=0,num_cols-1 do begin
+        cname=[cname,chead.(i)[record_cname]]
+        ctype=[ctype,chead.(i)[record_ctype]]
+        cunit=[cunit,chead.(i)[record_cunit]]
+        cnote=[cnote,chead.(i)[record_cnote]]
+    endfor
+    tab=read_csv(csvfile,types=ctype,record_start=record_start)
+    header=cname
+endif else begin
+    tab=READ_CSV(csvfile,header=header,types=types)
+    cname=header
+    ctype=types
+endelse
+
 
 if  keyword_set(skey) then begin
     if  n_elements(skey) eq 1 and n_elements(sval) gt 1 then skey=replicate(skey,n_elements(sval))
@@ -200,7 +281,7 @@ if  keyword_set(skey) then begin
         okay=okay+strmatch(colv,sval[i],/fold_case) 
     endfor
 endif else begin
-    okay=replicate(1,nrow)
+    okay=replicate(1,n_elements(tab.(0)))
 endelse
 
 if  keyword_set(bkey) then begin
@@ -218,7 +299,14 @@ endelse
 
 ; EXTRACT SUBARRAY
 tagnames=tag_names(tab)
-if  not keyword_set(keeptags) then tagnames=IDL_VALIDNAME(header,/convert_all)
+if  not keyword_set(keeptags) then begin
+    tagnames=IDL_VALIDNAME(header,/convert_all)
+    tmp=rem_dup(tagnames)
+    for i=0,n_elements(tmp)-1 do begin
+        tag=where(tagnames eq tagnames[tmp[i]])
+        if  n_elements(tag) gt 1 then tagnames[tag]=tagnames[tag]+'_dup'+strtrim(indgen(n_elements(tag)),2)
+    endfor
+endif
 
 newtab={}
 for k=0,n_elements(tagnames)-1 do begin

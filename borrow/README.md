@@ -16,7 +16,6 @@ Here is a list of IDL libraries I borrow:
 
   cprops:                   https://github.com/low-sky/cprops  <github>
 
-
   impro:                    https://github.com/moustakas/impro <github>
 
   textoidl:                 http://physics.mnstate.edu/craig/textoidl <web>
@@ -56,6 +55,8 @@ Here is a list of IDL libraries I borrow:
   JHU/APL/S1R IDL library   http://fermi.jhuapl.edu/idl/ <web>
 
   JBIU IDL Utilities        http://www.simulated-galaxies.ua.edu/jbiu/ <web>
+
+  VLIB                      http://www.astro.ufl.edu/~varosi/ <web>
 
   Kcorrect                  http://kcorrect.org/ <web>
                             http://cosmo.nyu.edu/blanton/kcorrect/kcorrect.v4_3.tar.gz <web>

@@ -474,7 +474,7 @@ endif
 
 ;----------------------------------------------------------------------------------
 
-if  strmatch(select,'cosmos-acs-i',/f) then begin
+if  strmatch(select,'cosmos-acs-i',/f) or strmatch(select,'acs-i',/f) then begin
     name='ACS-i'
     namef='ACS-i'
     ew=!values.f_nan
@@ -485,7 +485,7 @@ if  strmatch(select,'cosmos-acs-i',/f) then begin
     vega2ab=!values.f_nan
 endif
 
-if  strmatch(select,'cosmos-acs-g',/f) then begin
+if  strmatch(select,'cosmos-acs-g',/f) or strmatch(select,'acs-i',/f) then begin
     name='ACS-g'
     namef='ACS-g'
     ew=!values.f_nan
