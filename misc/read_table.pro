@@ -46,8 +46,10 @@ xlsfile='gsheet:test:15szWdaoOAfAyTG15i0FpE_EE1TZ5-HombuuOE9koKjg:1752870009'
 abs=read_table(xlsfile,header=hd,silent=silent,/refresh,/scalar,$
     cname=cname,record_cname=0,$
     ctype=ctype,record_ctype=1,$
-    cunit=cunit,record_cunit=1,$
-                record_start=2)
+    cunit=cunit,record_cunit=2,$
+    cnote=cnote,record_cnote=3,$
+                record_start=4)
+
 
 END
 
@@ -62,6 +64,7 @@ FUNCTION READ_TABLE,file,header=header,$
     silent=silent,$
     refresh=refresh,$
     keeptags=keeptags,$
+    missing_value=missing_value,$
     record_start=record_start,$
     record_cname=record_cname,cname=cname,$
     record_ctype=record_ctype,ctype=ctype,$
@@ -171,6 +174,10 @@ FUNCTION READ_TABLE,file,header=header,$
 ;       "Long64"- 64-bit signed integer data
 ;       "Ulong64"- 64-bit unsigned integer data
 ;       "String", "Date", "Time", or "Datetime" - String data
+;       ** small bugs in lib/read_csv.pro of v8.5.1:
+;          -- line 36-46:   miss the "String" type, we use "datatime" for a workaround **
+;          -- line 402:     read_ascii_create_strcuture() will fail if fieldnames and pdata have different lengths
+;                           this could happens if some columns was rejected due to empty record cells. 
 ;
 ; HISTORY:
 ;
@@ -183,6 +190,8 @@ FUNCTION READ_TABLE,file,header=header,$
 ;   20170220    RX  support sheet selections in the google spreadsheet (using key+gid)
 ;                   extract datatype/units/note/name of each column using header rows
 ;                   fix duplicated structure tags automatically by adding "_dupX"
+;                   speedup the scalar->vector conversion
+;                   wrap read_csv keyword <missing_value>
 ;                   
 ;
 ;-
@@ -231,12 +240,9 @@ if  ext eq 'gsheet' or isid then begin
         if  gid ne '' then url_path=url_path+'&gid='+gid
         oUrl->SetProperty, URL_PATH=url_path
         if  ~keyword_set(silent) then begin
-            print,''
             print,replicate('-',50)
-            print,''
             print,'fetch: docs.google.com/'+url_path
             print,'save: ',csvfile
-            print,''
         endif
         tmp=oUrl->Get(filename=csvfile)
         OBJ_DESTROY, oUrl
@@ -245,14 +251,23 @@ endif
 
 if  ~keyword_set(silent) then begin
     print,replicate('-',50)
-    print,''
     print,'import data from: ',csvfile
-    print,''
 endif
 
+;+++
+;** v8.5.1 workaround
+if  n_elements(types) gt 0 then types[where(strmatch(types,'string',/f),/null)]='datetime'
+;---
+
+old_except=!except
+!Except = 0
 
 if  keyword_set(record_start) then begin
-    chead=read_csv(csvfile,num_records=max([record_cname,record_ctype,record_cunit,record_cnote])+1)
+    void=query_csv(csvfile,csvinfo)    
+    chead=read_csv(csvfile,$
+            missing_value=missing_value,$
+            num_records=max([record_cname,record_ctype,record_cunit,record_cnote])+1,$
+            types=replicate('datatime',csvinfo.nfields))
     num_cols=n_elements(tag_names(chead))
     cname=[]
     ctype=[]
@@ -264,14 +279,18 @@ if  keyword_set(record_start) then begin
         cunit=[cunit,chead.(i)[record_cunit]]
         cnote=[cnote,chead.(i)[record_cnote]]
     endfor
-    tab=read_csv(csvfile,types=ctype,record_start=record_start)
+    tab=read_csv(csvfile,$
+            missing_value=missing_value,$
+            types=ctype,n_table_header=record_start-1)
     header=cname
 endif else begin
-    tab=READ_CSV(csvfile,header=header,types=types)
+    tab=READ_CSV(csvfile,header=header,types=types,$
+            missing_value=missing_value)
     cname=header
     ctype=types
 endelse
 
+void = Check_Math() & !Except =old_except
 
 if  keyword_set(skey) then begin
     if  n_elements(skey) eq 1 and n_elements(sval) gt 1 then skey=replicate(skey,n_elements(sval))
@@ -325,14 +344,14 @@ if not keyword_set(silent) then begin
     print,replicate('-',50)
 endif
 
-if  not keyword_set(scalar)  then begin
-    tmpsts=[]
-    for j=0,n_elements(tab.(0))-1 do begin
-        tmpst={}
-        for i=0,n_elements(header)-1 do begin
-            tmpst=create_struct(tmpst,tagnames[i],(tab.(i))[j])
-        endfor
-        tmpsts=[tmpsts,tmpst]
+if  not keyword_set(scalar)  then begin    
+    tmpst={}
+    for i=0,n_elements(header)-1 do begin
+        tmpst=create_struct(tmpst,tagnames[i],(tab.(i))[0])
+    endfor
+    tmpsts=replicate(tmpst,n_elements(tab.(0)))
+    for i=0,n_elements(header)-1 do begin
+        tmpsts.(i)=tab.(i)
     endfor
     tab=tmpsts
 endif
