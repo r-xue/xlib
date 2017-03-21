@@ -125,6 +125,18 @@ if  select eq 'kpno-mosaic-wrc4' then begin
     vega2ab=!values.f_nan
 endif
 
+
+if  select eq 'cfht-megaprime-oiii' then begin
+    name='MEGAPRIME-OIII'
+    namef='MEGAPRIME-[O III]'
+    ew=102
+    effwave=5007
+    readcol,/silent,path+'/misc/cfh9501.dat',wv,tf,format='(f,f)'
+    wave=float(wv*10.)
+    tran=float(tf/100.)>0.0
+    vega2ab=!values.f_nan
+endif
+
 if  select eq 'subaru-ia445' then begin
     name='Subaru-IA445'
     namef='Subaru-!8IA445!6'
@@ -485,7 +497,7 @@ if  strmatch(select,'cosmos-acs-i',/f) or strmatch(select,'acs-i',/f) then begin
     vega2ab=!values.f_nan
 endif
 
-if  strmatch(select,'cosmos-acs-g',/f) or strmatch(select,'acs-i',/f) then begin
+if  strmatch(select,'cosmos-acs-g',/f) or strmatch(select,'acs-g',/f) then begin
     name='ACS-g'
     namef='ACS-g'
     ew=!values.f_nan
