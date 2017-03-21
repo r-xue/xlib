@@ -22,7 +22,6 @@ ew_obs=ew*(1.+z)
 ft=get_filter(band)
 
 
-
 w=ft.wave       ;   ft.wave in angstrom
 x=3e18/w
 y=ft.tran>0.0   ;   signal per photons
@@ -42,14 +41,20 @@ flam_1700=1.0
 flam_1220=(w_1220/w_1700)^(beta)
 
 
+;   calculate line flux base on EW and Cont-level at the redder side.
 flux_lya=flam[tag_lya]*ew_obs
+
+
+;   IGM_tau was only applied to continuum 
+if  n_elements(igmtau_scale) eq 0 then igmtau_scale=1.0
+igmtau_scale=igmtau_scale>0.0
+flam=flam*exp(-calc_igmtau(w,z,model='I14')*igmtau_scale)
+
+;   apply line into the spectrum
 if  tag[0] ne -1 then begin
     flam[tag_lya]=flam[tag_lya]+flux_lya/(abs(w[tag_lya-1]-w[tag_lya+1])/2.0)
 endif
 
-if  n_elements(igmtau_scale) eq 0 then igmtau_scale=1.0
-igmtau_scale=igmtau_scale>0.0
-flam=flam*exp(-calc_igmtau(w,z,model='I14')*igmtau_scale)
 
 sed={   flam_1220:flam_1220,$               ;   erg s^-1 cm^-2 AA-1
         flam_1700:flam_1700,$               ;   erg s^-1 cm^-2 AA-1        
@@ -80,7 +85,6 @@ if  keyword_set(doplot) then begin
     oplot,w_1700*[1,1],[-1,10],color=cgcolor('yellow'),linestyle=2
     oplot,[0,10000],[1,1],color=cgcolor('yellow'),linestyle=2
     
-
 endif
 
 return,color
@@ -92,6 +96,9 @@ PRO TEST_CALC_ZCOLORS
 
 ;color=CALC_ZCOLORS('subaru-ia445',z=2.65,beta=-2,ew=70,/doplot,/verbose,sed=sed)
 color=CALC_ZCOLORS('kpno-mosaic-bw',z=2.65,beta=-2,ew=70,/doplot,/verbose,sed=sed)
+print,color
+
+plot,
 
 END
 

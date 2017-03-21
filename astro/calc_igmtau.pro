@@ -1,9 +1,12 @@
 FUNCTION CALC_IGMTAU,wv_obs,z,model=model
 ;+
 ;   wv_obs:         wavelength in observer frame
-;   model options:  m95/m95lm/m06
+;   model options:  m95/m95lm/m06/i14
 ;   note: 
-;                   https://heasarc.gsfc.nasa.gov/xanadu/xspec/models/zigm.html
+;       reference  https://heasarc.gsfc.nasa.gov/xanadu/xspec/models/zigm.html
+;       the wavelength precision is good enough for continuum but not for lines
+;           lya~1216.00     m95lm/m06
+;           lya~1215.67     m95/i14
 ;-
 
 
@@ -358,7 +361,7 @@ END
 
 PRO TEST_CALC_IGMTAU
 
-wave=findgen(1200)+600
+wave=findgen(12000)*0.1+600
 zz=3.0
 tau_m95=calc_igmtau(wave*(1.+zz),zz,model='M95')
 tau_m95lm=calc_igmtau(wave*(1.+zz),zz,model='M95LM')
@@ -366,15 +369,18 @@ tau_m06=calc_igmtau(wave*(1.+zz),zz,model='M06')
 tau_i14=calc_igmtau(wave*(1.+zz),zz,model='I14')
 
 plot,wave*(1.+zz),wave*0.0,yrange=[0,1.2],/nodata,xrange=[3000,6000]
+;plot,wave*(1.+zz),wave*0.0,yrange=[0,1.2],/nodata,xrange=[4800,4950]
 oplot,[912,912]*(1.+zz),[0,2]
 oplot,[650,650]*(1.+zz),[0,2]
 oplot,[610,610]*(1.+zz),[0,2]
-oplot,wave*(1.+zz),exp(-tau_m95),color=cgcolor('red')
-oplot,wave*(1.+zz),exp(-tau_m95lm),color=cgcolor('yellow')
-oplot,wave*(1.+zz),exp(-tau_m06),color=cgcolor('blue')
-oplot,wave*(1.+zz),exp(-tau_i14),color=cgcolor('white')
+oplot,[1215.67,1215.67]*(1.+zz),[0,2]
+oplot,wave*(1.+zz),exp(-tau_m95),color=cgcolor('red'),psym=10
+oplot,wave*(1.+zz),exp(-tau_m95lm),color=cgcolor('yellow'),psym=10
+oplot,wave*(1.+zz),exp(-tau_m06),color=cgcolor('blue'),psym=10
+oplot,wave*(1.+zz),exp(-tau_i14),color=cgcolor('white'),psym=10
 
-al_legend,['M95','M95LM','M06','I14'],textc=['red','yellow','blue','white'],linestyle=replicate(0,4),color=['red','yellow','blue','white'],/bot,/right,box=0
+
+al_legend,['M95','M95LM','M06','I14'],textc=['red','yellow','blue','white'],linestyle=replicate(0,4),color=['red','yellow','blue','white'],/bot,/right,box=0,charsize=2.0
 
 
 END
