@@ -287,6 +287,7 @@ endif else begin
     tab=READ_CSV(csvfile,header=header,types=types,$
             missing_value=missing_value)
     cname=header
+    if  n_elements(types) eq 0 then types=''
     ctype=types
 endelse
 

@@ -18,6 +18,9 @@ FUNCTION VALID_OBJECT,FILENAME,$
 ;   VALIDE_OBJECT is optimized for effciency on large images:
 ;       * handle fpack fits
 ;       * limited memory footprint
+;       
+;   NOTE:
+;       Validation using pixel values will always be slower
 ; 
 ; RETURN:
 ; 
@@ -59,6 +62,7 @@ obj_in=(x ge 0+guard_pix and x lt nsize[0]-guard_pix and y ge 0+guard_pix and y 
 if  guard_pix ge 0 then begin
     for i=0,n_elements(obj_in)-1 do begin
         if  obj_in[i] eq 0 then continue 
+        if  ~( keyword_set(zero) or keyword_set(nan) or keyword_set(flag) or (n_elements(sat) eq 1) ) then continue
         fxread,filename,tmp0,tmp0hd,x[i],x[i],y[i],y[i]
         if  keyword_set(zero)       then obj_in[i]=obj_in[i]*(~(tmp0 eq 0))
         if  keyword_set(nan)        then obj_in[i]=obj_in[i]*(~(tmp0 ne tmp0))

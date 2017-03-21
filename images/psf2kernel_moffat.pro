@@ -25,7 +25,7 @@ u=m_x/a
 m_y=(1.+u^2.0)^(-m_beta)
 
 
-target=repstr(hires,'.fits','_target.fits')
+target=repstr(kname,'.fits','_target.fits')
 writefits,target,m_y,hd
 
 psf2kernel,target,hires,kname,halfsz=cxy[0],verify=verify
