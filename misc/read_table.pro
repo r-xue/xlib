@@ -49,8 +49,13 @@ abs=read_table(xlsfile,header=hd,silent=silent,/refresh,/scalar,$
     cunit=cunit,record_cunit=2,$
     cnote=cnote,record_cnote=3,$
                 record_start=4)
-
-
+print,hd
+print,cname
+print,'--'
+test=abs.Star
+print,test[0]
+print,test[1]
+print,test[2]
 END
 
 
@@ -175,7 +180,7 @@ FUNCTION READ_TABLE,file,header=header,$
 ;       "Ulong64"- 64-bit unsigned integer data
 ;       "String", "Date", "Time", or "Datetime" - String data
 ;       ** small bugs in lib/read_csv.pro of v8.5.1:
-;          -- line 36-46:   miss the "String" type, we use "datatime" for a workaround **
+;          -- line 36-46:   miss the "String" type, we use "datetime" for a workaround **
 ;          -- line 402:     read_ascii_create_strcuture() will fail if fieldnames and pdata have different lengths
 ;                           this could happens if some columns was rejected due to empty record cells. 
 ;
@@ -197,7 +202,7 @@ FUNCTION READ_TABLE,file,header=header,$
 ;-
 
 if  n_elements(record_cname) eq 0 then record_cname=0
-if  n_elements(record_ctype) eq 0 then record_ctype=0
+if  n_elements(record_ctype) eq 0 then record_ctype=-1
 if  n_elements(record_cunit) eq 0 then record_cunit=0
 if  n_elements(record_cnote) eq 0 then record_cnote=0
 
@@ -263,11 +268,11 @@ old_except=!except
 !Except = 0
 
 if  keyword_set(record_start) then begin
-    void=query_csv(csvfile,csvinfo)    
+    void=query_csv(csvfile,csvinfo)
     chead=read_csv(csvfile,$
             missing_value=missing_value,$
             num_records=max([record_cname,record_ctype,record_cunit,record_cnote])+1,$
-            types=replicate('datatime',csvinfo.nfields))
+            types=replicate('datetime',csvinfo.nfields))
     num_cols=n_elements(tag_names(chead))
     cname=[]
     ctype=[]
@@ -275,13 +280,17 @@ if  keyword_set(record_start) then begin
     cnote=[]
     for i=0,num_cols-1 do begin
         cname=[cname,chead.(i)[record_cname]]
-        ctype=[ctype,chead.(i)[record_ctype]]
+        if  record_ctype eq -1 then begin
+            ctype=[ctype,'']
+        endif else begin
+            ctype=[ctype,chead.(i)[record_ctype]]
+        endelse
         cunit=[cunit,chead.(i)[record_cunit]]
         cnote=[cnote,chead.(i)[record_cnote]]
     endfor
     tab=read_csv(csvfile,$
             missing_value=missing_value,$
-            types=ctype,n_table_header=record_start-1)
+            types=ctype,n_table_header=record_start)
     header=cname
 endif else begin
     tab=READ_CSV(csvfile,header=header,types=types,$
