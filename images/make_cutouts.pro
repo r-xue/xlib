@@ -153,7 +153,7 @@ foreach filename,ulist do begin
             hextractx,objs[tag[0]].image,hd,$
                 radec=[objs[iobj].ra,objs[iobj].dec],subim,subhd,$
                 (objs[iobj].bxsz)*[0.5,-0.5],$
-                (objs[iobj].bxsz)*[-0.5,0.5],/silent,EXTENSION=objs[tag[0]].imext
+                (objs[iobj].bxsz)*[-0.5,0.5],EXTENSION=objs[tag[0]].imext
         endif
 
         ;   RESAMPLE

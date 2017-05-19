@@ -19,9 +19,7 @@ PRO IMS_SEXFIND,name,$
 ;       
 ;-
 
-
-
-if  ~keyword_set(bg_size) then bg_size=30.0
+if  ~keyword_set(bg_size) then bg_size=15.0
 if  ~keyword_set(thresh) then thresh=2.0 
 
 
@@ -148,7 +146,7 @@ for i=0,n_elements(name)-1 do begin
     ;   0.0     in rms
     sexconfig.FILTER='Y'
     ;sexconfig.FILTER_NAME='/Users/Rui/GDrive/Worklib/projects/xlib/etc/gauss_4.0_7x7.conv'
-    sexconfig.FILTER_NAME=cgSourceDir()+'../etc/default.conv'
+    sexconfig.FILTER_NAME=cgSourceDir()+'../etc/gauss_4.0_7x7.conv'
     sexconfig.SATUR_LEVEL=50000.0
     
     im_raw=readfits(name[i]+'.fits',hd_raw)

@@ -66,14 +66,14 @@ for io=0,n_elements(name)-1 do begin
     writefits,name[io]+'_mask.fits',msk_best,flghd
 
 
-    ;   SUBTRACT LARGE-SCALE BACKGROUND
+    ;   SUBTRACT LARGE-SCALE BACKGROUND (partly including the contribution from distant bright objects)
     
     imk_sub=imk*!values.f_nan
     imk_mkd=imk*!values.f_nan
     vtag=where(imk eq imk and flg eq 0,con)
-    imk_sub[vtag]=imk[vtag];-sbg[vtag]
+    imk_sub[vtag]=imk[vtag]-sbg[vtag]
     vtag=where(imk eq imk and msk_best eq 0 and flg eq 0,con)
-    imk_mkd[vtag]=imk[vtag];-sbg[vtag]
+    imk_mkd[vtag]=imk[vtag]-sbg[vtag]
     
     ;   RECOVERING SCIENCE TARGET (if the msk_best in center)
     
@@ -121,6 +121,8 @@ for io=0,n_elements(name)-1 do begin
     ;   CREATE CORRECTED IMAGES
     
     vtag=where(imk_mkd eq imk_mkd and temp gt flatrange[0] and temp le flatrange[1])
+    if  vtag[0] eq -1 then continue
+
     resistant_mean,imk_mkd[vtag],3.0,skymod_imk,sigma_imk,num_rej
     sigma_imk=sigma_imk*sqrt((n_elements(vtag)-num_rej-1)*1.0)
     imk_gro=radprofile_grow(imk_mkd,xc,yc,1.0,/fast,addnoise=sigma_imk)

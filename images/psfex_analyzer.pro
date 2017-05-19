@@ -105,6 +105,11 @@ PRO PSFEX_ANALYZER,name,$
 ;           A too large value will be wasteful (in terms of disk space / cpu)
 ;   * back_size [arcsec]:   a value comparable with 2*max(radius) would be good.
 ;   
+;   * the TNX distortion terms from solve_astro.pro could cause problems:
+;           "> WARNING: Significant inaccuracy likely to occur in projection"
+;     the astrometric distortion calculated by Scamp is tyipically okay.
+;     see https://www.astro.uni-bonn.de/theli/gui/faq.html
+;   
 ; HISTORY:
 ;
 ;   20150401    RX      introduced
@@ -243,7 +248,7 @@ if  ~strmatch(skip,'*se*',/f) then begin
     tname=tag_names(sexconfig)
     sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'PSFDISPLAY_TYPE',/f)))
     ;sexconfig=CREATE_STRUCT(sexconfig,remove=where(strmatch(tname,'NTHREADS',/f)))
-    sexconfig.PHOT_APERTURES=strtrim(round(4.0/psize),2)
+    sexconfig.PHOT_APERTURES=strtrim(round(3.0/psize),2)
     sexconfig.NTHREADS=0
     spawn,'rm -rf '+name+'_sex.cat'
     print,''

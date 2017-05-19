@@ -1,19 +1,24 @@
-FUNCTION smodel,p,x=x,y=y,err=err
 
-ym=p[0]*exp(-x/p[1])
-return,(y-ym)/err
-
-END
 
 PRO RADPROFILE_PLOT,rp,name,$
-    extrafun=extrafun,drange=drange,$
-    xrange=xrange,label=label,$
-    moffat=moffat
+    extrafun=extrafun,$
+    drange=drange,xrange=xrange,ymax=ymax,$
+    moffat=moffat,rscale=rscale,$
+    kpc=kpc,$
+    sfwhm=sfwhm,sname=sname,label=label,bunit=bunit
+    
+    
 ;+
 ;   plot maffat reference function
 ;       moffat[0]   ;   FWHM in arcsec
 ;       moffat[1]   ;   moffat beta
+;       
+;       
+;   kpc:    switch units to kpc, psize will be in kpc
 ;-
+
+if  n_elements(rscale) eq 0 then rscale=1.0
+if  n_elements(ymax) eq 0 then ymax=5.0
 
 set_plot,'ps'
 device,filename=name+'_radprofile.eps',bits=8,$
@@ -31,7 +36,7 @@ xyouts,'!6'
 
 if  ~keyword_set(drange) then drange=1e4
 if  ~keyword_set(xrange) then xrange=[0.,max(rp.center)]
-yrange=5/[drange,1.0]
+yrange=ymax/[drange,1.0]
 
 plot,[1],[1],psym=cgsymcat(1),$
     xrange=xrange,xstyle=1,$
@@ -43,10 +48,7 @@ plot,[1],[1],psym=cgsymcat(1),$
     ;title=csv+'_'+band+'_'+gtag+'_'+stag+'.dat'$
     /nodata,pos=[0.15,0.40,0.9,0.95]
 
-
-
-
-ns=max(rp.median,/nan)
+ns=abs(max(rp.median,/nan))
 ns1=max(rp.mean,/nan)
 c2f=1.0
 
@@ -73,59 +75,122 @@ if  n_elements(extrafun) ne 0 then begin
     CALL_PROCEDURE,extrafun.name,extrafun.p1,'dflux'
 endif
 
+if  n_elements(moffat) eq 2 then begin
+    mpsize=rp.psize
+    mhalfsz=max(rp.center)
+    mpsf=get_psf('moffat',fwhm=moffat[0],beta=moffat[1],psize=mpsize,halfsz=mhalfsz,outname=name+'_moffat')
+    mrp=radprofile_analyzer(name+'_moffat.fits',psize=mpsize,rbin=mpsize,/nosub,/silent)
+    oplot,mrp.center,mrp.median,color=cgcolor('red')
+endif
+
 for i=0,n_elements(rp.center)-1 do begin
     limits=rp.median[i]>0.0+rp.unc[i]*2.0*[-1,1]
     limits=limits/ns
     limits=limits>(min(yrange)*0.1)
-    cgplots,[rp.center[i],rp.center[i]],limits,thick=5,color=cgcolor('dark gray'),noclip=0
-    cgplots,rp.center[i],rp.median[i]/ns,psym=symcat(16),noclip=0,color=cgcolor('black')
-    cgplots,rp.center[i],rp.mean[i]/ns,psym=symcat(6),noclip=0,color=cgcolor('red')
+    
+    if  rp.median[i]/ns gt 0 then begin
+        scode=16
+        flip=1.0
+        lstyle=0 
+    endif else begin
+        scode=5
+        flip=-1.0
+        lstyle=0
+    endelse
+    cgplots,rp.center[i],flip*rp.median[i]/ns,psym=cgsymcat(scode),noclip=0,color=cgcolor('dark gray'),symsize=0.8
+    cgplots,rp.center[i]*[1,1],([rp.pertile25[i],rp.pertile75[i]]/ns)>(min(yrange)*0.1),$
+        linestyle=lstyle,$
+        thick=1,color=cgcolor('dark gray'),noclip=0
+        
+    
+    ;cgplots,[rp.center[i],rp.center[i]],limits,thick=5,color=cgcolor('dark gray'),noclip=0
+    ;cgplots,rp.center[i],rp.median[i]/ns,psym=symcat(16),noclip=0,color=cgcolor('black')
+    ;cgplots,rp.center[i],rp.mean[i]/ns,psym=symcat(6),noclip=0,color=cgcolor('red')
 endfor
-note=name
+;oplot,rp.center,3.0*rp.unc/ns,linestyle=2
+
+if  keyword_set(kpc) then begin
+    runits_string='kpc'
+endif else begin
+    runits_string='"'
+endelse
+
+note=[]
+if  keyword_set(sname) then note=[note,name]
 if  keyword_set(label) then note=[label,note]
-;oplot,[0,100],2.0*rp.skysig/ns*[1,1]
-oplot,rp.center,2.0*rp.unc/ns,linestyle=2
-al_legend,[note,'!6FWHM!dOBJ!n='+string(rp.fwhmi,format='(f4.2)')+'"'],box=0,/top,/right
+if  keyword_set(sfwhm) then note=[note,'!6FWHM='+string(rp.fwhmi,format='(f5.2)')+runits_string]
+if  n_elements(note) ne 0 then al_legend,note,box=0,/top,/right
 
-
-
-if  n_elements(moffat) eq 2 then begin
-    m_fwhm=moffat[0]
-    m_beta=moffat[1]
-    m_x=rp.center
-    a=m_fwhm/2.0/((0.5^(-1/m_beta)-1)^0.5)
-    u=m_x/a
-    m_y=(1.+u^2.0)^(-m_beta)
-    oplot,m_x,m_y,color=cgcolor('cyan')
-endif
-
+ystyle=1
+if  keyword_set(bunit) then ystyle=9
 plot,[1],[1],psym=cgsymcat(1),$
     xrange=xrange,xstyle=1,$
     ytickformat='logticks_exp',$
-    yrange=yrange,ystyle=9,/ylog,$
+    yrange=yrange,ystyle=ystyle,/ylog,$
     xtitle='',$
     xtickformat='(a1)',$
     ytitle='Normalized Radial Profile',$
     ;title=csv+'_'+band+'_'+gtag+'_'+stag+'.dat'$
     /nodata,pos=[0.15,0.40,0.9,0.95],/noe
-axis,YAxis=1, YLog=1, YRange=yrange*ns*c2f,$
-    ytitle='image units',$
-    ytickformat='logticks_exp',ystyle=1
-    
+if  ystyle eq 9 then begin
+    axis,YAxis=1, YLog=1, YRange=yrange*ns*c2f,$
+        ytitle='image units',$
+        ytickformat='logticks_exp',ystyle=1
+endif
 
-rscale=1.0
+;   LOWER PANEL
+
+rscale_string=string(rscale,format='(i0)')+runits_string
 plot,[1],[1],psym=cgsymcat(1),$
     xrange=xrange,xstyle=1,$
     yrange=[0,2.0],ystyle=1,$
-    xtitle='Radius ["]',$
-    ytitle='Flux!dr!n/Flux!dr<1"!n',$
-    /nodata,pos=[0.15,0.1,0.9,0.38],/noe
+    xtitle='Radius ['+runits_string+']',$
+    ytitle='Flux!dr!n/Flux!dr<'+rscale_string+'!n',$
+    /nodata,pos=[0.15,0.1,0.9,0.39],/noe
+
 if  n_elements(extrafun) ne 0 then begin
     CALL_PROCEDURE,extrafun.name,extrafun.p1,'cflux',rscale
 endif
+
+if  n_elements(moffat) eq 2 then begin
+    tmp=min(abs(mrp.center-rscale),tag)
+    mns=(mrp.cflux)[tag]
+    oplot,mrp.center,mrp.cflux/mns,color=cgcolor('red')
+endif
+
+
 tmp=min(abs(rp.center-rscale),tag)
-ns=(rp.cflux)[tag]
-oploterror,rp.center,rp.cflux/ns,rp.cflux_sig/ns,psym=symcat(16),/nohat
+ns=abs((rp.cflux)[tag])
+
+for i=0,n_elements(rp.center)-1 do begin
+    if  rp.median[i]/ns gt 0 then begin
+        scode=16
+        flip=1.0
+        lstyle=0
+    endif else begin
+        scode=5
+        flip=-1.0
+        lstyle=0
+    endelse
+    cgplots,rp.center[i],rp.cflux[i]/ns,psym=symcat(scode),symsize=0.8,noclip=0,color=cgcolor('dark gray')
+    cgplots,rp.center[i]*[1,1],(rp.cflux_sig[i]*[-1,+1]+rp.cflux[i])/ns,$
+        linestyle=lstyle,$
+        thick=1,color=cgcolor('dark gray'),noclip=0
+endfor
+oplot,rscale*[1.,1.],[0.7,0.9],color=cgcolor('red'),thick=10
+oplot,rscale*[1.,1.],[1.1,1.3],color=cgcolor('red'),thick=10
+
+device,/close
+set_plot,'x'
+
+END
+
+;FUNCTION smodel,p,x=x,y=y,err=err
+;
+;    ym=p[0]*exp(-x/p[1])
+;    return,(y-ym)/err
+;
+;END
 
 
 ;
@@ -208,8 +273,3 @@ oploterror,rp.center,rp.cflux/ns,rp.cflux_sig/ns,psym=symcat(16),/nohat
 ;fwhm=2.0*interpol(rx,alog10(ry),alog10(max(ry,/nan)*0.5),/nan)
 ;al_legend,'!6FWHM!dPSF!n='+string(fwhm,format='(f4.2)')+'"',box=0,/bottom,/left,textcolor='gray'
 ;;---
-
-device,/close
-set_plot,'x'
-
-END

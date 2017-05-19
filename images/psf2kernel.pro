@@ -9,17 +9,19 @@ PRO PSF2KERNEL,lores,hires,kname,halfsz=halfsz,verify=verify,verbose=verbose
 
 ; for halfsz=30.0
 
-im1=readfits(lores,/silent)
-im2=readfits(hires,/silent)
+im1=readfits(lores)
+im2=readfits(hires)
 
 nxy=size(im1,/d)
-if  n_elements(halfsz) ne 1 then halfsz=floor(min(nxy)/2.0)
+if  n_elements(halfsz) ne 1 then halfsz=min(round((nxy-1.)/2.))
 nxy=round((nxy-1.)/2.)
 if  keyword_set(verbose) then print,'halfsz: ',halfsz
 if  keyword_set(verbose) then print,'hresum: ',total(im2)
 
 subim1=im1[nxy[0]-halfsz:nxy[0]+halfsz,nxy[0]-halfsz:nxy[0]+halfsz]
 subim2=im2[nxy[0]-halfsz:nxy[0]+halfsz,nxy[0]-halfsz:nxy[0]+halfsz]
+print,size(subim1)
+print,size(subim2)
 
 max_entropy,subim1,subim2/total(subim2),image_deconv,multipliers, FT_PSF=psf_ft
 ;deconv_tool, image_deconv, deconv_info, IMAGE_OBS=im1, PSF_OBS=im2
@@ -41,7 +43,10 @@ writefits,kname,image_deconv
 
 if  keyword_set(verify) then begin
     tmp=repstr(kname,'.fits','_verify.fits')
-    writefits,tmp,convol_fft(im2,image_deconv)
+    writefits,tmp,convol_fft(image_deconv,subim2/total(subim2))
+    
+    tmp=repstr(kname,'.fits','_test.fits')
+    writefits,tmp,subim2/total(subim2)
 endif
 
 END

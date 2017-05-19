@@ -63,7 +63,7 @@ endif
 
 ;   FIND SKY PIXELS
 ;
-skytag=where(temp gt skyrad[0] and temp le skyrad[1] and im eq im)
+skytag=where(temp gt min(skyrad) and temp le max(skyrad) and im eq im)
 resistant_mean,im[skytag],3.0,skymod,skysig,num_rej
 pixsig=skysig*sqrt((n_elements(skytag)-num_rej-1)*1.0)
 ;mmm,im[skytag],skymod,pixsig,skyskew
@@ -116,7 +116,7 @@ rp={center:ri,$                             ;   ring radius center
     fwhma:!values.f_nan,$                   ;   aperture defined fwhm
     fwhmi:!values.f_nan,$                   ;   aperture defined fwhm
     fwhmd:!values.f_nan,$                   ;   aperture defined fwhm
-    bin:rbin,$                              ;   radius bin size
+    rbin:rbin,$                              ;   radius bin size
     psize:psize,$                           ;   pixel size
     skysig:rms_scale.rms_width,$            ;   large-scale sky uncernatines
     ;------                                 ;   model profile
