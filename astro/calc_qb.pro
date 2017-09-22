@@ -1,6 +1,7 @@
 FUNCTION CALC_QB,filter,mode=mode,$
     wave=wave,flux=flux,$               ;   mode='sed'
-    beta=beta,zigm=zigm                 ;   mode='cont'
+    beta=beta,zigm=zigm,$               ;   mode='cont'
+    igmtau_scale=igmtau_scale
 ;+
 ;   all wave are in the obs frame
 ;   mode='line':    calculate b (bandwidth)
@@ -28,7 +29,11 @@ if  mode eq 'cont' then begin
     qb=g/w
     ;print,qb
     qb=qb*(w/wave)^(2.+beta)
-    if  keyword_set(zigm) then qb=qb*exp(-calc_IGMTAU(w,zigm,model='I14'))
+    if  keyword_set(zigm) then begin
+        if  n_elements(igmtau_scale) eq 0 then igmtau_scale=1.0
+        igmtau_scale=igmtau_scale>0.0
+        qb=qb*exp(-calc_IGMTAU(w,zigm,model='I14')*igmtau_scale)
+    endif
     qb=tsum(w,qb)
     qb=qb/tsum(w,g/w)
 endif
