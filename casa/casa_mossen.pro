@@ -78,7 +78,10 @@ flux=readfits(filename+'.flux.fits',fluxhd)
 im=readfits(filename+'.image.fits',hd)
 rd_hd,hd,s=s
 sgrid=s.v
-nchan=(size(im,/d))[2]
+
+nchan=1
+if  size(im,/n_d) eq 3 then nchan=(size(im,/d))[2]
+
 
 if  file_test(filename+'.psf.fits') then begin 
     psf=readfits(filename+'.psf.fits',psfhd)
@@ -231,28 +234,30 @@ for i=0,nchan-1 do begin
     cn[i]=min(sen[*,*,i],/nan)
 endfor
 
-;
-set_plot, 'ps'
-device, filename=filename+'.err.eps', $
-    bits_per_pixel=8,/encapsulated,$
-    xsize=8,ysize=4,/inches,/col,xoffset=0,yoffset=0,/cmyk
-!p.thick=2.0
-!x.thick = 2.0
-!y.thick = 2.0
-!z.thick = 2.0
-!p.charsize=1.0
-!p.charthick=1.0
+if  nchan ne 1 then begin
 
-yrange=[-0.2,1.2]*max([cn,dn])
-plot,s.v,cn,psym=10,xstyle=1,ystyle=1,yrange=yrange
-oplot,s.v,dn,psym=10,linestyle=2,color=cgcolor('red')
-oplot,s.v,cn,psym=cgsymcat(16),linestyle=2
-oplot,s.v,dn,psym=cgsymcat(9),linestyle=2,color=cgcolor('red')
-al_legend,filename,/bot
+    set_plot, 'ps'
+    device, filename=filename+'.err.eps', $
+        bits_per_pixel=8,/encapsulated,$
+        xsize=8,ysize=4,/inches,/col,xoffset=0,yoffset=0,/cmyk
+    !p.thick=2.0
+    !x.thick = 2.0
+    !y.thick = 2.0
+    !z.thick = 2.0
+    !p.charsize=1.0
+    !p.charthick=1.0
+    
+    yrange=[-0.2,1.2]*max([cn,dn])
+    plot,s.v,cn,psym=10,xstyle=1,ystyle=1,yrange=yrange
+    oplot,s.v,dn,psym=10,linestyle=2,color=cgcolor('red')
+    oplot,s.v,cn,psym=cgsymcat(16),linestyle=2
+    oplot,s.v,dn,psym=cgsymcat(9),linestyle=2,color=cgcolor('red')
+    al_legend,filename,/bot
+    
+    device, /close
+    set_plot,'X'
 
-device, /close
-set_plot,'X'
-
+endif
 
 END
 
