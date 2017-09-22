@@ -1,6 +1,7 @@
-PRO HEXTRACTX,IM,HD,subim,subhd,xrange,yrange,$
+ PRO HEXTRACTX,IM,HD,subim,subhd,xrange,yrange,$
     radec=radec,arcmin=arcmin,pxbox=pxbox,$
-    silent=silent,EXTENSION=EXTENSION
+    silent=silent,EXTENSION=EXTENSION,$
+    subrange=subrange
     
 ;+
 ; NAME:
@@ -18,23 +19,21 @@ PRO HEXTRACTX,IM,HD,subim,subhd,xrange,yrange,$
 ;   XRANGE      RA range [or Delta(RA) range] 
 ;   YRANGE      DEC range [or Delta(DEC) range]
 ;   [RADEC      for calculating Delta(RA)/Delta(DEC)]       
-;   REFHD       header specifying the region to be plotted
-;               note: refhd pixel size doesn't really matter here.
 ;   position   plott position
 ;   _EXTRA      any keywords for cgimgscl
 ;
 ; KEYWORD:
 ;   noplot      don't plot, just for testing, or deriving subrange/subim
+;   arcmin      xrange/range in units of arcmin (arcsec for default)
 ;
 ; OUTPUTS:
 ;   SUBIM
 ;   SUBHD
-;   SUBRANGE    [xmin,xmax,ymin,ymax]
-;               index range (defined in IM) of the smallest rectangle covering
-;               the plotted region
-;   SUBIM       a cutoff from IM just large enough to cover the plotted region
-;   DUMMY       a template from refhd
-;
+;   SUBRANGE        [xmin,xmax,ymin,ymax]
+;                   index range (defined in IM) of the smallest rectangle covering
+;                   the plotted region
+;   SUBIM           a cutoff from IM just large enough to cover the plotted region
+;   
 ; HISTORY:
 ;
 ;   20120701  RX  introduced
@@ -79,12 +78,16 @@ ymax=ceil(max(yy)+2)<nxy[1]-1
 
 if  xmin le nxy[0]-1 and xmax ge 0 and ymin le nxy[1]-1 and ymax ge 0 then begin
     if  size(im,/tn) ne size('',/tn) then begin
-        hextract,im,hd,subim,subhd,xmin,xmax,ymin,ymax,silent=silent
+        n_dim=size(im,/n_dim)
+        if  n_dim eq 2 then hextract,im,hd,subim,subhd,xmin,xmax,ymin,ymax,silent=silent
+        if  n_dim eq 3 then hextract3d,im,hd,subim,subhd,[xmin,xmax,ymin,ymax]
     endif else begin
         ; note that xmin/xmax/ymin/ymax must be integer
         fxreadx,im,subim,subhd,xmin,xmax,ymin,ymax,extension=extension
     endelse
 endif
+
+subrange=[xmin,xmax,ymin,ymax]
 
 
 END
