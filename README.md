@@ -1,6 +1,6 @@
 ### IDL-xlib
 
-This repository contains various IDL routines written in IDL for my astronomy research projects. Most IDL procedures/functions in this collection were written as library codes for "general" purposes, but motivated by specific projects. Some highlights include:
+This repository contains various routines written in IDL/Python for my astronomy research projects. Most rocedures/functions in this collection were written as library codes for "general" purposes, but motivated by specific projects. Some highlights include:
 
 * astro/calc_igmtau.pro
 
