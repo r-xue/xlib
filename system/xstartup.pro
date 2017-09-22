@@ -26,3 +26,4 @@
 !y.thick = 1.0
 !z.thick = 1.0
 !p.charthick=1.0
+!more=0
