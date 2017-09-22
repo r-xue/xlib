@@ -2,6 +2,8 @@
 
 This repository contains various routines written in IDL/Python for my astronomy research projects. Most rocedures/functions in this collection were written as library codes for "general" purposes, but motivated by specific projects. Some highlights include:
 
+* astro/calc_nc.py
+
 * astro/calc_igmtau.pro
 
 * astro/calc_qb.pro
