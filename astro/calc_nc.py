@@ -137,6 +137,25 @@ def calc_nc(mol='co',tk=40.0,qn='1',r_oph2=3.0,pt='H2',verbose=False):
 if  __name__=="__main__":
     """
     try different atoms/mols
+    
+    output log:
+    
+        hco+@xpol       qn=1           20k pt:H2    n_crit: 4.65e+04
+        h13co+@xpol     qn=1           20k pt:H2    n_crit: 4.14e+04
+        cs@lique        qn=1           40k pt:H2    n_crit: 8.53e+03
+        hcn             qn=" 01 "      40k pt:H2    n_crit: 1.96e+05
+        hcn@hfs         qn=1 2         40k pt:H2    n_crit: 1.64e+05
+        hcn@xpol        qn=1           40k pt:H2    n_crit: 1.64e+05
+        co              qn=1           40k pt:H2    n_crit: 3.53e+02
+        co@old          qn=1           20k pt:H2    n_crit: 5.01e+02
+        co@neufeld      qn=1           20k pt:H2    n_crit: 5.23e+02
+        ph2o@daniel     qn=2_1_1       35k pt:H2    n_crit: 2.26e+07
+        oh2o@daniel     qn=2_1_2       35k pt:H2    n_crit: 2.56e+08
+        catom           qn=2           50k pt:H2    n_crit: 1.25e+03
+        co              qn=7           50k pt:H2    n_crit: 1.24e+05
+        catom           qn=2           50k pt:H2    n_crit: 1.25e+03
+        ph2o@daniel     qn=2_1_1       45k pt:H2    n_crit: 2.10e+07
+        
     """
     
 
@@ -153,6 +172,9 @@ if  __name__=="__main__":
     level_list.append({'mol':'ph2o@daniel','qn':'2_1_1','tk':35,'pt':'H2'})
     level_list.append({'mol':'oh2o@daniel','qn':'2_1_2','tk':35,'pt':'H2'})
     level_list.append({'mol':'catom','qn':'2','tk':50,'pt':'H2'})
+    level_list.append({'mol':'co','qn':'7','tk':50,'pt':'H2'})
+    level_list.append({'mol':'catom','qn':'2','tk':50,'pt':'H2'})
+    level_list.append({'mol':'ph2o@daniel','qn':'2_1_1','tk':45,'pt':'H2'})
     
     for i in range(len(level_list)):
         nc=calc_nc(mol=level_list[i]['mol'],
