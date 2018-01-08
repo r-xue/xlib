@@ -175,6 +175,8 @@ if  __name__=="__main__":
     level_list.append({'mol':'co','qn':'7','tk':50,'pt':'H2'})
     level_list.append({'mol':'catom','qn':'2','tk':50,'pt':'H2'})
     level_list.append({'mol':'ph2o@daniel','qn':'2_1_1','tk':45,'pt':'H2'})
+    level_list.append({'mol':'p-nh3','qn':'01_01_01','tk':50,'pt':'H2'})
+    level_list.append({'mol':'p-nh3','qn':'02_02_01','tk':50,'pt':'H2'})
     
     for i in range(len(level_list)):
         nc=calc_nc(mol=level_list[i]['mol'],

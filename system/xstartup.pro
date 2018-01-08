@@ -6,14 +6,16 @@
         Expand_Path('+~/Dropbox/Worklib/idl/packages')              ; packages
 
 !PATH=  !PATH+':'+$
-        Expand_Path('+~/GDrive/Worklib/idl/resource/misc')+':'+$        ; core libs
-        Expand_Path('+~/GDrive/Worklib/idl/resource')+':'+$        ; core libs
-        Expand_Path('+~/GDrive/Worklib/projects')+':'+$            ; projects
-        Expand_Path('+~/GDrive/Worklib/idl/packages')              ; packages
+        Expand_Path('+~/Dropbox/Worklib/idl/resource/misc')+':'+$        ; core libs
+        Expand_Path('+~/Dropbox/Worklib/idl/resource')+':'+$        ; core libs
+        Expand_Path('+~/Dropbox/Worklib/projects')+':'+$            ; projects
+        Expand_Path('+~/Dropbox/Worklib/idl/packages')              ; packages
 
 !PATH=  Expand_Path('+~/Dropbox/Worklib/idl/resource/impro')+':'+!PATH
+!PATH=  Expand_Path('+~/Dropbox/Worklib/projects')+':'+!PATH
 !PATH=  Expand_Path('+~/Dropbox/Worklib/projects/xlib')+':'+!PATH
-!PATH=  Expand_Path('+~/Dropbox/Worklib/idl/resource/IDLAstro/pro/')+':'+!PATH
+!PATH=  Expand_Path('+~/Dropbox/Worklib/idl/resource/textoidl')+':'+!PATH
+!PATH=  Expand_Path('+~/Dropbox/Worklib/idl/resource/IDLAstro/pro')+':'+!PATH
 !PATH=  Expand_Path('+~/Dropbox/Worklib/idl/resource/idl-coyote')+':'+!PATH
 
 ;!PATH=  Expand_Path('+~/GDrive/Worklib/idl/packages/astron-contrib/varosi/')+':'+!PATH
