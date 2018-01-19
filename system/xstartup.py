@@ -1,5 +1,9 @@
 import os
 import inspect
+import matplotlib
+matplotlib.use("Agg")   # use non-interactive backend
+#import matplotlib.pyplot as plt
+
 from os.path import expanduser
 home = expanduser("~")
 print ""
