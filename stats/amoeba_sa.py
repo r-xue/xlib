@@ -145,7 +145,6 @@ def amoeba_sa(func,p0,scale,
     dict['p_up']=p_up
     dict['p_up']=p_lo
     
-    
     return  dict
 
 def amotry_sa(func,p,psum,ihi,fac,y, 

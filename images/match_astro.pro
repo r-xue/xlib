@@ -33,7 +33,7 @@ FUNCTION match_astro,image,flag=flag,$
 ;   [ra/dec]        RA/DEC [must be tied to the fits image astrometry] 
 ;
 ;   +++OPTION 3
-;   [x/y]           x/y (IDL convention) in the fits image
+;   [ximage/yimage] x/y (IDL convention) in the fits image
 ;   
 ;   +++OPTION 4
 ;   [/gcntrd or /cntrd]
@@ -162,9 +162,9 @@ for i=0,n_elements(catalogs)-1 do begin
     if  n_elements(ra) ne 0 then begin
         adxy,hd,ra,dec,xi,yi
     endif
-    if  n_elements(x) ne 0 then begin
-        xi=x
-        yi=y
+    if  n_elements(ximage) ne 0 then begin
+        xi=ximage
+        yi=yimage
     endif
     if  keyword_set(gcntrd) then begin
         im=readfits(image,hd)

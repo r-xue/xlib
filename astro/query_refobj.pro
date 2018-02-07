@@ -4,7 +4,7 @@ FUNCTION QUERY_REFOBJ,$
     zero=zero,nan=nan,guard=guard,sat=sat,$
     iso=iso,$
     outname=outname,outall=outall,$
-    outcat=outcat
+    outcat=outcat,radectag=radectag
 ;+
 ; NAME:
 ;   query_refobj
@@ -92,48 +92,60 @@ if  size(cat,/tn) eq size({tmp:''},/tn) then begin
     print,replicate('--',30)
     print,string('n_objs(query):',format='(A-30)'),string(n_elements(cat),format='(i10)')
     
+    ;   RA/DEC/CAT: same numbers of elements from now on
+    if  ~keyword_set(radectag) then radectag=['RAJ2000','DEJ2000']
+    print,tag_names(cat)
+    ra_ind=where(tag_names(cat) eq radectag[0])
+    dec_ind=where(tag_names(cat) eq radectag[1])
+    ra=cat.(ra_ind)
+    dec=cat.(dec_ind)
     
     st=replicate(temp,n_elements(cat))
     st.color='blue'
-    st.x=cat.RAJ2000
-    st.y=cat.DEJ2000
+    
+    st.x=ra
+    st.y=dec
     st1=st
     st2=st
     st2.radius=1.0
     st=[st1,st2]
     if  n_elements(outname) ne 0 and keyword_set(outall) then begin
         write_ds9reg,outname+'_all.reg',st,'FK5'
-        write_csv,outname+'_all.csv',double((cat.RAJ2000)),double((cat.DEJ2000))
+        write_csv,outname+'_all.csv',double(ra),double(dec)
     endif
     
     
     ;   FIND OBJECTS ISOLATED (no nearby objects within 10 sec)
     if  n_elements(iso) then begin
-        result=matchall_sph(cat.RAJ2000,cat.DEJ2000,cat.RAJ2000,cat.DEJ2000,1.0/60./60.*iso,nwithin)
+        result=matchall_sph(ra,dec,ra,dec,1.0/60./60.*iso,nwithin)
         cat=cat[where(nwithin eq 1,/null)]
+        ra=ra[where(nwithin eq 1,/null)]
+        dec=dec[where(nwithin eq 1,/null)]
         print,string('n_objs(isolated):',format='(A-30)'),string(n_elements(cat),format='(i10)')
     endif
 
     ;   VALID OBJECTS ON THE IMAGE    
-    obj_in=valid_object(image,cat.RAJ2000,cat.DEJ2000,nan=nan,zero=zero,guard=guard,sat=sat)    
+    obj_in=valid_object(image,ra,dec,nan=nan,zero=zero,guard=guard,sat=sat)    
     print,string('n_objs(valid on image):',format='(A-30)'),string(total(long(obj_in)),format='(i10)')
     if  flag ne '' then begin
-        obj_okay=valid_object(flag,cat.RAJ2000,cat.DEJ2000,/flag)
+        obj_okay=valid_object(flag,ra,dec,/flag)
         obj_in=(obj_in and obj_okay)
         print,string('n_objs(valid on flag):',format='(A-30)'),string(total(long(obj_in)),format='(i10)')
     endif
     cat=cat[where(obj_in,/null)]
+    ra=ra[where(obj_in,/null)]
+    dec=dec[where(obj_in,/null)]
 
     st=replicate(temp,n_elements(cat))
-    st.x=cat.RAJ2000
-    st.y=cat.DEJ2000    
+    st.x=ra
+    st.y=dec    
     st1=st
     st2=st
     st2.radius=1.0
     st=[st1,st2]    
     if  n_elements(outname) ne 0 then begin
         write_ds9reg,outname+'.reg',st,'FK5'
-        write_csv,outname+'.csv',double((cat.RAJ2000)),double((cat.DEJ2000))
+        write_csv,outname+'.csv',double((ra)),double((dec))
     endif
 
 endif else begin
