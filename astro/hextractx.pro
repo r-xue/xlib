@@ -14,8 +14,10 @@
 ;   the astronomical box
 ;
 ; INPUTS:
-;   IM          data image
-;   HD          data hd
+;   IM          image data
+;               note: if <im> is a file name (string), we will try to use 
+;               the faster fxreadx.pro
+;   HD          image hd
 ;   XRANGE      RA range [or Delta(RA) range] 
 ;   YRANGE      DEC range [or Delta(DEC) range]
 ;   [RADEC      for calculating Delta(RA)/Delta(DEC)]       
@@ -60,6 +62,8 @@ if  n_elements(yrange) eq 1 $
 xbox=[xbox[0],xbox[1],xbox[1],xbox[0]]
 ybox=[ybox[0],ybox[0],ybox[1],xbox[1]]
 
+
+
 if  n_elements(radec) eq 2 then begin
     ; assume the image is in a tangent-plane
     u2d=3600
@@ -67,7 +71,11 @@ if  n_elements(radec) eq 2 then begin
     xbox=radec[0]+xbox/u2d/cos(!const.DtoR*radec[1])
     ybox=radec[1]+ybox/u2d
 endif
+
+
+
 adxy,hd,xbox,ybox,xx,yy
+
 
 nxy=[sxpar(hd,'NAXIS1'),sxpar(hd,'NAXIS2')]
 

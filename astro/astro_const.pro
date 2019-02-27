@@ -1,7 +1,7 @@
 FUNCTION ASTRO_CONST
 
 ; Collections
-;http://www.exelisvis.com/docs/Constant_System_Variable.html
+;http://www.harrisgeospatial.com/docs/Constant_System_Variable.html
 ;http://hea-www.harvard.edu/PINTofALE/pro/util/inicon.pr
 ;https://code.google.com/p/red-idl-cosmology/source/browse/trunk/astroc.pro?r=2
 ;A. Leroy constant.bat

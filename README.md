@@ -1,6 +1,6 @@
-### IDL/Python-xlib
+### IDL-xlib
 
-This repository contains various routines written in IDL/Python for my astronomy research projects. Most rocedures/functions in this collection were written as library codes for "general" purposes, but motivated by specific projects.
+This repository contains various routines written in IDL for my astronomy research projects. Most rocedures/functions in this collection were written as library codes for "general" purposes, but motivated by specific projects.
 
 ###### One-line descriptions of some procedures/functions (still under construction):
 

@@ -1,7 +1,8 @@
 PRO REGRID3D,   oldim,oldhd,$
                 newim,newhd,refhd,$
                 regridv=regridv,$
-                missing=missing
+                interp=interp,degree=degree,$
+                missing=missing,verbose=verbose
 ;+
 ; NAME:
 ;   regrid3d
@@ -48,13 +49,13 @@ endif else begin
       sxaddpar,tmp,'NAXIS3',1
       newim=[]
       for i=0,nchan-1 do begin
-          hastrom_nan,oldim[*,*,i],tmp,newim0,newhd0,refhd,missing=missing
+          hastrom_nan,oldim[*,*,i],tmp,newim0,newhd0,refhd,missing=missing,interp=interp,degree=degre
           newim=[[[newim]],[[newim0]]]
       endfor
       sxaddpar,newhd0,'NAXIS3',nchan
       newhd=newhd0
     endif else begin
-      hastrom_nan,oldim,oldhd,newim,newhd,refhd,missing=missing
+      hastrom_nan,oldim,oldhd,newim,newhd,refhd,missing=missing,interp=interp,degree=degre
     endelse
 endelse
 
@@ -63,10 +64,10 @@ if n_elements(regridv) ne 0 then begin
   
   rd_hd, newhd, s=newh, c=newc, /full
   rd_hd, refhd, s=refh, c=refc, /full
-  print,"input cube velo info:  ", newh.ctype[2],newh.specsys,newh.velref,(newh.cdelt[2]/1.e3)
+  if    keyword_set(verbose) then print,"input cube velo info:  ", newh.ctype[2],newh.specsys,newh.velref,(newh.cdelt[2]/1.e3)
   oldv=newh.v*1000.
   oldcv=abs(newh.cdelt[2]/1.e3)
-  print,"ref   cube velo info:  ", refh.ctype[2],refh.specsys,refh.velref,(refh.cdelt[2]/1.e3)
+  if    keyword_set(verbose) then print,"ref   cube velo info:  ", refh.ctype[2],refh.specsys,refh.velref,(refh.cdelt[2]/1.e3)
   refv=refh.v*1000.
   refcv=abs(refh.cdelt[2]/1.e3)
 
@@ -79,13 +80,15 @@ if n_elements(regridv) ne 0 then begin
   euler,refc.ra,refc.dec,l,b,1
   ;http://www.atnf.csiro.au/people/Tobias.Westmeier/tools_hihelpers.php#restframes
   dframe=9.*cos(l/180.*!dpi)*cos(b/180.*!dpi) + 12.*sin(l/180.*!dpi)*cos(b/180.*!dpi) + 7.*sin(b/180.*!dpi)
-  print, "V(LSRD)-V(HEL) [km/s]:  ", mean(dframe),min(dframe),max(dframe)
+  if    keyword_set(verbose) then print, "V(LSRD)-V(HEL) [km/s]:  ", mean(dframe),min(dframe),max(dframe)
   helio2lsr,0.0,dframe,ra=refc.ra,dec=refc.dec,/kin
-  print, "V(LSRK)-V(HEL) [km/s]:  ", mean(dframe),min(dframe),max(dframe)
-  print, "frame change?"
-  if regridv eq 0 then print, "no frame difference"
-  if regridv eq 1 then print, "LSRK->BARY"
-  if regridv eq 2 then print, "BARY->LSRK"
+  if    keyword_set(verbose) then print, "V(LSRK)-V(HEL) [km/s]:  ", mean(dframe),min(dframe),max(dframe)
+  if    keyword_set(verbose) then print, "frame change?"
+  if    keyword_set(verbose) then begin
+    if regridv eq 0 then print, "no frame difference"
+    if regridv eq 1 then print, "LSRK->BARY"
+    if regridv eq 2 then print, "BARY->LSRK"
+  endif
   
   for i=0,nxy[0]-1 do begin
     for j=0,nxy[1]-1 do begin
@@ -95,7 +98,7 @@ if n_elements(regridv) ne 0 then begin
       spex=newim[i,j,*]
       new2im[i,j,*]=interpol(spex,oldv+dfra,refv)
       tagnan=where(refv gt max(oldv+dfra+0.5*oldcv) or refv lt min(oldv+dfra-0.5*oldcv))
-      if tagnan[0] ne -1 then new2im[i,j,[tagnan]]=!VALUES.F_NAN
+      if tagnan[0] ne -1 then new2im[i,j,[tagnan]]=missing
     endfor
   endfor
   
